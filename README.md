@@ -35,4 +35,20 @@ A framework based on SpringBoot, focusing on different section
 
 - [ ] web场景
 
+  - web开发最重要的是什么 sso
+
+  - 将sso的实现看作黑盒
+ 
+  - 框架要关心的是应用开发层面的注解 拿到要访问的资源信息 去做鉴权和跳转
+
 - [ ] http场景
+
+  - 这个场景要从众多的http client中挑选一个轻量级的 并且高性能的
+
+- [ ] 远程配置中心
+
+  - 要将项目的唯一标识符硬编码到resources中，作为配置中心的namespace标识
+
+  - 启动的时候可以梭哈读到所有配置项缓存到spring的environment中
+
+  - 注册监听器接收变更回调
