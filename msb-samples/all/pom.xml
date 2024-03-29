@@ -26,6 +26,11 @@
 
         <dependency>
             <groupId>com.github.bannirui</groupId>
+            <artifactId>msb-sso</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.bannirui</groupId>
             <artifactId>msb-http</artifactId>
         </dependency>
 

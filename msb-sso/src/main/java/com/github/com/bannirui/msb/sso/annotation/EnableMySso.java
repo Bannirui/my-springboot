@@ -1,6 +1,6 @@
-package com.github.bannirui.msg.remotecfg.annotation;
+package com.github.com.bannirui.msb.sso.annotation;
 
-import com.github.bannirui.msg.remotecfg.autoconfig.MyRemoteCfgImportSelector;
+import com.github.com.bannirui.msb.sso.autoconfig.MySsoImportSelector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -10,12 +10,13 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 /**
- * 注解启动远程配置中心场景.
+ * 启动sso场景.
  */
 @Documented
+@Inherited
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Import({MyRemoteCfgImportSelector.class})
-public @interface EnableMyRemoteCfg {
+@Import({MySsoImportSelector.class})
+public @interface EnableMySso {
+
 }

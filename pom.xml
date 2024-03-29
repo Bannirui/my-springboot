@@ -29,6 +29,7 @@
         <module>msb-samples</module>
         <module>msb-http</module>
         <module>msb-remotecfg</module>
+        <module>msb-sso</module>
     </modules>
 
     <properties>
@@ -36,6 +37,9 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <module.version>3.2.4</module.version>
+        <nacos-client.version>2.3.1</nacos-client.version>
     </properties>
 
     <dependencyManagement>
@@ -43,25 +47,37 @@
             <dependency>
                 <groupId>com.github.bannirui</groupId>
                 <artifactId>msb-common</artifactId>
-                <version>3.2.4</version>
+                <version>${module.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.bannirui</groupId>
                 <artifactId>msb-web</artifactId>
-                <version>3.2.4</version>
+                <version>${module.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bannirui</groupId>
+                <artifactId>msb-sso</artifactId>
+                <version>${module.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.bannirui</groupId>
                 <artifactId>msb-http</artifactId>
-                <version>3.2.4</version>
+                <version>${module.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.bannirui</groupId>
                 <artifactId>msb-remotecfg</artifactId>
-                <version>3.2.4</version>
+                <version>${module.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

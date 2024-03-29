@@ -9,18 +9,13 @@
         <version>3.2.4</version>
     </parent>
 
-    <artifactId>msb-remotecfg</artifactId>
+    <artifactId>msb-sso</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>com.github.bannirui</groupId>
             <artifactId>msb-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
         </dependency>
     </dependencies>
 </project>

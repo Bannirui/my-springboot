@@ -35,10 +35,10 @@ A framework based on SpringBoot, focusing on different section
 
 - [ ] web场景
 
-  - web开发最重要的是什么 sso
+- [ ] sso独立出来
 
   - 将sso的实现看作黑盒
- 
+
   - 框架要关心的是应用开发层面的注解 拿到要访问的资源信息 去做鉴权和跳转
 
 - [ ] http场景

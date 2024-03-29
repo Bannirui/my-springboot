@@ -1,7 +1,8 @@
-package com.github.bannirui.msg.remotecfg.autoconfig;
+package com.github.bannirui.msb.remotecfg.autoconfig;
 
 import com.github.bannirui.msb.common.startup.MyAutoConfigImportSelector;
-import com.github.bannirui.msg.remotecfg.config.RemoteCfgConfig;
+import com.github.bannirui.msb.remotecfg.config.RemoteCfgChangeListenerConfig;
+import com.github.bannirui.msb.remotecfg.config.RemoteCfgConfig;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
@@ -11,6 +12,6 @@ public class MyRemoteCfgImportSelector extends MyAutoConfigImportSelector {
 
     @Override
     protected String[] mySelectImports(AnnotationMetadata metadata) {
-        return new String[] {RemoteCfgConfig.class.getName()};
+        return new String[] {RemoteCfgConfig.class.getName(), RemoteCfgChangeListenerConfig.class.getName()};
     }
 }

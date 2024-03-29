@@ -1,0 +1,4 @@
+# ??Bean
+# Application Listeners
+org.springframework.context.ApplicationListener=\
+com.github.bannirui.msb.remotecfg.MySpringApplicationEventListener

@@ -7,6 +7,7 @@ import java.util.Arrays;
  */
 public enum EnableType {
     ENABLE_WEB("EnableMyWeb", "MyWebImportSelector"),
+    ENABLE_SSO("EnableMySso", "MySsoImportSelector"),
     ENABLE_HTTP("EnableMyHttp", "MyHttpImportSelector"),
     ENABLE_REMOTE_CONFIG("EnableMyRemoteCfg", "MyRemoteCfgImportSelector"),
     ;

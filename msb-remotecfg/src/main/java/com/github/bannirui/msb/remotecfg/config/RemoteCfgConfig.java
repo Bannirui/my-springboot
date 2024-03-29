@@ -1,4 +1,4 @@
-package com.github.bannirui.msg.remotecfg.config;
+package com.github.bannirui.msb.remotecfg.config;
 
 /**
  * 实现远程配置中心整合.
