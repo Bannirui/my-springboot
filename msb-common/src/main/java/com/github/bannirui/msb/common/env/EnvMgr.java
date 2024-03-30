@@ -5,4 +5,6 @@ package com.github.bannirui.msb.common.env;
  * 用于协助Spring Environment.
  */
 public class EnvMgr {
+
+
 }

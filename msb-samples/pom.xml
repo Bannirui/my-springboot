@@ -12,8 +12,8 @@
     <artifactId>msb-samples</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>web</module>
-        <module>common</module>
         <module>all</module>
+        <module>sample-01</module>
+        <module>sample-02</module>
     </modules>
 </project>

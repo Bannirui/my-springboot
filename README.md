@@ -1,6 +1,8 @@
 my-springboot
 ---
 
+[TODO请看](./TODO.md)
+
 A framework based on SpringBoot, focusing on different section
 
 到了新公司，看了几个项目，有些地方比较费劲
@@ -27,28 +29,14 @@ A framework based on SpringBoot, focusing on different section
 
 - 封装实现，隐藏细节
 
-### 2 TODO
+### 2 quick start
 
-- [ ] 基于SpringBoot
+- [启用框架](./doc/启用框架.md)
 
-- [ ] 统一场景Bean注入容器
+- [读取远程配置](./doc/读取远程配置.md)
 
-- [ ] web场景
+### 3 samples
 
-- [ ] sso独立出来
+- [框架启用](./msb-samples/sample-01)
 
-  - 将sso的实现看作黑盒
-
-  - 框架要关心的是应用开发层面的注解 拿到要访问的资源信息 去做鉴权和跳转
-
-- [ ] http场景
-
-  - 这个场景要从众多的http client中挑选一个轻量级的 并且高性能的
-
-- [ ] 远程配置中心
-
-  - 要将项目的唯一标识符硬编码到resources中，作为配置中心的namespace标识
-
-  - 启动的时候可以梭哈读到所有配置项缓存到spring的environment中
-
-  - 注册监听器接收变更回调
+- [读取远程配置](./msb-samples/sample-02)

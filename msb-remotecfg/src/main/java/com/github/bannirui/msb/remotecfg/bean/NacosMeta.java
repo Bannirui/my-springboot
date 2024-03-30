@@ -9,7 +9,6 @@ import java.util.List;
 public class NacosMeta {
 
     private String server;
-    private String namespace;
     private List<String> dataIds;
 
     public NacosMeta() {
@@ -22,14 +21,6 @@ public class NacosMeta {
 
     public void setServer(String server) {
         this.server = server;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
     }
 
     public List<String> getDataIds() {
