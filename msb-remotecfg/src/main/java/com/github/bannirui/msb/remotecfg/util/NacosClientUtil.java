@@ -11,6 +11,9 @@ import java.util.Properties;
  */
 public class NacosClientUtil {
 
+    /**
+     * 获取配置中心配置项.
+     */
     public static String getConfig(String serverAddr, String dataId, String group) {
         try {
             Properties properties = new Properties();
@@ -23,6 +26,9 @@ public class NacosClientUtil {
         return null;
     }
 
+    /**
+     * 获取配置中心配置项.
+     */
     public static String getConfig(String serverAddr, String dataId) {
         return getConfig(serverAddr, dataId, "DEFAULT_GROUP");
     }

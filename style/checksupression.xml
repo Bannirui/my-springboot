@@ -4,5 +4,6 @@
   "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 
 <suppressions>
-  <suppress checks="." files=".test$"/>
+  <!--忽略msb-samples所有文件检查-->
+  <suppress checks="." files="msb-samples.*"/>
 </suppressions>

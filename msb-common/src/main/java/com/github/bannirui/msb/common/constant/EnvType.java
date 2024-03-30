@@ -5,7 +5,7 @@ package com.github.bannirui.msb.common.constant;
  */
 public interface EnvType {
 
-    String KEY="env";
+    String KEY = "env";
     String DEV = "dev";
     String TEST = "test";
     String PROD = "prod";

@@ -85,13 +85,14 @@ public class MySpringApplicationEventListener implements ApplicationListener<Spr
         try {
             Resource[] resources = resolver.getResources("classpath*:remote_url.properties");
             int sz = 0;
-            if (resources != null && (sz = resources.length) > 0) {
+            if ((sz = resources.length) > 0) {
                 for (int i = 0; i < sz; i++) {
                     Resource resource = resources[i];
                     props.load(resource.getInputStream());
                 }
             }
-        } catch (Exception var10) {
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
         String env = System.getProperty(EnvType.KEY);
         String remoteCfgServerAddr = props.getProperty(env);

@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Import;
  *     <li>启动上一定有该注解</li>
  *     <li>该注解只能打在启动类上</li>
  * </ul>
+ * </p>
  */
 @Documented
 @Target({ElementType.TYPE})

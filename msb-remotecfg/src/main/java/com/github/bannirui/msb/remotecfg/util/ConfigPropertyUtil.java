@@ -6,6 +6,9 @@ import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
+/**
+ * 文本配置转换.
+ */
 public class ConfigPropertyUtil {
 
     /**
