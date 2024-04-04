@@ -4,6 +4,7 @@ import com.github.bannirui.msb.common.annotation.EnableMyFramework;
 import com.github.bannirui.msb.common.constant.EnvType;
 import com.github.bannirui.msb.remotecfg.annotation.EnableMyRemoteCfg;
 import com.github.bannirui.msb.remotecfg.bean.NacosMeta;
+import com.github.bannirui.msb.remotecfg.executor.HotReplaceListener;
 import com.github.bannirui.msb.remotecfg.util.ConfigPropertyUtil;
 import com.github.bannirui.msb.remotecfg.util.NacosClientUtil;
 import java.util.ArrayList;
@@ -13,8 +14,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.event.ApplicationStartingEvent;
 import org.springframework.boot.context.event.SpringApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -41,12 +42,14 @@ public class MySpringApplicationEventListener implements ApplicationListener<Spr
         if (!this.check()) {
             throw new RuntimeException("校验条件不过 启动参数没有指定环境");
         }
-        if (event instanceof ApplicationStartingEvent e) {
-            this.processApplicationStartingEvent(e);
-        } else if (event instanceof ApplicationEnvironmentPreparedEvent e) {
-            this.processApplicationEnvironmentPreparedEvent(e);
+        if (event instanceof ApplicationStartingEvent) {
+            this.loadNacosUrl();
         } else if (event instanceof ApplicationPreparedEvent e) {
-            this.processApplicationPreparedEvent(e);
+            // Spring上下文已经准备好
+            this.loadNacosDateId(e);
+        } else if (event instanceof ApplicationReadyEvent) {
+            // Spring已经准备好
+            this.registerNacosListener();
         }
     }
 
@@ -61,6 +64,10 @@ public class MySpringApplicationEventListener implements ApplicationListener<Spr
     public int getOrder() {
         // 拉高优先级
         return Integer.MIN_VALUE + 1;
+    }
+
+    public NacosMeta getNacosMeta() {
+        return nacosMeta;
     }
 
     /**
@@ -79,7 +86,7 @@ public class MySpringApplicationEventListener implements ApplicationListener<Spr
      * ApplicationStartingEvent事件时机锚点.
      * 因此这个时候只负责把远程配置中心的url读出来 有异常直接不让spring容器启动.
      */
-    private void processApplicationStartingEvent(ApplicationStartingEvent e) {
+    private void loadNacosUrl() {
         Properties props = new Properties();
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
@@ -100,20 +107,12 @@ public class MySpringApplicationEventListener implements ApplicationListener<Spr
     }
 
     /**
-     * 优先级低于{@link com.github.bannirui.msb.common.listener.MyCfgListener}.
-     * 此时已经可以拿到缓存好的app id.
-     * 以后可能需要用app id做别的事情.
-     */
-    private void processApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent e) {
-    }
-
-    /**
      * 趁着Bean还没实例化好.
      * 此时可以拿到部分Bean的BeanDefinition信息.
      * 这个时候去拿{@link com.github.bannirui.msb.remotecfg.annotation.EnableMyRemoteCfg}注解上属性值.
-     * 把远程配置中心的信息获取出来.
+     * 把远程配置中心的dataId属性读出来.
      */
-    private void processApplicationPreparedEvent(ApplicationPreparedEvent e) {
+    private void loadNacosDateId(ApplicationPreparedEvent e) {
         String[] names = e.getApplicationContext().getBeanDefinitionNames();
         for (String name : names) {
             BeanDefinition beanDefinition = e.getApplicationContext().getBeanFactory().getBeanDefinition(name);
@@ -132,22 +131,31 @@ public class MySpringApplicationEventListener implements ApplicationListener<Spr
                 this.nacosMeta.setDataIds(new ArrayList<>(dataIdSet));
             }
         }
-        // nacos三要素server namespace和data id已经齐了 可以去pull远程配置了
+        // nacos的server和dataId已经齐了 可以去pull远程配置了
         List<String> dataIds = this.nacosMeta.getDataIds();
         if (dataIds.isEmpty()) {
             return;
         }
         String server = this.nacosMeta.getServer();
-
         for (String dataId : dataIds) {
             String content = NacosClientUtil.getConfig(server, dataId);
             if (content == null || content.isBlank()) {
                 continue;
             }
             CompositePropertySource source = ConfigPropertyUtil.parse(content, dataId);
+            if (source == null) {
+                continue;
+            }
             // 配置项放到Spring中
             e.getApplicationContext().getEnvironment().getPropertySources().addLast(source);
         }
+    }
+
+    /**
+     * 向nacos注册监听器.
+     */
+    private void registerNacosListener() {
+        new HotReplaceListener(this).start();
     }
 
     /**

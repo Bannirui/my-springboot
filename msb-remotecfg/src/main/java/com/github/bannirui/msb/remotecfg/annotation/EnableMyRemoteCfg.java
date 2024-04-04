@@ -1,6 +1,7 @@
 package com.github.bannirui.msb.remotecfg.annotation;
 
 import com.github.bannirui.msb.remotecfg.EnableRemoteCfgAnnotationCheck;
+import com.github.bannirui.msb.remotecfg.RegistrarHelper;
 import com.github.bannirui.msb.remotecfg.autoconfig.MyRemoteCfgImportSelector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -30,11 +31,28 @@ import org.springframework.context.annotation.Import;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@Import({MyRemoteCfgImportSelector.class})
+@Import({MyRemoteCfgImportSelector.class, RegistrarHelper.class})
 public @interface EnableMyRemoteCfg {
+
+    /**
+     * 注解的方法名.
+     */
+    interface AttrName {
+        String DATA_ID = "dataId";
+        String Hot_REPLACE = "hotReplace";
+    }
+
+    ;
 
     /**
      * nacos的dataId.
      */
     String[] dataId();
+
+    /**
+     * 知否需要热更新特性支持.
+     *
+     * @return 默认false标识不需要启用热更新
+     */
+    boolean hotReplace() default false;
 }

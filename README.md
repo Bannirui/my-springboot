@@ -35,8 +35,12 @@ A framework based on SpringBoot, focusing on different section
 
 - [读取远程配置](./doc/读取远程配置.md)
 
+- [远程配置热更新](./doc/远程配置热更新.md)
+
 ### 3 samples
 
 - [框架启用](./msb-samples/sample-01)
 
 - [读取远程配置](./msb-samples/sample-02)
+
+- [远程配置热更新](./msb-samples/sample-03)

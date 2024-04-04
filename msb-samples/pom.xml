@@ -15,5 +15,6 @@
         <module>all</module>
         <module>sample-01</module>
         <module>sample-02</module>
+        <module>sample-03</module>
     </modules>
 </project>
