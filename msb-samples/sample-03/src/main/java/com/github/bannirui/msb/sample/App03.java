@@ -3,16 +3,16 @@ package com.github.bannirui.msb.sample;
 import com.github.bannirui.msb.common.annotation.EnableMyFramework;
 import com.github.bannirui.msb.remotecfg.annotation.EnableMyRemoteCfg;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 
 @EnableMyFramework
-@EnableMyRemoteCfg(dataId = {"sample-02"}, hotReplace = true)
+@EnableMyRemoteCfg(dataId = {"sample-03"}, hotReplace = true)
 public class App03 implements CommandLineRunner {
 
     @Autowired
@@ -37,11 +37,13 @@ public class App03 implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("name=" + this.name);
-        System.out.println("age=" + this.age);
-        System.out.println("sex=" + this.sex);
-        System.out.println("id=" + this.id);
-        BeanDefinition beanDefinition = ((BeanDefinitionRegistry) this.context).getBeanDefinition("myComponent");
-        System.out.println();
+        Executors.newSingleThreadScheduledExecutor()
+            .scheduleAtFixedRate(() -> {
+                System.out.println("name=" + App03.this.name);
+                System.out.println("age=" + App03.this.age);
+                System.out.println("sex=" + App03.this.sex);
+                System.out.println("id=" + App03.this.id);
+                System.out.println();
+            }, 2_000L, 5_000L, TimeUnit.MILLISECONDS);
     }
 }

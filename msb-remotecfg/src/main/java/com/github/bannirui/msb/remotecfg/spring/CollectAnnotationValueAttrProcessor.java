@@ -99,7 +99,7 @@ public class CollectAnnotationValueAttrProcessor implements BeanDefinitionRegist
                 Value value = field.getDeclaredAnnotation(Value.class);
                 String attr = value.value();
                 parser.replacePlaceholders(attr, placeholderName -> {
-                    FieldValueAnnotationAttr annotationAttr = new FieldValueAnnotationAttr(placeholderName, field.getName(), field.getType());
+                    FieldValueAnnotationAttr annotationAttr = new FieldValueAnnotationAttr(placeholderName, field.getName(), field.getType(), field);
                     // BeanName维度要缓存
                     ans.add(annotationAttr);
                     return null;

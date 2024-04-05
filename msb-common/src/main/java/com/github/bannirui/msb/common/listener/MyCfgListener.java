@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.common.listener;
 
-import com.github.bannirui.msb.common.util.FileUtil;
+import com.github.bannirui.msb.common.exception.InvalidException;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
@@ -54,7 +54,7 @@ public class MyCfgListener implements ApplicationListener<ApplicationEvent>, Pri
                 environment.getPropertySources().addLast(propertySource);
             }
             if (!containsAppId) {
-                throw new RuntimeException("不存在app id配置");
+                throw new InvalidException("classpath:META-INF/application.yml文件不存在app.id配置");
             }
         } catch (IOException ex) {
             ex.printStackTrace();

@@ -2,6 +2,7 @@ package com.github.bannirui.msb.remotecfg.executor;
 
 import com.github.bannirui.msb.remotecfg.spring.SpringValueAnnotationProcessor;
 import com.github.bannirui.msb.remotecfg.spring.bean.BeanWithValueAnnotation;
+import com.github.bannirui.msb.remotecfg.spring.bean.ValueAnnotatedObj;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,11 +21,11 @@ public class HotReplaceMgr extends Thread {
     @Override
     public void run() {
         // 缓存好的@Value注解的Bean对象
-        Map<String, List<BeanWithValueAnnotation>> map = SpringValueAnnotationProcessor.getValueAnnotationCache();
-        Iterator<Map.Entry<String, List<BeanWithValueAnnotation>>> mapIt = map.entrySet().iterator();
+        Map<String, ValueAnnotatedObj> map = SpringValueAnnotationProcessor.getPlaceholderPair();
+        Iterator<Map.Entry<String, ValueAnnotatedObj>> mapIt = map.entrySet().iterator();
         while (mapIt.hasNext()) {
-            Map.Entry<String, List<BeanWithValueAnnotation>> kv = mapIt.next();
-            List<BeanWithValueAnnotation> ls = kv.getValue();
+            Map.Entry<String, ValueAnnotatedObj> entry = mapIt.next();
+            List<BeanWithValueAnnotation> ls = entry.getValue().getList();
             if (ls.isEmpty()) {
                 mapIt.remove();
                 continue;

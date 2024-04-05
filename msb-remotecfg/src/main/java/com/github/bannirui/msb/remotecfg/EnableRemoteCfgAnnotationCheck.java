@@ -1,6 +1,7 @@
 package com.github.bannirui.msb.remotecfg;
 
 import com.github.bannirui.msb.common.annotation.EnableMyFramework;
+import com.github.bannirui.msb.common.exception.InvalidException;
 import com.github.bannirui.msb.remotecfg.annotation.EnableMyRemoteCfg;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
@@ -22,7 +23,7 @@ public class EnableRemoteCfgAnnotationCheck implements InstantiationAwareBeanPos
     public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
         if (beanClass.isAnnotationPresent(EnableMyRemoteCfg.class) && !beanClass.isAnnotationPresent(EnableMyFramework.class)) {
             // 这个注解必须在启动类上用
-            throw new RuntimeException("启用远程中心的注解@EnableRemoteCfg必须打在启动类上");
+            throw new InvalidException("启用远程配置中心的注解@EnableRemoteCfg必须打在启动类上");
         }
         return InstantiationAwareBeanPostProcessor.super.postProcessBeforeInstantiation(beanClass, beanName);
     }

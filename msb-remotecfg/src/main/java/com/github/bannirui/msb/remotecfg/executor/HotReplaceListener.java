@@ -4,8 +4,22 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
+import com.github.bannirui.msb.common.exception.UnsupportedException;
 import com.github.bannirui.msb.remotecfg.MySpringApplicationEventListener;
+import com.github.bannirui.msb.remotecfg.spring.SpringValueAnnotationProcessor;
+import com.github.bannirui.msb.remotecfg.spring.bean.BeanWithValueAnnotation;
+import com.github.bannirui.msb.remotecfg.spring.bean.FieldValueAnnotationAttr;
+import com.github.bannirui.msb.remotecfg.spring.bean.MethodValueAnnotationAttr;
+import com.github.bannirui.msb.remotecfg.spring.bean.ValueAnnotatedObj;
+import com.github.bannirui.msb.remotecfg.spring.bean.ValueAnnotationAttr;
+import com.github.bannirui.msb.remotecfg.spring.bean.ValueAnnotationTarget;
+import com.github.bannirui.msb.remotecfg.util.ConfigPropertyUtil;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
@@ -53,14 +67,75 @@ public class HotReplaceListener extends Thread {
                      */
                     @Override
                     public void receiveConfigInfo(String content) {
-                        // TODO: 2024/4/5 收到了nacos的回调 解析出每个配置项
-                        /**
-                         * 这个时候又遇到问题了 收到的回到是所有配置内容
-                         * <ul>
-                         *     <li>在内容中记下每个key的最新的value 然后收到nacos的回调后跟value比较 有更新才执行反射</li>
-                         *     <li>每次收到所有配置的时候全量执行反射所有Bean实例 这样肯定不行的</li>
-                         * </ul>
-                         */
+                        if (content == null || content.isBlank()) {
+                            return;
+                        }
+                        // 最新解析出来的
+                        Map<String, String> cur = ConfigPropertyUtil.parse(content);
+                        // 缓存好的
+                        Map<String, ValueAnnotatedObj> cached = SpringValueAnnotationProcessor.getPlaceholderPair();
+                        if (cur == null || cur.isEmpty()) {
+                            return;
+                        }
+                        cur.forEach((k, v) -> {
+                            ValueAnnotatedObj valueAnnotatedObj = cached.get(k);
+                            String pre = valueAnnotatedObj.getLastVal();
+                            if (!Objects.equals(v, pre)) {
+                                // 配置发生了变化 反射所有作用的实例
+                                for (BeanWithValueAnnotation o : valueAnnotatedObj.getList()) {
+                                    WeakReference<Object> beanRef = o.getBean();
+                                    ValueAnnotationAttr attr = o.getAnnotationAttr();
+                                    ValueAnnotationTarget.TargetType targetType = attr.getTargetType();
+                                    if (targetType == ValueAnnotationTarget.TargetType.FIELD) {
+                                        // 注解最用在成员上
+                                        FieldValueAnnotationAttr realAttr = (FieldValueAnnotationAttr) attr;
+                                        Field field = realAttr.getField();
+                                        Class<?> propertyType = realAttr.getPropertyType();
+                                        field.setAccessible(true);
+                                        try {
+                                            if (propertyType.equals(String.class)) {
+                                                field.set(beanRef.get(), v);
+                                            } else if (propertyType.equals(Integer.class)) {
+                                                field.set(beanRef.get(), Integer.valueOf(v));
+                                            } else if (propertyType.equals(Long.class)) {
+                                                field.set(beanRef.get(), Long.valueOf(v));
+                                            } else if (propertyType.equals(Short.class)) {
+                                                field.set(beanRef.get(), Short.valueOf(v));
+                                            } else if (propertyType.equals(List.class)) {
+                                                // TODO: 2024/4/5 java是运行时容器范型擦除了 怎么确定元素的类型呢
+                                                throw new UnsupportedException("@Value的远程配置热更新不支持" + propertyType + "类型");
+                                            } else {
+                                                throw new UnsupportedException("@Value的远程配置热更新不支持" + propertyType + "类型");
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else if (targetType == ValueAnnotationTarget.TargetType.METHOD) {
+                                        // 注解作用在方法上
+                                        MethodValueAnnotationAttr realAttr = (MethodValueAnnotationAttr) attr;
+                                        Method method = realAttr.getMethod();
+                                        Class<?> propertyType = realAttr.getPropertyType();
+                                        try {
+                                            if (propertyType.equals(String.class)) {
+                                                method.invoke(beanRef.get(), v);
+                                            } else if (propertyType.equals(Integer.class)) {
+                                                method.invoke(beanRef.get(), Integer.valueOf(v));
+                                            } else if (propertyType.equals(Long.class)) {
+                                                method.invoke(beanRef.get(), Long.valueOf(v));
+                                            } else if (propertyType.equals(Short.class)) {
+                                                method.invoke(beanRef.get(), Short.valueOf(v));
+                                            } else if (propertyType.equals(List.class)) {
+                                                throw new UnsupportedException("@Value的远程配置热更新不支持" + propertyType + "类型");
+                                            } else {
+                                                throw new UnsupportedException("@Value的远程配置热更新不支持" + propertyType + "类型");
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            }
+                        });
                     }
 
                     @Override

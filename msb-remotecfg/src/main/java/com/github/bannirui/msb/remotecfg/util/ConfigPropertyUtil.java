@@ -17,7 +17,7 @@ public class ConfigPropertyUtil {
      *
      * @param content nacos配置中心的内容. \n换行 =分割行
      */
-    public static Map<String, String> pare(String content) {
+    public static Map<String, String> parse(String content) {
         if (content == null || content.isBlank()) {
             return null;
         }
@@ -42,25 +42,30 @@ public class ConfigPropertyUtil {
         return ans;
     }
 
+    public static CompositePropertySource parse(Map<String, String> source, String nacosDataId) {
+        if (source == null || source.isEmpty()) {
+            return null;
+        }
+        CompositePropertySource composite = new CompositePropertySource("NacosConfig " + nacosDataId);
+        int i = 0;
+        for (Map.Entry<String, String> entry : source.entrySet()) {
+            PropertySource<Map<String, Object>> ps =
+                new MapPropertySource("NacosItem" + i++, Collections.singletonMap(entry.getKey(), entry.getValue()));
+            composite.addPropertySource(ps);
+        }
+        return composite;
+    }
+
     /**
      * 解析配置内容.
      *
      * @param nacosDataId nacos的data id
      */
     public static CompositePropertySource parse(String content, String nacosDataId) {
-        if (content == null || content.isBlank() || nacosDataId == null || nacosDataId.isBlank()) {
+        Map<String, String> map = null;
+        if (content == null || content.isBlank() || (map = parse(content)) == null || map.isEmpty()) {
             return null;
         }
-        Map<String, String> map = pare(content);
-        if (map == null || map.isEmpty()) {
-            return null;
-        }
-        CompositePropertySource composite = new CompositePropertySource("NacosConfig " + nacosDataId);
-        int i = 0;
-        for (Map.Entry<String, String> kv : map.entrySet()) {
-            PropertySource<Map<String, Object>> ps = new MapPropertySource("NacosItem" + i++, Collections.singletonMap(kv.getKey(), kv.getValue()));
-            composite.addPropertySource(ps);
-        }
-        return composite;
+        return parse(map, nacosDataId);
     }
 }

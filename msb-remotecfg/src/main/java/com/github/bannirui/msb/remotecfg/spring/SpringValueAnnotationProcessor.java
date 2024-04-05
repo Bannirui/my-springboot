@@ -1,9 +1,10 @@
 package com.github.bannirui.msb.remotecfg.spring;
 
 import com.alibaba.nacos.common.utils.ConcurrentHashSet;
-import com.github.bannirui.msb.remotecfg.executor.HotReplaceMgr;
+import com.github.bannirui.msb.remotecfg.MySpringApplicationEventListener;
 import com.github.bannirui.msb.remotecfg.spring.bean.BeanWithValueAnnotation;
 import com.github.bannirui.msb.remotecfg.spring.bean.MethodValueAnnotationAttr;
+import com.github.bannirui.msb.remotecfg.spring.bean.ValueAnnotatedObj;
 import com.github.bannirui.msb.remotecfg.spring.bean.ValueAnnotationAttr;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -14,16 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.boot.context.event.SpringApplicationEvent;
-import org.springframework.context.ApplicationListener;
 
 /**
  * 处理使用了Spring的注解{@link org.springframework.beans.factory.annotation.Value}的Bean.
@@ -43,7 +39,7 @@ import org.springframework.context.ApplicationListener;
  * <p>
  * 把Bean实例绑定关联之后还要负责维护
  */
-public class SpringValueAnnotationProcessor extends NacosProcessor implements BeanFactoryPostProcessor, ApplicationListener<SpringApplicationEvent> {
+public class SpringValueAnnotationProcessor extends NacosProcessor implements BeanFactoryPostProcessor {
 
     /**
      * 从{@link CollectAnnotationValueAttrProcessor}取BeanName维度的缓存.
@@ -57,7 +53,7 @@ public class SpringValueAnnotationProcessor extends NacosProcessor implements Be
      * 方便热更新的时候检索
      * 设计成静态成员的原因是多个地方要用 我又不想其他的实例跟这个实例耦合 所以就声明为静态的
      */
-    private static final Map<String, List<BeanWithValueAnnotation>> valueAnnotationCache = new ConcurrentHashMap<>();
+    private static final Map<String, ValueAnnotatedObj> PLACEHOLDER_PAIR = new ConcurrentHashMap<>();
 
     /**
      * 给Spring实例化Bean推断构造方法用.
@@ -121,38 +117,22 @@ public class SpringValueAnnotationProcessor extends NacosProcessor implements Be
     }
 
     /**
-     * Spring应用启动成功了再开始处理远程配置的热更新
-     * <ul>
-     *     考虑到2个问题
-     *     <li>首先 防止应用启动过程中 远程配置发生更新 其实在应用没有启动成功之前这个窗口时期根本不需要关注热更新问题</li>
-     *     <li>其次 确保所有Bean实例都已经完成整个Bean生命周期</li>
-     * </ul>
-     * 怎么管理之前缓存好的关注热更新的列表呢
-     * <ul>
-     *     <li>列表管理器 定期清楚那些被淘汰的 可能发生过内存紧张回收了弱引用的Bean实例 毕竟热更新不是第一优先级 对内存使用进行让步</li>
-     *     <li>热更新回调处理器</li>
-     * </ul>
+     * 关联上Bean实例.
+     * 并且关联上{@link com.github.bannirui.msb.remotecfg.MySpringApplicationEventListener}中已经缓存好的远程配置中心的数据.
      */
-    @Override
-    public void onApplicationEvent(SpringApplicationEvent event) {
-        if (event instanceof ApplicationStartedEvent e) {
-            Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "HotReplace-Thread"))
-                .scheduleAtFixedRate(new HotReplaceMgr(), 5L, 5L, TimeUnit.SECONDS);
-        }
-    }
-
-    // 关联上Bean实例.
     private void doCache(String beanName, Object bean, Member member) {
         if (processedBean.contains(beanName)) {
             return;
         }
         processedBean.add(beanName);
+        Map<String, String> remoteData = MySpringApplicationEventListener.getRemoteData();
         if (this.springValueAnnotation8BeanName.containsKey(beanName)) {
             List<ValueAnnotationAttr> ls = this.springValueAnnotation8BeanName.get(beanName);
             for (ValueAnnotationAttr cur : ls) {
                 String placeHolder = cur.getPlaceHolder();
-                List<BeanWithValueAnnotation> list = valueAnnotationCache.get(placeHolder);
-                if (list == null) {
+                List<BeanWithValueAnnotation> list = null;
+                ValueAnnotatedObj valueAnnotatedObj = PLACEHOLDER_PAIR.get(placeHolder);
+                if (valueAnnotatedObj == null || (list = valueAnnotatedObj.getList()) == null) {
                     list = new ArrayList<>();
                 }
                 BeanWithValueAnnotation ans = null;
@@ -167,13 +147,13 @@ public class SpringValueAnnotationProcessor extends NacosProcessor implements Be
                     list.add(ans);
                 }
                 if (!list.isEmpty()) {
-                    valueAnnotationCache.put(placeHolder, list);
+                    PLACEHOLDER_PAIR.put(placeHolder, new ValueAnnotatedObj(remoteData.get(placeHolder), list));
                 }
             }
         }
     }
 
-    public static Map<String, List<BeanWithValueAnnotation>> getValueAnnotationCache() {
-        return valueAnnotationCache;
+    public static Map<String, ValueAnnotatedObj> getPlaceholderPair() {
+        return PLACEHOLDER_PAIR;
     }
 }
