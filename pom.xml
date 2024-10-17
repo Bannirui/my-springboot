@@ -30,6 +30,7 @@
         <module>msb-http</module>
         <module>msb-remotecfg</module>
         <module>msb-sso</module>
+        <module>msb-config</module>
     </modules>
 
     <properties>
