@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.bannirui</groupId>
-            <artifactId>msb-remotecfg</artifactId>
+            <artifactId>msb-config</artifactId>
         </dependency>
     </dependencies>
 

@@ -28,7 +28,6 @@
         <module>msb-web</module>
         <module>msb-samples</module>
         <module>msb-http</module>
-        <module>msb-remotecfg</module>
         <module>msb-sso</module>
         <module>msb-config</module>
     </modules>
@@ -40,7 +39,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <module.version>3.2.4</module.version>
-        <nacos-client.version>2.3.1</nacos-client.version>
     </properties>
 
     <dependencyManagement>
@@ -71,14 +69,34 @@
 
             <dependency>
                 <groupId>com.github.bannirui</groupId>
-                <artifactId>msb-remotecfg</artifactId>
+                <artifactId>msb-config</artifactId>
                 <version>${module.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.alibaba.nacos</groupId>
-                <artifactId>nacos-client</artifactId>
-                <version>${nacos-client.version}</version>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>2.0.45</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.16.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.14.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>2.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.0.0-jre</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

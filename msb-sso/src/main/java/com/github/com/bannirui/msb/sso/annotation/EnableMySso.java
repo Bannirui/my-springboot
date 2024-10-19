@@ -1,6 +1,6 @@
 package com.github.com.bannirui.msb.sso.annotation;
 
-import com.github.com.bannirui.msb.sso.autoconfig.MySsoImportSelector;
+import com.github.com.bannirui.msb.sso.autoconfig.MySsoImportSelectorController;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 @Inherited
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Import({MySsoImportSelector.class})
+@Import({MySsoImportSelectorController.class})
 public @interface EnableMySso {
 
 }

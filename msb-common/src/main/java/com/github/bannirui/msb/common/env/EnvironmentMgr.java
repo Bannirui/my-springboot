@@ -1,19 +1,37 @@
 package com.github.bannirui.msb.common.env;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.github.bannirui.msb.common.enums.ExceptionEnum;
 import com.github.bannirui.msb.common.ex.ErrorCodeException;
+import com.github.bannirui.msb.common.ex.FrameworkException;
+import com.github.bannirui.msb.common.util.FileUtil;
+import com.github.bannirui.msb.common.util.StringUtil;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.boot.env.OriginTrackedMapPropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.util.StringUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import org.springframework.util.ObjectUtils;
 
 /**
  * 配置信息处理.
@@ -21,13 +39,39 @@ import java.util.Properties;
  */
 public class EnvironmentMgr {
 
+    private static Logger logger;
+
+    private static String USER_HOME_PATH = System.getProperty("user.home");
+    private static String MSB_FILE_PATH;
+
     private static String appName;
+    /**
+     * 为msb框架配置了远程配置 拉下来缓存
+     */
     private static Map<String, String> apolloMap;
+    /**
+     * msb框架项目的配置
+     * <ul>
+     *     <li>可以是远程配置</li>
+     *     <li>也可以是本地配置文件的配置</li>
+     * </ul>
+     */
     private static Properties properties;
+
+    static {
+        MSB_FILE_PATH = USER_HOME_PATH + "/.msb/" + getEnv() + "-msb.json";
+        apolloMap = new HashMap<>();
+        init();
+        initMsbConfig();
+    }
+
+    private EnvironmentMgr() {
+        throw new IllegalStateException("Utility class");
+    }
 
     private static void init() {
         String osName = System.getProperty("os.name");
-        if(osName !=null && osName.toLowerCase().contains("linux")) {
+        if (osName != null && osName.toLowerCase().contains("linux")) {
             System.setProperty("java.security.egd", "file:/dev/./urandom");
         }
         System.setProperty("spring.banner.location", "classpath*:/msb.txt");
@@ -36,7 +80,10 @@ public class EnvironmentMgr {
 
     private static void initMsbConfig() {
         String netEnv = getNetEnv();
-        String filePath = StringUtils.hasText(netEnv) ? "classpath:META-INF/msb/" + netEnv + "/env-" + getEnv() + ".properties" : "classpath:META-INF/msb/env-" + getEnv() + ".properties";
+        String filePath =
+            (Objects.nonNull(netEnv) && StringUtils.isNotBlank(netEnv)) ?
+                "classpath:META-INF/msb/" + netEnv + "/env-" + getEnv() + ".properties" :
+                "classpath:META-INF/msb/env-" + getEnv() + ".properties";
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
             Resource resource = resolver.getResource(filePath);
@@ -45,22 +92,43 @@ public class EnvironmentMgr {
         } catch (IOException e) {
             throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, new Object[] {"资源文件"});
         }
-        try {
-            String url = properties.getProperty("apollo.meta.url");
-            String uri = properties.getProperty("apollo.msb.uri");
-            String ret = readApolloConfig(new ArrayList<String>(){{add(url);}}, uri);
-            apolloMap = parseApolloStrRet(ret);
-            createOrModifyCacheFile(ret);
-        } catch (Exception e) {
-            logger.error("读取msb apollo错误", e);
-            apolloMap = readMsbCacheConfig();
+        // 为当前项目配置了远程配置 继续从远程拉配置到本地
+        String url = properties.getProperty("apollo.meta.url");
+        String uri = properties.getProperty("apollo.msb.uri");
+        if (StringUtil.isNotBlank(url) && StringUtil.isNotBlank(uri)) {
+            try {
+                String ret = readApolloConfig(Collections.singletonList(url), uri);
+                apolloMap = parseApolloStrRet(ret);
+                createOrModifyCacheFile(ret);
+            } catch (Exception e) {
+                logger.error("读取msb apollo错误", e);
+                apolloMap = readMsbCacheConfig();
+            }
         }
+    }
+
+    public static String getProperty(String key) {
+        String ret = null;
+        if ((ret = System.getProperty(key)) != null) {
+            return ret;
+        }
+        if ((ret = apolloMap.get(key)) != null) {
+            return ret;
+        }
+        return properties.getProperty(key);
     }
 
     public static String getProperty(ConfigurableEnvironment env, String key) {
         return env.getProperty(key);
     }
 
+    public static void setProperty(String key, String value) {
+        properties.setProperty(key, value);
+    }
+
+    /**
+     * -Denv=dev JVM启动参数指定.
+     */
     public static String getEnv() {
         String env = System.getProperty("env");
         return Objects.isNull(env) ? "dev" : env;
@@ -70,17 +138,25 @@ public class EnvironmentMgr {
         return System.getProperty("netEnv");
     }
 
+    /**
+     * 获取应用名称.
+     * 优先级为
+     * <ul>
+     *     <li>启动参数-Dapp.id</li>
+     *     <li>应用配置文件/META-INF/app.properties</li>
+     * </ul>
+     */
     public static String getAppName() {
-        if(Objects.isNull(appName)) {
+        if (Objects.isNull(appName)) {
             String appId = System.getProperty("app.id");
-            if(Objects.nonNull(appId)) {
+            if (Objects.nonNull(appId)) {
                 appName = appId;
             } else {
                 Properties props = new Properties();
                 try {
                     props.load(EnvironmentMgr.class.getResourceAsStream("/META-INF/app.properties"));
                 } catch (Exception e) {
-                    throw new ErrorCodeException(e, ExceptionEnum.FILE_EXCEPTION,new Object[]{"读取app.properties"});
+                    throw new ErrorCodeException(e, ExceptionEnum.FILE_EXCEPTION, new Object[] {"读取app.properties"});
                 }
                 appName = props.getProperty("app.id");
             }
@@ -88,27 +164,182 @@ public class EnvironmentMgr {
         return appName;
     }
 
+    /**
+     * msb框架项目的配置加载到容器中
+     * <ul>
+     *     <li>项目有远程配置就把远程配置拉下来</li>
+     *     <li>项目有本地配置就把本地配置解析出来</li>
+     * </ul>
+     */
     public static void addMsbConfig2PropertySource(ConfigurableEnvironment env) {
         addMsbApolloConfig2PropertySource(env);
         addMsbFileConfig2PropertySource(env);
     }
 
+    /**
+     * msb项目的远程配置加载到容器中.
+     */
     private static void addMsbApolloConfig2PropertySource(ConfigurableEnvironment env) {
-        OriginTrackedMapPropertySource ps = new OriginTrackedMapPropertySource("msbApolloConfig: ["+getEnv()+"]", apolloMap);
+        OriginTrackedMapPropertySource ps = new OriginTrackedMapPropertySource("msbApolloConfig: [" + getEnv() + "]", apolloMap);
         env.getPropertySources().addLast(ps);
     }
 
+    /**
+     * msb项目的本地配置加载到容器中.
+     */
     private static void addMsbFileConfig2PropertySource(ConfigurableEnvironment env) {
-        OriginTrackedMapPropertySource ps=new OriginTrackedMapPropertySource("msbFileConfig: ["+getEnv()+"]",properties);
+        OriginTrackedMapPropertySource ps = new OriginTrackedMapPropertySource("msbFileConfig: [" + getEnv() + "]", properties);
         env.getPropertySources().addLast(ps);
     }
 
+    private static List<String> getApolloConfigNode(String apolloMetaUrl) throws IOException {
+        String nodes = httpGet(apolloMetaUrl);
+        if (StringUtil.isEmpty(nodes)) {
+            logger.error("MSB can not find apollo nodes from url: {}, response string is null!", apolloMetaUrl);
+            throw new FrameworkException(FrameworkException.ERR_DEF, "MSB can not find apollo nodes");
+        } else {
+            JSONArray jsonArr = JSONArray.parseArray(nodes);
+            if (jsonArr.isEmpty()) {
+                logger.error("MSB can not find apollo nodes from url: {}", apolloMetaUrl);
+                throw new FrameworkException(FrameworkException.ERR_DEF, "MSB can not find apollo nodes");
+            } else {
+                List<String> configHomeUrls = new ArrayList<>();
+                int sz = jsonArr.size();
+                for (int i = 0; i < sz; i++) {
+                    configHomeUrls.add(jsonArr.getJSONObject(i).getString("homepageUrl"));
+                }
+                return configHomeUrls;
+            }
+        }
+    }
+
+    /**
+     * apollo配置中心
+     *
+     * @param configNodesUrls apollo的服务域名
+     * @param uri             配置文件的路径
+     */
     private static String readApolloConfig(List<String> configNodesUrls, String uri) throws IOException {
-        int limit=3;
-        return recursiveReadApolloConfig(configNodesUrls, uri,0,0,limit);
+        int limit = 3;
+        return recursiveReadApolloConfig(configNodesUrls, uri, 0, 0, limit);
     }
 
     private static String recursiveReadApolloConfig(List<String> urls, String uri, int curPos, int curCnt, int cntLimit) {
-        return null;
+        try {
+            return httpGet((String) urls.get(curPos) + uri);
+        } catch (IOException e) {
+            ++curPos;
+            if (curPos >= urls.size()) {
+                curPos = 0;
+                ++curCnt;
+            }
+            return recursiveReadApolloConfig(urls, uri, curPos, curCnt, cntLimit);
+        } catch (Exception e) {
+            throw new FrameworkException(FrameworkException.ERR_DEF, "cannot read apollo config from url as " + (String) urls.get(curPos));
+        }
+    }
+
+    /**
+     * 通过http的get请求获取apollo的配置信息.
+     */
+    private static String httpGet(String url) throws IOException {
+        StringBuffer sb = new StringBuffer();
+        URL readUrl = new URL(url);
+        URLConnection conn = readUrl.openConnection();
+        conn.setRequestProperty("accept", "*/*");
+        conn.setRequestProperty("connection", "Keep-Alive");
+        conn.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+        conn.connect();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            throw e;
+        }
+        return sb.toString();
+    }
+
+    /**
+     * apollo获取到的内容转json.
+     */
+    public static Map<String, String> parseApolloStrRet(String ret) {
+        JSONObject jsonObject = JSONObject.parseObject(ret);
+        return (Map<String, String>) (Map) jsonObject.getObject("configurations", new TypeReference<Map<String, String>>() {
+        });
+    }
+
+    public static Map<String, String> readMsbCacheConfig() {
+        Map<String, String> apolloMap = new HashMap<>();
+        File msbFile = new File(MSB_FILE_PATH);
+        try {
+            if (msbFile.exists() && FileUtil.canRead(msbFile)) {
+                String ret = FileUtils.readFileToString(msbFile);
+                if (StringUtil.isNotEmpty(ret)) {
+                    apolloMap = parseApolloStrRet(ret.trim());
+                } else {
+                    logger.error("msb缓存配置读取失败");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("msb缓存配置读取失败 err=", e);
+        }
+        return apolloMap;
+    }
+
+    /**
+     * 远程配置缓存本地.
+     */
+    public static void createOrModifyCacheFile(String json) {
+        File folderTitans = new File(USER_HOME_PATH + "/.msb");
+        try {
+            File file;
+            File titansFile;
+            if (folderTitans.exists() && FileUtil.canRead(folderTitans) && FileUtil.canWrite(folderTitans)) {
+                titansFile = new File(MSB_FILE_PATH);
+                if (titansFile.exists()) {
+                    if (!ObjectUtils.isEmpty(json) && FileUtil.canWrite(titansFile) && FileUtil.canRead(titansFile)) {
+                        FileUtil.deleteFile(titansFile);
+                        file = new File(MSB_FILE_PATH);
+                        if (file.createNewFile()) {
+                            FileUtils.writeStringToFile(file, json);
+                        } else {
+                            logger.error("createOrModifyCacheFile error,path:{}", MSB_FILE_PATH);
+                        }
+                    }
+                } else {
+                    file = new File(MSB_FILE_PATH);
+                    if (file.createNewFile()) {
+                        FileUtils.writeStringToFile(file, json);
+                    } else {
+                        logger.error("createOrModifyCacheFile error,path:{}", MSB_FILE_PATH);
+                    }
+                }
+            } else {
+                titansFile = new File(USER_HOME_PATH);
+                if (FileUtil.canWrite(titansFile)) {
+                    folderTitans.mkdir();
+                    file = new File(MSB_FILE_PATH);
+                    if (file.createNewFile()) {
+                        FileUtils.writeStringToFile(file, json);
+                    } else {
+                        logger.error("createOrModifyCacheFile error,path:{}", MSB_FILE_PATH);
+                    }
+                }
+            }
+        } catch (Exception var4) {
+            Exception e = var4;
+            logger.error("msb缓存配置文件创建或更新异常 错误信息=" + e.getMessage());
+        }
+    }
+
+    public static Set<String> getAllKeys() {
+        Set<String> ret = new HashSet<>(apolloMap.size());
+        if (Objects.nonNull(properties)) {
+            ret.addAll(properties.stringPropertyNames());
+        }
+        return ret;
     }
 }

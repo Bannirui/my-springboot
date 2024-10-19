@@ -1,9 +1,9 @@
 package com.github.bannirui.msb.sample;
 
-import com.github.bannirui.msb.common.annotation.EnableMyFramework;
+import com.github.bannirui.msb.common.annotation.EnableMsbFramework;
 import org.springframework.boot.SpringApplication;
 
-@EnableMyFramework
+@EnableMsbFramework
 public class App01 {
 
     public static void main(String[] args) {

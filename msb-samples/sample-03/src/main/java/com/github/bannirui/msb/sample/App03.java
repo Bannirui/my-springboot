@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.sample;
 
-import com.github.bannirui.msb.common.annotation.EnableMyFramework;
+import com.github.bannirui.msb.common.annotation.EnableMSBFramework;
 import com.github.bannirui.msb.remotecfg.annotation.EnableMyRemoteCfg;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -11,7 +11,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 
-@EnableMyFramework
+@EnableMSBFramework
 @EnableMyRemoteCfg(dataId = {"sample-03"}, hotReplace = true)
 public class App03 implements CommandLineRunner {
 

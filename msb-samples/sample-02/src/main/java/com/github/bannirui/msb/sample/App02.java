@@ -1,14 +1,14 @@
 package com.github.bannirui.msb.sample;
 
-import com.github.bannirui.msb.common.annotation.EnableMyFramework;
-import com.github.bannirui.msb.remotecfg.annotation.EnableMyRemoteCfg;
+import com.github.bannirui.msb.common.annotation.EnableMsbFramework;
+import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 
-@EnableMyFramework
-@EnableMyRemoteCfg(dataId = {"sample-02"})
+@EnableMsbFramework
+@EnableMsbConfig()
 public class App02 implements CommandLineRunner {
 
     @Value("${name}")

@@ -1,6 +1,9 @@
 package com.github.bannirui.msb.common.ex;
 
-public class BaseException extends RuntimeException{
+/**
+ * 抽象自定义异常.
+ */
+public class BaseException extends RuntimeException {
 
     private String code;
     private String msg;

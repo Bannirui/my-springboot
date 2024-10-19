@@ -6,10 +6,10 @@ import java.util.Arrays;
  * 场景启动器.
  */
 public enum EnableType {
-    ENABLE_WEB("EnableMyWeb", "MyWebImportSelector"),
-    ENABLE_SSO("EnableMySso", "MySsoImportSelector"),
-    ENABLE_HTTP("EnableMyHttp", "MyHttpImportSelector"),
-    ENABLE_REMOTE_CONFIG("EnableMyRemoteCfg", "MyRemoteCfgImportSelector"),
+    ENABLE_WEB("EnableMsbWeb", "MsbWebImportSelector"),
+    ENABLE_SSO("EnableMsbSso", "MsbSsoImportSelector"),
+    ENABLE_HTTP("EnableMsbHttp", "MsbHttpImportSelector"),
+    ENABLE_REMOTE_CONFIG("EnableMsbRemoteCfg", "MsbRemoteCfgImportSelector"),
     ;
 
     // EnableXXX 启动器

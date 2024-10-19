@@ -1,3 +1,3 @@
-# Application Listeners
 org.springframework.context.ApplicationListener=\
-com.github.bannirui.msb.common.listener.MyCfgListener
+com.github.bannirui.msb.common.startup.MsbBannerProcessor,\
+  com.github.bannirui.msb.common.config.MsbConfigApplicationProcessor

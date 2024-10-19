@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.web.annotation;
 
-import com.github.bannirui.msb.web.autoconfig.MyWebImportSelector;
+import com.github.bannirui.msb.web.autoconfig.MyWebImportSelectorController;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,6 +16,6 @@ import org.springframework.context.annotation.Import;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@Import({MyWebImportSelector.class})
+@Import({MyWebImportSelectorController.class})
 public @interface EnableMyWeb {
 }

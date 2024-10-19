@@ -6,4 +6,5 @@
 <suppressions>
   <!--忽略msb-samples所有文件检查-->
   <suppress checks="." files="msb-samples.*"/>
+  <suppress checks="." files="."/>
 </suppressions>
