@@ -35,7 +35,7 @@ A framework based on SpringBoot, focusing on different section
 
 - [读取远程配置](./doc/读取远程配置-nacos)
 
-- [远程配置热更新](./doc/远程配置热更新.md)
+- [关联公共namespace](./doc/远程配置热更新.md)
 
 ### 3 samples
 
@@ -43,4 +43,4 @@ A framework based on SpringBoot, focusing on different section
 
 - [读取远程配置](./msb-samples/sample-02)
 
-- [远程配置热更新](./msb-samples/sample-03)
+- [关联公共namespace](./msb-samples/sample-03)

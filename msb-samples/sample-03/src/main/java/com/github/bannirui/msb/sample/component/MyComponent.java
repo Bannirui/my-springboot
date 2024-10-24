@@ -1,19 +1,24 @@
 package com.github.bannirui.msb.sample.component;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MyComponent {
 
-    @Value("${sex}")
-    public void setter1(Long sex) {
+    private String name;
 
+    @Value("${name}")
+    public void setter1(String name) {
+        this.name = name;
     }
 
-    @Value("${id}")
-    public MyBean setter2(List<Integer> id) {
+    public String getName() {
+        return this.name;
+    }
+
+    @Value("${age}")
+    public MyBean setter2(Integer age) {
         return new MyBean();
     }
 }
