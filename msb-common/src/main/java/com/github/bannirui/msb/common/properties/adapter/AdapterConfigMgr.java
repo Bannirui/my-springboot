@@ -37,6 +37,7 @@ public abstract class AdapterConfigMgr {
      */
     private static final String FILE_PATH = "classpath:/application-adapter.properties";
     private static Pattern ARRAY_PATTERN = Pattern.compile("\\[([^]]+)");
+    public static final String ARRAY_ADAPTER_SOURCE_NAME = "msb:AdapterPropertySource";
 
 
     public AdapterConfigMgr() {
@@ -100,7 +101,7 @@ public abstract class AdapterConfigMgr {
             }
         }
         if (adapterSource.size() > 0) {
-            env.getPropertySources().addLast(new OriginTrackedMapPropertySource("msb:AdapterPropertySource", adapterSource));
+            env.getPropertySources().addLast(new OriginTrackedMapPropertySource(ARRAY_ADAPTER_SOURCE_NAME, adapterSource));
         }
     }
 

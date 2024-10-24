@@ -1,6 +1,5 @@
 package com.github.bannirui.msb.config;
 
-import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
@@ -44,7 +43,7 @@ public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProce
             List<ConfigPropertySource> configPropertySources = this.configPropertySourceFactory.getAllConfigPropertySources();
             for (ConfigPropertySource configPropertySource : configPropertySources) {
                 // 为apollo的每个配置注册监听器 实现热更新
-                ((Config) configPropertySource.getSource()).addChangeListener(autoUpdateConfigChangeListener);
+                configPropertySource.getSource().addChangeListener(autoUpdateConfigChangeListener);
             }
 
         }

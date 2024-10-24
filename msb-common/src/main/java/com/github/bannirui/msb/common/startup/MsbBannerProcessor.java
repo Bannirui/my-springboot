@@ -16,6 +16,7 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationPrepar
 
     private static AtomicBoolean atomicBoolean = new AtomicBoolean(false);
     private static final Logger logger = LoggerFactory.getLogger(MsbBannerProcessor.class);
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     @Override
     public void onApplicationEvent(ApplicationPreparedEvent event) {
@@ -36,6 +37,7 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationPrepar
 
     private String buildBannerText() {
         StringBuilder sb = new StringBuilder();
+        sb.append(LINE_SEPARATOR);
         sb.append("  __  __            ____             _                   ____              _   \n");
         sb.append(" |  \\/  |_   _     / ___| _ __  _ __(_)_ __   __ _      | __ )  ___   ___ | |_ \n");
         sb.append(" | |\\/| | | | |____\\___ \\| '_ \\| '__| | '_ \\ / _` |_____|  _ \\ / _ \\ / _ \\| __|\n");

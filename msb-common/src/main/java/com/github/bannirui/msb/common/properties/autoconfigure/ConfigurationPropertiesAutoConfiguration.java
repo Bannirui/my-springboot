@@ -1,4 +1,4 @@
-package com.github.bannirui.msb.common.properties.autpconfigure;
+package com.github.bannirui.msb.common.properties.autoconfigure;
 
 import com.github.bannirui.msb.common.properties.adapter.ConfigurationAdapterCollectorListener;
 import com.github.bannirui.msb.common.properties.bind.BlackListBindHandler;

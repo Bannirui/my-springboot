@@ -5,7 +5,9 @@ import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
+import com.github.bannirui.msb.common.enums.MsbEnv;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.util.ArrayUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.github.bannirui.msb.config.spring.ConfigPropertySourceFactory;
 import com.google.common.collect.HashMultimap;
@@ -42,8 +44,8 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
      */
     private static final Multimap<Integer, String> NAMESPACE_NAMES = HashMultimap.create();
     private static final String APOLLO_PROPERTY_SOURCE_NAME = "ApolloPropertySources";
-    private ConfigPropertySourceFactory configPropertySourceFactory =
-        (ConfigPropertySourceFactory) SpringInjector.getInstance(ConfigPropertySourceFactory.class);
+    private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
+    private static final String APOLLO_ENV_RESOURCE_FILE = "classpath*:/META-INF/msb/apollo-env.properties";
 
     @Override
     public void onApplicationEvent(SpringApplicationEvent event) {
@@ -66,31 +68,38 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Properties props = new Properties();
         try {
-            Resource[] resources = resolver.getResources("classpath*:/META-INF/msb/apollo-env.properties");
-            if (resources != null && resources.length > 0) {
+            Resource[] resources = resolver.getResources(APOLLO_ENV_RESOURCE_FILE);
+            if (!ArrayUtil.isEmpty(resources)) {
                 for (Resource resource : resources) {
                     props.load(resource.getInputStream());
                 }
             }
         } catch (Exception e) {
-            logger.warn("msb apollo-env.properties 加载失败, err=", e);
+            logger.warn("msb apollo-env.properties加载失败, err=", e);
         }
-        String dev, fat, uat, sit, prod;
+        // apollo meta url
+        String devMetaUrl, fatMetaUrl, uatMetaUrl, prodMetaUrl;
         String netEnv = EnvironmentMgr.getNetEnv();
         if (Objects.isNull(netEnv)) {
-            dev = System.getProperty("dev_meta", props.getProperty("dev.meta"));
-            fat = System.getProperty("fat_meta", props.getProperty("fat.meta"));
-            uat = System.getProperty("uat_meta", props.getProperty("uat.meta"));
-            sit = System.getProperty("sit_meta", props.getProperty("sit.meta"));
-            prod = System.getProperty("prod_meta", props.getProperty("prod.meta"));
+            devMetaUrl = System.getProperty("dev_meta", props.getProperty("dev.meta"));
+            fatMetaUrl = System.getProperty("fat_meta", props.getProperty("fat.meta"));
+            uatMetaUrl = System.getProperty("uat_meta", props.getProperty("uat.meta"));
+            prodMetaUrl = System.getProperty("prod_meta", props.getProperty("prod.meta"));
         } else {
-            dev = System.getProperty(netEnv + "_dev_meta", props.getProperty(netEnv + "dev.meta"));
-            fat = System.getProperty(netEnv + "_fat_meta", props.getProperty(netEnv + "fat.meta"));
-            uat = System.getProperty(netEnv + "_uat_meta", props.getProperty(netEnv + "uat.meta"));
-            sit = System.getProperty(netEnv + "_sit_meta", props.getProperty(netEnv + "sit.meta"));
-            prod = System.getProperty(netEnv + "_prod_meta", props.getProperty(netEnv + "prod.meta"));
+            devMetaUrl = System.getProperty(netEnv + "_dev_meta", props.getProperty(netEnv + "dev.meta"));
+            fatMetaUrl = System.getProperty(netEnv + "_fat_meta", props.getProperty(netEnv + "fat.meta"));
+            uatMetaUrl = System.getProperty(netEnv + "_uat_meta", props.getProperty(netEnv + "uat.meta"));
+            prodMetaUrl = System.getProperty(netEnv + "_prod_meta", props.getProperty(netEnv + "prod.meta"));
         }
-        // TODO: 2024/10/19
+        String curEnv = System.getProperty("env");
+        String key = "apollo.meta";
+        switch (MsbEnv.of(curEnv)) {
+            case DEV -> System.setProperty(key, devMetaUrl);
+            case FAT -> System.setProperty(key, fatMetaUrl);
+            case UAT -> System.setProperty(key, uatMetaUrl);
+            case PROD -> System.setProperty(key, prodMetaUrl);
+        }
+        System.out.println();
     }
 
     /**

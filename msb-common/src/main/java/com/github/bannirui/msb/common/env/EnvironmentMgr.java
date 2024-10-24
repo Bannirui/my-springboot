@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.env.OriginTrackedMapPropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
@@ -39,7 +40,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class EnvironmentMgr {
 
-    private static Logger logger;
+    private static final Logger logger = LoggerFactory.getLogger(EnvironmentMgr.class);
 
     private static String USER_HOME_PATH = System.getProperty("user.home");
     private static String MSB_FILE_PATH;
@@ -50,11 +51,7 @@ public class EnvironmentMgr {
      */
     private static Map<String, String> apolloMap;
     /**
-     * msb框架项目的配置
-     * <ul>
-     *     <li>可以是远程配置</li>
-     *     <li>也可以是本地配置文件的配置</li>
-     * </ul>
+     * msb框架项目的配置 从本地配置文件中加载到了内存
      */
     private static Properties properties;
 
@@ -86,18 +83,20 @@ public class EnvironmentMgr {
                 "classpath:META-INF/msb/env-" + getEnv() + ".properties";
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
+            // 加载当前module的本地配置文件内容
             Resource resource = resolver.getResource(filePath);
             properties = new Properties();
             properties.load(resource.getInputStream());
         } catch (IOException e) {
             throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, new Object[] {"资源文件"});
         }
-        // 为当前项目配置了远程配置 继续从远程拉配置到本地
+        // msb框架本身的配置放在了apollo 从远程拉配置到本地
         String url = properties.getProperty("apollo.meta.url");
         String uri = properties.getProperty("apollo.msb.uri");
         if (StringUtil.isNotBlank(url) && StringUtil.isNotBlank(uri)) {
             try {
                 String ret = readApolloConfig(Collections.singletonList(url), uri);
+                // 从apollo远程拉下来的配置结果解析缓存起来
                 apolloMap = parseApolloStrRet(ret);
                 createOrModifyCacheFile(ret);
             } catch (Exception e) {
@@ -107,6 +106,14 @@ public class EnvironmentMgr {
         }
     }
 
+    /**
+     * 配置优先级
+     * <ul>
+     *     <li>jvm环境变量</li>
+     *     <li>远程配置</li>
+     *     <li>本地配置</li>
+     * </ul>
+     */
     public static String getProperty(String key) {
         String ret = null;
         if ((ret = System.getProperty(key)) != null) {
@@ -214,17 +221,22 @@ public class EnvironmentMgr {
     }
 
     /**
-     * apollo配置中心
+     * apollo配置中心中msb项目的内容.
      *
      * @param configNodesUrls apollo的服务域名
      * @param uri             配置文件的路径
+     * @return {"appId":"msb","cluster":"default","namespaceName":"application","configurations":{"mysql.name":"mysql"},"releaseKey":"20241024131541-240add83aef7df27"}
      */
     private static String readApolloConfig(List<String> configNodesUrls, String uri) throws IOException {
-        int limit = 3;
+        int limit = 1;
         return recursiveReadApolloConfig(configNodesUrls, uri, 0, 0, limit);
     }
 
     private static String recursiveReadApolloConfig(List<String> urls, String uri, int curPos, int curCnt, int cntLimit) {
+        // base
+        if (curCnt >= cntLimit) {
+            return null;
+        }
         try {
             return httpGet((String) urls.get(curPos) + uri);
         } catch (IOException e) {
@@ -263,11 +275,13 @@ public class EnvironmentMgr {
     }
 
     /**
-     * apollo获取到的内容转json.
+     * msb项目本身的配置信息从apollo远程配置中心get请求下来解析出来
+     * @param ret {"appId":"msb","cluster":"default","namespaceName":"application","configurations":{"mysql.name":"mysql"},"releaseKey":"20241024131541-240add83aef7df27"}
+     * @return {"mysql.name":"mysql"}
      */
     public static Map<String, String> parseApolloStrRet(String ret) {
         JSONObject jsonObject = JSONObject.parseObject(ret);
-        return (Map<String, String>) (Map) jsonObject.getObject("configurations", new TypeReference<Map<String, String>>() {
+        return jsonObject.getObject("configurations", new TypeReference<Map<String, String>>() {
         });
     }
 
@@ -290,18 +304,19 @@ public class EnvironmentMgr {
     }
 
     /**
-     * 远程配置缓存本地.
+     * 将框架的远程配置同步到本地.
      */
     public static void createOrModifyCacheFile(String json) {
-        File folderTitans = new File(USER_HOME_PATH + "/.msb");
+        File folderMsb = new File(USER_HOME_PATH + "/.msb");
         try {
             File file;
-            File titansFile;
-            if (folderTitans.exists() && FileUtil.canRead(folderTitans) && FileUtil.canWrite(folderTitans)) {
-                titansFile = new File(MSB_FILE_PATH);
-                if (titansFile.exists()) {
-                    if (!ObjectUtils.isEmpty(json) && FileUtil.canWrite(titansFile) && FileUtil.canRead(titansFile)) {
-                        FileUtil.deleteFile(titansFile);
+            File msbCfgFile;
+            if (folderMsb.exists() && FileUtil.canRead(folderMsb) && FileUtil.canWrite(folderMsb)) {
+                msbCfgFile = new File(MSB_FILE_PATH);
+                if (msbCfgFile.exists()) {
+                    // 更新本地文件
+                    if (!ObjectUtils.isEmpty(json) && FileUtil.canWrite(msbCfgFile) && FileUtil.canRead(msbCfgFile)) {
+                        FileUtil.deleteFile(msbCfgFile);
                         file = new File(MSB_FILE_PATH);
                         if (file.createNewFile()) {
                             FileUtils.writeStringToFile(file, json);
@@ -310,6 +325,7 @@ public class EnvironmentMgr {
                         }
                     }
                 } else {
+                    // 新增本地文件
                     file = new File(MSB_FILE_PATH);
                     if (file.createNewFile()) {
                         FileUtils.writeStringToFile(file, json);
@@ -318,9 +334,9 @@ public class EnvironmentMgr {
                     }
                 }
             } else {
-                titansFile = new File(USER_HOME_PATH);
-                if (FileUtil.canWrite(titansFile)) {
-                    folderTitans.mkdir();
+                msbCfgFile = new File(USER_HOME_PATH);
+                if (FileUtil.canWrite(msbCfgFile)) {
+                    folderMsb.mkdir();
                     file = new File(MSB_FILE_PATH);
                     if (file.createNewFile()) {
                         FileUtils.writeStringToFile(file, json);
@@ -329,9 +345,8 @@ public class EnvironmentMgr {
                     }
                 }
             }
-        } catch (Exception var4) {
-            Exception e = var4;
-            logger.error("msb缓存配置文件创建或更新异常 错误信息=" + e.getMessage());
+        } catch (Exception e) {
+            logger.error("msb缓存配置文件创建或更新异常 错误信息={}", e.getMessage());
         }
     }
 

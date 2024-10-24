@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyN
 
 public class BlackListBindHandler extends AbstractBindHandler {
     private static final Logger logger = LoggerFactory.getLogger(BlackListBindHandler.class);
-    private Set<String> blacklist = new HashSet();
+    private Set<String> blacklist = new HashSet<>();
 
     public BlackListBindHandler() {
     }

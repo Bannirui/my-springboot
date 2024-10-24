@@ -1,6 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.github.bannirui.msb.common.startup.monitor.AppInfoMonitorConfiguration,\
-  com.github.bannirui.msb.common.properties.autpconfigure.ConfigurationPropertiesAutoConfiguration
-
 org.springframework.context.ApplicationListener=\
   com.github.bannirui.msb.config.ApolloConfigApplicationListener

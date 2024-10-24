@@ -8,7 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 
 @EnableMsbFramework
-@EnableMsbConfig()
+@EnableMsbConfig
 public class App02 implements CommandLineRunner {
 
     @Value("${name}")
@@ -17,11 +17,11 @@ public class App02 implements CommandLineRunner {
     @Value("${age}")
     private Integer age;
 
-    @Value("${sex}")
-    private Long sex;
+    @Value("${male}")
+    private Boolean male;
 
-    @Value("${id}")
-    private List<Integer> id;
+    @Value("${ids}")
+    private List<Long> ids;
 
     public static void main(String[] args) {
         SpringApplication.run(App02.class, args);
@@ -32,7 +32,7 @@ public class App02 implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("name=" + this.name);
         System.out.println("age=" + this.age);
-        System.out.println("sex=" + this.sex);
-        System.out.println("id=" + this.id);
+        System.out.println("male=" + this.male);
+        System.out.println("ids=" + this.ids);
     }
 }

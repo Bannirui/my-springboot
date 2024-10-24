@@ -31,8 +31,17 @@ public abstract class ApolloProcessor implements BeanPostProcessor, PriorityOrde
         return Ordered.HIGHEST_PRECEDENCE;
     }
 
+    /**
+     * Bean的类成员被{@link org.springframework.beans.factory.annotation.Value}注解标识了.
+     * 将这些成员缓存起来 将来用作配置热更新
+     */
     protected abstract void processField(Object bean, String beanName, Field field);
 
+    /**
+     * Bean的配置注入通过setter方式
+     * 将这些setter方法缓存起来 将来用作配置热更新
+     * 目前不支持
+     */
     protected abstract void processMethod(Object bean, String beanName, Method method);
 
     private List<Method> findAllMethod(Class<?> clazz) {

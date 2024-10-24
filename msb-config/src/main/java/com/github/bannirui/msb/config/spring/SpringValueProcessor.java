@@ -1,5 +1,6 @@
 package com.github.bannirui.msb.config.spring;
 
+import com.github.bannirui.msb.common.env.EnvironmentMgr;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import java.beans.PropertyDescriptor;
@@ -13,10 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.Bean;
 
-public class SpringValueProcessor extends ApolloProcessor {
+public class SpringValueProcessor extends ApolloProcessor implements BeanFactoryPostProcessor, BeanFactoryAware {
     private static final Logger logger = LoggerFactory.getLogger(SpringValueProcessor.class);
     private final PlaceholderHelper placeholderHelper = (PlaceholderHelper) SpringInjector.getInstance(PlaceholderHelper.class);
     private final SpringValueRegistry springValueRegistry = (SpringValueRegistry) SpringInjector.getInstance(SpringValueRegistry.class);
@@ -53,6 +58,19 @@ public class SpringValueProcessor extends ApolloProcessor {
                     this.doRegister(bean, beanName, method, value);
                 }
             }
+        }
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        if ("true".equals(EnvironmentMgr.getProperty("autoUpdateInjectedSpringProperties")) && beanFactory instanceof BeanDefinitionRegistry) {
+            this.beanName2SpringValueDefinitions =
+                SpringValueDefinitionProcessor.getBeanName2SpringValueDefinitions((BeanDefinitionRegistry) beanFactory);
         }
     }
 

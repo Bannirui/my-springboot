@@ -33,7 +33,7 @@ A framework based on SpringBoot, focusing on different section
 
 - [启用框架](./doc/启用框架.md)
 
-- [读取远程配置](./doc/读取远程配置.md)
+- [读取远程配置](./doc/读取远程配置-nacos)
 
 - [远程配置热更新](./doc/远程配置热更新.md)
 

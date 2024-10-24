@@ -34,11 +34,10 @@ public class SpringValueRegistry {
             }
         }
 
-        ((Multimap) this.registry.get(beanFactory)).put(key, springValue);
+        this.registry.get(beanFactory).put(key, springValue);
         if (this.initialized.compareAndSet(false, true)) {
             this.initialize();
         }
-
     }
 
     public Collection<SpringValue> get(BeanFactory beanFactory, String key) {

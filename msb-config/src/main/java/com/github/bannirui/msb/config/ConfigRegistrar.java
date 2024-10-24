@@ -34,7 +34,6 @@ public class ConfigRegistrar implements ImportBeanDefinitionRegistrar {
         PropertySourcesProcessor.addNamespaces(Lists.newArrayList(namespaces), order);
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, PropertySourcesPlaceholderConfigurer.class.getName(),
             PropertySourcesPlaceholderConfigurer.class);
-        // TODO: 2024/10/19
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, PropertySourcesProcessor.class.getName(), PropertySourcesProcessor.class);
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, ApolloAnnotationProcessor.class.getName(), ApolloAnnotationProcessor.class);
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, SpringValueProcessor.class.getName(), SpringValueProcessor.class);
