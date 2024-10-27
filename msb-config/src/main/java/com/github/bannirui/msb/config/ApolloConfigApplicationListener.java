@@ -36,6 +36,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  * </ul>
  */
 public class ApolloConfigApplicationListener implements ApplicationListener<SpringApplicationEvent>, Ordered {
+
     private static final Logger logger = LoggerFactory.getLogger(ApolloConfigApplicationListener.class);
     /**
      * key是{@link EnableMsbConfig}指定的远程配置的优先级.
@@ -46,6 +47,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     private static final String APOLLO_PROPERTY_SOURCE_NAME = "ApolloPropertySources";
     private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
     private static final String APOLLO_ENV_RESOURCE_FILE = "classpath*:/META-INF/msb/apollo-env.properties";
+    private static final int ORDER = Ordered.HIGHEST_PRECEDENCE;
 
     @Override
     public void onApplicationEvent(SpringApplicationEvent event) {
@@ -58,7 +60,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return ORDER;
     }
 
     /**
@@ -93,13 +95,13 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         }
         String curEnv = System.getProperty("env");
         String key = "apollo.meta";
+        // 不同环境的apollo meta url设置到VM环境变量中给apollo读
         switch (MsbEnv.of(curEnv)) {
             case DEV -> System.setProperty(key, devMetaUrl);
             case FAT -> System.setProperty(key, fatMetaUrl);
             case UAT -> System.setProperty(key, uatMetaUrl);
             case PROD -> System.setProperty(key, prodMetaUrl);
         }
-        System.out.println();
     }
 
     /**

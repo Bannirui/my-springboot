@@ -2,9 +2,10 @@ package com.github.bannirui.msb.common.config;
 
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
 import com.github.bannirui.msb.common.properties.adapter.AdapterConfigMgr;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 
 /**
@@ -24,17 +25,21 @@ import org.springframework.core.PriorityOrdered;
  */
 public class MsbConfigApplicationProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, PriorityOrdered {
 
+    private static final Logger logger = LoggerFactory.getLogger(MsbConfigApplicationProcessor.class);
+    private static final int ORDER = -2147483625;
+
     public MsbConfigApplicationProcessor() {
     }
 
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+        logger.info("{}启动 优先级{}", this.getClass().getSimpleName(), this.getOrder());
         EnvironmentMgr.addMsbConfig2PropertySource(event.getEnvironment());
         AdapterConfigMgr.loadAdapterPropertySource(event.getEnvironment());
     }
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return ORDER;
     }
 }

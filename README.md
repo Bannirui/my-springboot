@@ -27,7 +27,21 @@ A framework based on SpringBoot, focusing on different section
 
 - 注解式场景启动(@EnableXXX)
 
+    - @EnableMsbFramework启用框架
+
+    - @EnableMsbConfig启用配置中心
+
 - 封装实现，隐藏细节
+
+- VM/程序启动参数开关
+    - -Denv=xxx指定环境参数
+        - dev
+        - fat
+        - uat
+        - prod
+    - -Dmsb.apollo=xxx
+        - true框架本身启用apollo配置
+        - false框架本身不适用apollo配置
 
 ### 2 quick start
 

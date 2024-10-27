@@ -5,25 +5,30 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
-import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.PriorityOrdered;
 
 /**
  * 自定义启动控制台Banner.
  */
-public class MsbBannerProcessor implements ApplicationListener<ApplicationPreparedEvent>, PriorityOrdered {
+public class MsbBannerProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, PriorityOrdered {
 
-    private static AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    private static final AtomicBoolean FLAG = new AtomicBoolean(false);
     private static final Logger logger = LoggerFactory.getLogger(MsbBannerProcessor.class);
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final int ORDER = -2147483627;
+
+    public MsbBannerProcessor() {
+    }
 
     @Override
-    public void onApplicationEvent(ApplicationPreparedEvent event) {
-        if (atomicBoolean.compareAndSet(false, true)) {
-            event.getSpringApplication().setBannerMode(Banner.Mode.OFF);
-            String s = buildBannerText();
-            logger.info(s);
+    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+        logger.error("开始");
+        if (FLAG.compareAndSet(false, true)) {
+            // disable printing Spring's banner
+            event.getSpringApplication().setBannerMode(Banner.Mode.CONSOLE);
+            logger.info(buildBannerText());
         }
         if (EnvironmentMgr.getNetEnv() != null) {
             logger.info("Network environment is set to [{}]", EnvironmentMgr.getNetEnv());
@@ -32,7 +37,7 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationPrepar
 
     @Override
     public int getOrder() {
-        return PriorityOrdered.HIGHEST_PRECEDENCE;
+        return ORDER;
     }
 
     private String buildBannerText() {
@@ -46,4 +51,5 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationPrepar
         sb.append("         |___/           |_|                 |___/                             ");
         return sb.toString();
     }
+
 }
