@@ -47,7 +47,6 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     private static final String APOLLO_PROPERTY_SOURCE_NAME = "ApolloPropertySources";
     private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
     private static final String APOLLO_ENV_RESOURCE_FILE = "classpath*:/META-INF/msb/apollo-env.properties";
-    private static final int ORDER = -2147483626;
 
     @Override
     public void onApplicationEvent(SpringApplicationEvent event) {
@@ -60,7 +59,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
 
     @Override
     public int getOrder() {
-        return ORDER;
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 
     /**

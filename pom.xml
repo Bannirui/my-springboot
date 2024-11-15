@@ -146,6 +146,11 @@
                 <artifactId>javax.annotation-api</artifactId>
                 <version>1.3.2</version>
             </dependency>
+            <dependency>
+                <groupId>com.dianping.cat</groupId>
+                <artifactId>cat-client-decorate</artifactId>
+                <version>1.4.1.RELEASE</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

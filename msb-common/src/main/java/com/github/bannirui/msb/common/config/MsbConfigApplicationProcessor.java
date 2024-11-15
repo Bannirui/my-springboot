@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 
 /**
@@ -26,7 +27,6 @@ import org.springframework.core.PriorityOrdered;
 public class MsbConfigApplicationProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, PriorityOrdered {
 
     private static final Logger logger = LoggerFactory.getLogger(MsbConfigApplicationProcessor.class);
-    private static final int ORDER = -2147483625;
 
     public MsbConfigApplicationProcessor() {
     }
@@ -40,6 +40,6 @@ public class MsbConfigApplicationProcessor implements ApplicationListener<Applic
 
     @Override
     public int getOrder() {
-        return ORDER;
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

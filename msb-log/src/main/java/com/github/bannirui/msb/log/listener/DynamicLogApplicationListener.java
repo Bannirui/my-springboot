@@ -32,7 +32,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 public class DynamicLogApplicationListener implements GenericApplicationListener, PriorityOrdered {
 
     private static AtomicBoolean environmentPreparedEventReentry = new AtomicBoolean(false);
-    private static AtomicBoolean applicationPreparedEventReentry = new AtomicBoolean(false);
     private static AtomicBoolean applicationStartedEventReentry = new AtomicBoolean(false);
 
     private Logger logger = LoggerFactory.getLogger(DynamicLogApplicationListener.class);
@@ -66,7 +65,7 @@ public class DynamicLogApplicationListener implements GenericApplicationListener
 
     @Override
     public int getOrder() {
-        return -2147483624;
+        return PriorityOrdered.HIGHEST_PRECEDENCE;
     }
 
     private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {

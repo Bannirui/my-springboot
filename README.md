@@ -28,9 +28,8 @@ A framework based on SpringBoot, focusing on different section
 - 注解式场景启动(@EnableXXX)
 
     - @EnableMsbFramework启用框架
-
-    - @EnableMsbConfig启用配置中心
-    - @EnableMsbLog启用日志框架
+    - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git))
+    - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git))
 
 - 封装实现，隐藏细节
 

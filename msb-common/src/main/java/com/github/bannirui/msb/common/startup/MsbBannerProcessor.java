@@ -9,6 +9,7 @@ import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEven
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 
 /**
@@ -20,7 +21,6 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEvent>
     private static final AtomicBoolean msb_banner_set = new AtomicBoolean(false);
     private static final Logger logger = LoggerFactory.getLogger(MsbBannerProcessor.class);
     private static final String LINE_SEPARATOR = System.lineSeparator();
-    private static final int ORDER = -2147483627;
 
     public MsbBannerProcessor() {
     }
@@ -52,7 +52,7 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEvent>
 
     @Override
     public int getOrder() {
-        return ORDER;
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 
     private String buildBannerText() {
