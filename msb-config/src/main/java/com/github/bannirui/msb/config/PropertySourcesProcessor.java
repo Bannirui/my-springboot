@@ -25,8 +25,7 @@ public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProce
     // key是apollo配置namespace对应的优先级
     private static final Multimap<Integer, String> NAMESPACE_NAMES = HashMultimap.create();
     private ConfigurableEnvironment environment;
-    private ConfigPropertySourceFactory configPropertySourceFactory =
-        (ConfigPropertySourceFactory) SpringInjector.getInstance(ConfigPropertySourceFactory.class);
+    private ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
 
     public PropertySourcesProcessor() {
     }

@@ -9,4 +9,5 @@ public interface EnvType {
     String DEV = "dev";
     String TEST = "test";
     String PROD = "prod";
+    String DEFAULT = "default";
 }

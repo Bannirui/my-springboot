@@ -30,6 +30,7 @@ A framework based on SpringBoot, focusing on different section
     - @EnableMsbFramework启用框架
 
     - @EnableMsbConfig启用配置中心
+    - @EnableMsbLog启用日志框架
 
 - 封装实现，隐藏细节
 
@@ -39,9 +40,12 @@ A framework based on SpringBoot, focusing on different section
         - fat
         - uat
         - prod
-    - -Dmsb.apollo=xxx
+    - -Dmsb.apollo=x
         - true框架本身启用apollo配置
         - false框架本身不适用apollo配置
+    - -Dconsole.log=x
+      - true 启用终端输出日志
+      - false 终端不输出日志
 
 ### 2 quick start
 

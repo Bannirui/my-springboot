@@ -6,15 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.PriorityOrdered;
 
 /**
  * 自定义启动控制台Banner.
  */
-public class MsbBannerProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, PriorityOrdered {
+public class MsbBannerProcessor implements ApplicationListener<ApplicationEvent>, PriorityOrdered {
 
-    private static final AtomicBoolean FLAG = new AtomicBoolean(false);
+    private static final AtomicBoolean springboot_banner_set = new AtomicBoolean(false);
+    private static final AtomicBoolean msb_banner_set = new AtomicBoolean(false);
     private static final Logger logger = LoggerFactory.getLogger(MsbBannerProcessor.class);
     private static final String LINE_SEPARATOR = System.lineSeparator();
     private static final int ORDER = -2147483627;
@@ -23,11 +26,23 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEnviro
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
-        logger.error("开始");
-        if (FLAG.compareAndSet(false, true)) {
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof ApplicationEnvironmentPreparedEvent e) {
+            this.onApplicationEnvironmentPreparedEvent(e);
+        } else if (event instanceof ApplicationPreparedEvent e) {
+            this.onApplicationPrepareEvent(e);
+        }
+    }
+
+    private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent e) {
+        if (springboot_banner_set.compareAndSet(false, true)) {
             // disable printing Spring's banner
-            event.getSpringApplication().setBannerMode(Banner.Mode.CONSOLE);
+            e.getSpringApplication().setBannerMode(Banner.Mode.OFF);
+        }
+    }
+
+    private void onApplicationPrepareEvent(ApplicationPreparedEvent event) {
+        if (msb_banner_set.compareAndSet(false, true)) {
             logger.info(buildBannerText());
         }
         if (EnvironmentMgr.getNetEnv() != null) {
@@ -51,5 +66,4 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEnviro
         sb.append("         |___/           |_|                 |___/                             ");
         return sb.toString();
     }
-
 }

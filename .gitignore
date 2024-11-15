@@ -35,3 +35,6 @@ replay_pid*
 
 # mac
 .DS_Store
+
+*.iml
+**/.flattened-pom.xml
