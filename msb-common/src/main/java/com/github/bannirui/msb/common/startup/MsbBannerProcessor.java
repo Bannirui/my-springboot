@@ -1,21 +1,22 @@
 package com.github.bannirui.msb.common.startup;
 
+import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
-import org.springframework.boot.context.event.ApplicationPreparedEvent;
-import org.springframework.context.ApplicationEvent;
+import com.github.bannirui.msb.common.LogBackConfigListener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
-import org.springframework.core.PriorityOrdered;
 
 /**
  * 自定义启动控制台Banner.
+ * 因为{@link LogBackConfigListener}用的是{@link Ordered} 为了让Spring有序处理 这边也要用{@link Ordered}
  */
-public class MsbBannerProcessor implements ApplicationListener<ApplicationEvent>, PriorityOrdered {
+public class MsbBannerProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
 
     private static final AtomicBoolean springboot_banner_set = new AtomicBoolean(false);
     private static final AtomicBoolean msb_banner_set = new AtomicBoolean(false);
@@ -26,33 +27,33 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEvent>
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof ApplicationEnvironmentPreparedEvent e) {
-            this.onApplicationEnvironmentPreparedEvent(e);
-        } else if (event instanceof ApplicationPreparedEvent e) {
-            this.onApplicationPrepareEvent(e);
-        }
-    }
-
-    private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent e) {
+    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         if (springboot_banner_set.compareAndSet(false, true)) {
             // disable printing Spring's banner
-            e.getSpringApplication().setBannerMode(Banner.Mode.OFF);
+            event.getSpringApplication().setBannerMode(Banner.Mode.OFF);
         }
-    }
-
-    private void onApplicationPrepareEvent(ApplicationPreparedEvent event) {
+        // 自定义Banner
         if (msb_banner_set.compareAndSet(false, true)) {
             logger.info(buildBannerText());
         }
-        if (EnvironmentMgr.getNetEnv() != null) {
-            logger.info("Network environment is set to [{}]", EnvironmentMgr.getNetEnv());
+        String msg = null;
+        if (Objects.nonNull(msg = EnvironmentMgr.getAppName())) {
+            logger.info("Application name is [{}]", msg);
+        }
+        if (Objects.nonNull(msg = EnvironmentMgr.getEnv())) {
+            logger.info("Environment is set to [{}]", msg);
+        }
+        if (Objects.nonNull(msg = EnvironmentMgr.getNetEnv())) {
+            logger.info("Network environment is set to [{}]", msg);
         }
     }
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        /**
+         * 要用到log进行输出Banner 依赖{@link LogBackConfigListener}先执行初始化好日志环境.
+         */
+        return AppEventListenerSort.MSB_BANNER;
     }
 
     private String buildBannerText() {

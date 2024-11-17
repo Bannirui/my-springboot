@@ -4,6 +4,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.AsyncMpscAppender;
+import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.constant.EnvType;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
 import com.github.bannirui.msb.common.properties.bind.PropertyBinder;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -24,23 +26,23 @@ import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.GenericApplicationListener;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.PriorityOrdered;
+import org.springframework.core.Ordered;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-public class DynamicLogApplicationListener implements GenericApplicationListener, PriorityOrdered {
+public class CatLogApplicationListener implements GenericApplicationListener, Ordered {
 
     private static AtomicBoolean environmentPreparedEventReentry = new AtomicBoolean(false);
+    private static AtomicBoolean applicationPreparedEventReentry = new AtomicBoolean(false);
     private static AtomicBoolean applicationStartedEventReentry = new AtomicBoolean(false);
 
-    private Logger logger = LoggerFactory.getLogger(DynamicLogApplicationListener.class);
+    private Logger logger = LoggerFactory.getLogger(CatLogApplicationListener.class);
     private LoggingSystem loggingSystem;
     private ConfigurableEnvironment environment;
 
     private static final String SYSTEM_LOGGING_LEVEL = "system.logging.level";
 
-    public DynamicLogApplicationListener() {
+    public CatLogApplicationListener() {
     }
 
     @Override
@@ -57,15 +59,16 @@ public class DynamicLogApplicationListener implements GenericApplicationListener
     public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof ApplicationEnvironmentPreparedEvent e && environmentPreparedEventReentry.compareAndSet(false, true)) {
             this.onApplicationEnvironmentPreparedEvent(e);
-        }
-        if (event instanceof ApplicationStartedEvent e && applicationStartedEventReentry.compareAndSet(false, true)) {
+        } else if (event instanceof ApplicationPreparedEvent e && applicationPreparedEventReentry.compareAndSet(false, true)) {
+            this.onApplicationPreparedEvent(e);
+        } else if (event instanceof ApplicationStartedEvent e && applicationStartedEventReentry.compareAndSet(false, true)) {
             this.onApplicationStartedEvent(e);
         }
     }
 
     @Override
     public int getOrder() {
-        return PriorityOrdered.HIGHEST_PRECEDENCE;
+        return AppEventListenerSort.CAT_LOG;
     }
 
     private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
@@ -74,11 +77,7 @@ public class DynamicLogApplicationListener implements GenericApplicationListener
         ConsoleAppender.showConsoleLog(bind.orElse("false"));
     }
 
-    /**
-     * 应用启动成功 这个时候容器执行过了{@link AbstractApplicationContext#refresh()}
-     * 已经可以获取到{@link org.springframework.context.annotation.Import}和{@link org.springframework.context.annotation.Bean}注入的实例
-     */
-    private void onApplicationStartedEvent(ApplicationStartedEvent event) {
+    private void onApplicationPreparedEvent(ApplicationPreparedEvent event) {
         this.checkAsyncFileAppenderExist();
         /**
          * 从容器中获取到{@link com.github.bannirui.msb.log.configuration.LogConfiguration}注入的{@link LoggingSystem}实例
@@ -87,7 +86,9 @@ public class DynamicLogApplicationListener implements GenericApplicationListener
         this.environment = event.getApplicationContext().getEnvironment();
         this.setDefaultRootLevel();
         this.updateLogLevelByConfig(SYSTEM_LOGGING_LEVEL);
+    }
 
+    private void onApplicationStartedEvent(ApplicationStartedEvent event) {
         this.cancelSystemLogSet();
         this.updateLogLevelByConfig("logging.level");
         this.addAsyncAppender();

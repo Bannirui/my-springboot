@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.common.startup;
 
-import com.github.bannirui.msb.common.constant.EnableType;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -18,11 +18,38 @@ import org.springframework.core.type.AnnotationMetadata;
 public abstract class MsbImportSelectorController implements ImportSelector {
 
     /**
-     * xxxImportSelector.
-     *
-     * @see EnableType
+     * 场景启动器.
      */
-    private static Set<String> enableStarterSet = new HashSet<>();
+    static enum EnableType {
+        EnableMsbConfigChangeListener("EnableMsbConfig", "EnableMsbConfigChangeListenerSelector"),
+        EnableMsbLog("EnableMsbLog", "EnableMsbLogImportSelector"),
+        ;
+
+        private final String starter;
+        private final String importer;
+
+        EnableType(String starter, String importer) {
+            this.starter = starter;
+            this.importer = importer;
+        }
+
+        public String getStarter() {
+            return starter;
+        }
+
+        public String getImporter() {
+            return this.importer;
+        }
+
+        public static EnableType get8Importer(String name) {
+            return Arrays.stream(values()).filter(e -> e.getImporter().equals(name)).findFirst().orElseGet(() -> null);
+        }
+    }
+
+    /**
+     * xxxImporter.
+     */
+    private static Set<String> enable_starter_set = new HashSet<>();
 
     public MsbImportSelectorController() {
     }
@@ -32,7 +59,7 @@ public abstract class MsbImportSelectorController implements ImportSelector {
         // xxxImportSelector
         EnableType type = EnableType.get8Importer(this.getClass().getSimpleName());
         if (Objects.nonNull(type) && this.isEnable(type)) {
-            enableStarterSet.add(type.getImporter());
+            enable_starter_set.add(type.getImporter());
             return this.mySelectImports(importingClassMetadata);
         } else {
             return new String[0];
@@ -46,6 +73,6 @@ public abstract class MsbImportSelectorController implements ImportSelector {
     }
 
     public static Set<String> getEnableModules() {
-        return enableStarterSet;
+        return enable_starter_set;
     }
 }

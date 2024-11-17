@@ -22,17 +22,11 @@ A framework based on SpringBoot, focusing on different section
 ### 1 特性
 
 - 基于SpringBoot
-
-- 整合需要的功能
-
-- 注解式场景启动(@EnableXXX)
-
+- 统一配置
+- 整合功能 注解式场景启动(@EnableXXX)
     - @EnableMsbFramework启用框架
     - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git))
     - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git))
-
-- 封装实现，隐藏细节
-
 - VM/程序启动参数开关
     - -Denv=xxx指定环境参数
         - dev
@@ -42,22 +36,21 @@ A framework based on SpringBoot, focusing on different section
     - -Dmsb.apollo=x
         - true框架本身启用apollo配置
         - false框架本身不适用apollo配置
-    - -Dconsole.log=x
-      - true 启用终端输出日志
-      - false 终端不输出日志
+    - --console.log=x
+      - true 启用终端输出Banner
+      - false 终端不输出Banner
 
 ### 2 quick start
-
-- [启用框架](./doc/启用框架.md)
-
-- [读取远程配置](./doc/读取远程配置-nacos)
-
-- [关联公共namespace](./doc/远程配置热更新.md)
-
-### 3 samples
-
-- [框架启用](./msb-samples/sample-01)
-
-- [读取远程配置](./msb-samples/sample-02)
-
-- [关联公共namespace](./msb-samples/sample-03)
+- 启用框架
+  - [doc](./doc/启用框架.md)
+  - [code](./msb-samples/sample-01)
+- 配置接入Apollo
+  - [doc](./doc/读取远程配置-nacos)
+  - [code](./msb-samples/sample-02)
+- Apollo关联公共namespace
+  - [doc](./doc/远程配置热更新.md)
+  - [code](./msb-samples/sample-03)
+- 控制台日志输出Banner
+  - [doc](./doc/控制台日志输出Banner.md)
+  - [code](./msb-samples/sample-04)
+- 日志接入Cat

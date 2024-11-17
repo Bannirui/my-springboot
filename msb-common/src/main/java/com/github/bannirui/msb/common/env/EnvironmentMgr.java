@@ -3,6 +3,8 @@ package com.github.bannirui.msb.common.env;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.github.bannirui.msb.common.constant.AppCfg;
+import com.github.bannirui.msb.common.constant.EnvType;
 import com.github.bannirui.msb.common.enums.ExceptionEnum;
 import com.github.bannirui.msb.common.ex.ErrorCodeException;
 import com.github.bannirui.msb.common.ex.FrameworkException;
@@ -41,7 +43,8 @@ import org.springframework.util.ObjectUtils;
 public class EnvironmentMgr {
 
     private static final Logger logger = LoggerFactory.getLogger(EnvironmentMgr.class);
-
+    private static final String env_key = "env";
+    private static final String net_env_key = "netEnv";
     private static String USER_HOME_PATH = System.getProperty("user.home");
     private static String MSB_FILE_PATH;
 
@@ -121,10 +124,10 @@ public class EnvironmentMgr {
      */
     public static String getProperty(String key) {
         String ret = null;
-        if ((ret = System.getProperty(key)) != null) {
+        if (Objects.nonNull(ret = System.getProperty(key))) {
             return ret;
         }
-        if ((ret = apolloMap.get(key)) != null) {
+        if (Objects.nonNull(ret = apolloMap.get(key))) {
             return ret;
         }
         return properties.getProperty(key);
@@ -142,12 +145,12 @@ public class EnvironmentMgr {
      * -Denv=dev JVM启动参数指定.
      */
     public static String getEnv() {
-        String env = System.getProperty("env");
-        return Objects.isNull(env) ? "dev" : env;
+        String env = System.getProperty(env_key);
+        return Objects.isNull(env) ? EnvType.DEV : env;
     }
 
     public static String getNetEnv() {
-        return System.getProperty("netEnv");
+        return System.getProperty(net_env_key);
     }
 
     /**
@@ -160,7 +163,7 @@ public class EnvironmentMgr {
      */
     public static String getAppName() {
         if (Objects.isNull(appName)) {
-            String appId = System.getProperty("app.id");
+            String appId = System.getProperty(AppCfg.APP_ID_KEY);
             if (Objects.nonNull(appId)) {
                 appName = appId;
             } else {
@@ -170,7 +173,7 @@ public class EnvironmentMgr {
                 } catch (Exception e) {
                     throw new ErrorCodeException(e, ExceptionEnum.FILE_EXCEPTION, new Object[] {"读取app.properties"});
                 }
-                appName = props.getProperty("app.id");
+                appName = props.getProperty(AppCfg.APP_ID_KEY);
             }
         }
         return appName;

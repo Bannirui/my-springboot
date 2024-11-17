@@ -1,2 +1,2 @@
 org.springframework.context.ApplicationListener=\
-  com.github.bannirui.msb.log.listener.DynamicLogApplicationListener
+  com.github.bannirui.msb.log.listener.CatLogApplicationListener

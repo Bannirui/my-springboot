@@ -5,9 +5,12 @@ import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
+import com.github.bannirui.msb.common.LogBackConfigListener;
+import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.enums.MsbEnv;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
 import com.github.bannirui.msb.common.util.ArrayUtil;
+import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.github.bannirui.msb.config.spring.ConfigPropertySourceFactory;
 import com.google.common.collect.HashMultimap;
@@ -44,7 +47,6 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
      * 容器Environment准备好后找到容器中所有打了这个注解的类取到远程配置的namespace
      */
     private static final Multimap<Integer, String> NAMESPACE_NAMES = HashMultimap.create();
-    private static final String APOLLO_PROPERTY_SOURCE_NAME = "ApolloPropertySources";
     private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
     private static final String APOLLO_ENV_RESOURCE_FILE = "classpath*:/META-INF/msb/apollo-env.properties";
 
@@ -59,7 +61,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return AppEventListenerSort.APOLLO_CONFIG;
     }
 
     /**
@@ -95,11 +97,13 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         String curEnv = System.getProperty("env");
         String key = "apollo.meta";
         // 不同环境的apollo meta url设置到VM环境变量中给apollo读
-        switch (MsbEnv.of(curEnv)) {
-            case DEV -> System.setProperty(key, devMetaUrl);
-            case FAT -> System.setProperty(key, fatMetaUrl);
-            case UAT -> System.setProperty(key, uatMetaUrl);
-            case PROD -> System.setProperty(key, prodMetaUrl);
+        if (StringUtil.isNotBlank(curEnv)) {
+            switch (MsbEnv.of(curEnv)) {
+                case DEV -> System.setProperty(key, devMetaUrl);
+                case FAT -> System.setProperty(key, fatMetaUrl);
+                case UAT -> System.setProperty(key, uatMetaUrl);
+                case PROD -> System.setProperty(key, prodMetaUrl);
+            }
         }
     }
 
@@ -108,12 +112,12 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
      * 将配置中心apollo的配置内容同步到缓存中.
      */
     private void envPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
-        if (event.getEnvironment().getPropertySources().contains(APOLLO_PROPERTY_SOURCE_NAME)) {
+        if (event.getEnvironment().getPropertySources().contains(LogBackConfigListener.APOLLO_PROPERTY_SOURCE_NAME)) {
             return;
         }
         Set<Object> sources = event.getSpringApplication().getAllSources();
         this.initNamespaces(sources);
-        CompositePropertySource composite = new CompositePropertySource(APOLLO_PROPERTY_SOURCE_NAME);
+        CompositePropertySource composite = new CompositePropertySource(LogBackConfigListener.APOLLO_PROPERTY_SOURCE_NAME);
         ImmutableSortedSet<Integer> orders = ImmutableSortedSet.copyOf(NAMESPACE_NAMES.keySet());
         for (Integer order : orders) {
             for (String namespace : NAMESPACE_NAMES.get(order)) {
@@ -128,9 +132,9 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     private void initNamespaces(Set<Object> sources) {
         sources.forEach(x ->
         {
-            Class clz = (Class) x;
+            Class<?> clz = (Class<?>) x;
             if (clz.isAnnotationPresent(EnableMsbConfig.class)) {
-                EnableMsbConfig annotation = (EnableMsbConfig) clz.getDeclaredAnnotation(EnableMsbConfig.class);
+                EnableMsbConfig annotation = clz.getDeclaredAnnotation(EnableMsbConfig.class);
                 NAMESPACE_NAMES.putAll(annotation.order(), Lists.newArrayList(annotation.value()));
             }
         });

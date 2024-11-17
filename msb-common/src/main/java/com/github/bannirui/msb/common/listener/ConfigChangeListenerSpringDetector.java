@@ -1,10 +1,9 @@
 package com.github.bannirui.msb.common.listener;
 
-import com.github.bannirui.msb.common.annotation.MsbConfigChangeListener;
+import com.github.bannirui.msb.common.annotation.EnableMsbConfigChangeListener;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
 import com.github.bannirui.msb.common.listener.param.SpringParamResolver;
 import com.github.bannirui.msb.common.util.StringUtil;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashSet;
@@ -61,13 +60,12 @@ public class ConfigChangeListenerSpringDetector implements BeanDefinitionRegistr
                 if (resource.isReadable()) {
                     MetadataReader metadataReader = this.metadataReaderFactory.getMetadataReader(resource);
                     AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
-                    if (annotationMetadata.getAnnotationTypes().contains(MsbConfigChangeListener.class.getName())) {
+                    if (annotationMetadata.getAnnotationTypes().contains(EnableMsbConfigChangeListener.class.getName())) {
                         ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
                         Class<?> aClass = null;
-                        String className = sbd.getBeanClassName();
                         aClass = Class.forName(sbd.getBeanClassName());
                         if (aClass != null) {
-                            MsbConfigChangeListener ccl = aClass.getAnnotation(MsbConfigChangeListener.class);
+                            EnableMsbConfigChangeListener ccl = aClass.getAnnotation(EnableMsbConfigChangeListener.class);
                             if (ccl != null && ccl.methods() != null && ccl.methods().length > 0) {
                                 Object o = aClass.newInstance();
                                 BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(aClass);
@@ -105,8 +103,6 @@ public class ConfigChangeListenerSpringDetector implements BeanDefinitionRegistr
                     }
                 }
             }
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }

@@ -19,7 +19,7 @@ import org.springframework.core.Ordered;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-@Import({ConfigRegistrar.class,})
+@Import({ConfigRegistrar.class})
 public @interface EnableMsbConfig {
 
     /**

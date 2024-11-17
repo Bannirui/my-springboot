@@ -38,9 +38,9 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>com.dianping.cat</groupId>
-            <artifactId>cat-client-decorate</artifactId>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.dianping.cat</groupId>-->
+        <!--    <artifactId>cat-client-decorate</artifactId>-->
+        <!--</dependency>-->
     </dependencies>
 </project>

@@ -1,13 +1,13 @@
 package com.github.bannirui.msb.common.config;
 
+import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
 import com.github.bannirui.msb.common.properties.adapter.AdapterConfigMgr;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.github.bannirui.msb.common.startup.MsbBannerProcessor;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import com.github.bannirui.msb.common.LogBackConfigListener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
-import org.springframework.core.PriorityOrdered;
 
 /**
  * spring.factories注入到容器中.
@@ -23,23 +23,25 @@ import org.springframework.core.PriorityOrdered;
  * </ul>
  * 对接远程配置中心 要将配置中心的数据缓存到Spring中 即Environment中
  * 所以SpringBoot生命周期锚点是在Environment构建好{@link ApplicationEnvironmentPreparedEvent}
+ * <p>
+ * 因为{@link LogBackConfigListener}用的是{@link Ordered} 为了让Spring有序处理 这边也要用{@link Ordered}
  */
-public class MsbConfigApplicationProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, PriorityOrdered {
-
-    private static final Logger logger = LoggerFactory.getLogger(MsbConfigApplicationProcessor.class);
+public class MsbConfigApplicationProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
 
     public MsbConfigApplicationProcessor() {
     }
 
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
-        logger.info("{}启动 优先级{}", this.getClass().getSimpleName(), this.getOrder());
         EnvironmentMgr.addMsbConfig2PropertySource(event.getEnvironment());
         AdapterConfigMgr.loadAdapterPropertySource(event.getEnvironment());
     }
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        /**
+         * 等{@link MsbBannerProcessor}先执行.
+         */
+        return AppEventListenerSort.MSB_APP_SPRING_ENVIRONMENT_CONFIG;
     }
 }

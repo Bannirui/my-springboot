@@ -4,8 +4,8 @@ import com.github.bannirui.msb.common.startup.MsbImportSelectorController;
 import com.github.bannirui.msb.config.aop.FlowControlAop;
 import org.springframework.core.type.AnnotationMetadata;
 
-public class EnableConfigChangeListenerSelector extends MsbImportSelectorController {
-    public EnableConfigChangeListenerSelector() {
+public class EnableMsbConfigChangeListenerSelector extends MsbImportSelectorController {
+    public EnableMsbConfigChangeListenerSelector() {
     }
 
     @Override
