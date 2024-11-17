@@ -45,12 +45,14 @@ A framework based on SpringBoot, focusing on different section
   - [doc](./doc/启用框架.md)
   - [code](./msb-samples/sample-01)
 - 配置接入Apollo
-  - [doc](./doc/读取远程配置-nacos)
+  - [doc](./doc/读取远程配置-apollo.md)
   - [code](./msb-samples/sample-02)
 - Apollo关联公共namespace
   - [doc](./doc/远程配置热更新.md)
   - [code](./msb-samples/sample-03)
 - 控制台日志输出Banner
-  - [doc](./doc/控制台日志输出Banner.md)
+  - [doc](./doc/控制台输出Banner.md)
   - [code](./msb-samples/sample-04)
 - 日志接入Cat
+  - [doc](./doc/集成Cat.md)
+  - [code](./msb-samples/sample-04)

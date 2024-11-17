@@ -36,11 +36,8 @@ app.id=SampleApp
 根据需求指定，可选为
 
 - dev
-
 - fat
-
 - uat
-
 - prod
 
 ### 5 启动类上打上注解@EnableMyFramework和注解@EnableMsbConfig
