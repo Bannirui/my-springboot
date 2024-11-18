@@ -36,9 +36,13 @@ A framework based on SpringBoot, focusing on different section
     - -Dmsb.apollo=x
         - true框架本身启用apollo配置
         - false框架本身不适用apollo配置
+        - 缺省值是true
     - --console.log=x
       - true 启用终端输出Banner
       - false 终端不输出Banner
+      - 缺省值
+        - 输出Banner时缺省值是true
+        - 输出业务日志时缺省值是false
 
 ### 2 quick start
 - 启用框架
