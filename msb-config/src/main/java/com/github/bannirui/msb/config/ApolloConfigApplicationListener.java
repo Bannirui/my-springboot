@@ -9,6 +9,7 @@ import com.github.bannirui.msb.common.LogBackConfigListener;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.enums.MsbEnv;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.common.util.ArrayUtil;
 import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
@@ -53,9 +54,9 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     @Override
     public void onApplicationEvent(SpringApplicationEvent event) {
         if (event instanceof ApplicationStartingEvent e) {
-            this.applicationStartingEvent(e);
+            this.onApplicationStartingEvent(e);
         } else if (event instanceof ApplicationEnvironmentPreparedEvent e) {
-            this.envPreparedEvent(e);
+            this.onApplicationEnvironmentPreparedEvent(e);
         }
     }
 
@@ -67,7 +68,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     /**
      * 容器启动 将注解中必要的apollo元信息缓存起来后面使用.
      */
-    private void applicationStartingEvent(ApplicationStartingEvent event) {
+    private void onApplicationStartingEvent(ApplicationStartingEvent event) {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Properties props = new Properties();
         try {
@@ -95,15 +96,16 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
             prodMetaUrl = System.getProperty(netEnv + "_prod_meta", props.getProperty(netEnv + "prod.meta"));
         }
         String curEnv = System.getProperty("env");
+        if (StringUtil.isBlank(curEnv)) {
+            throw new FrameworkException(FrameworkException.ERR_DEF, "env could not found");
+        }
         String key = "apollo.meta";
         // 不同环境的apollo meta url设置到VM环境变量中给apollo读
-        if (StringUtil.isNotBlank(curEnv)) {
-            switch (MsbEnv.of(curEnv)) {
-                case DEV -> System.setProperty(key, devMetaUrl);
-                case FAT -> System.setProperty(key, fatMetaUrl);
-                case UAT -> System.setProperty(key, uatMetaUrl);
-                case PROD -> System.setProperty(key, prodMetaUrl);
-            }
+        switch (MsbEnv.of(curEnv)) {
+            case DEV -> System.setProperty(key, devMetaUrl);
+            case FAT -> System.setProperty(key, fatMetaUrl);
+            case UAT -> System.setProperty(key, uatMetaUrl);
+            case PROD -> System.setProperty(key, prodMetaUrl);
         }
     }
 
@@ -111,7 +113,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
      * Spring Environment就绪.
      * 将配置中心apollo的配置内容同步到缓存中.
      */
-    private void envPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
+    private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
         if (event.getEnvironment().getPropertySources().contains(LogBackConfigListener.APOLLO_PROPERTY_SOURCE_NAME)) {
             return;
         }

@@ -21,11 +21,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, PriorityOrdered {
-    private static final String APOLLO_PROPERTY_SOURCE_NAME = "ApolloPropertySources";
     // key是apollo配置namespace对应的优先级
     private static final Multimap<Integer, String> NAMESPACE_NAMES = HashMultimap.create();
     private ConfigurableEnvironment environment;
-    private ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
+    private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
 
     public PropertySourcesProcessor() {
     }
@@ -44,7 +43,6 @@ public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProce
                 // 为apollo的每个配置注册监听器 实现热更新
                 configPropertySource.getSource().addChangeListener(autoUpdateConfigChangeListener);
             }
-
         }
     }
 

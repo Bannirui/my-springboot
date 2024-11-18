@@ -56,3 +56,8 @@ A framework based on SpringBoot, focusing on different section
 - 日志接入Cat
   - [doc](./doc/集成Cat.md)
   - [code](./msb-samples/sample-04)
+
+### 3 附件配置
+
+- 框架配置
+- [应用配置](./doc/app-apollo.properties)

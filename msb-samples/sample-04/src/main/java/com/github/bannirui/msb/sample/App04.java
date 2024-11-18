@@ -22,6 +22,9 @@ public class App04 implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        logger.info("应用已经启动 开始执行定制服务");
+        logger.debug("debug 日志");
+        logger.info("info 日志");
+        logger.warn("warn 日志");
+        logger.error("error 日志");
     }
 }

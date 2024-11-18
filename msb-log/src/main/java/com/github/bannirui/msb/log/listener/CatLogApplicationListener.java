@@ -90,6 +90,13 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
 
     private void onApplicationStartedEvent(ApplicationStartedEvent event) {
         this.cancelSystemLogSet();
+        /**
+         * 配置文件中设置日志级别
+         * <ul>
+         *     <li>设置所有 logging.level.root=info</li>
+         *     <li>设置到包级别 logging.level.com.github=error</li>
+         * </ul>
+         */
         this.updateLogLevelByConfig("logging.level");
         this.addAsyncAppender();
         this.cancelFileAppenderImmediateFlush();
@@ -119,15 +126,32 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
         try {
             this.loggingSystem.setLogLevel(levelName, LogLevel.valueOf(levelStr.toUpperCase(Locale.ROOT)));
         } catch (Exception e) {
-            this.logger.warn("log级别设置失败 name={} level={}", levelName, levelStr);
+            this.logger.warn("log级别设置失败 name={} level={}", levelName, levelStr, e);
         }
     }
 
     private void updateLogLevelByConfig(String configKey) {
+        /**
+         * root=info
+         * com.github=error
+         */
         Map<String, String> levels = this.getLoggingConfig(configKey);
         levels.forEach(this::setLogLevel);
     }
 
+    /**
+     * Spring Boot的Env中所有配置的key属性前缀是configKey的后缀及对应的配置值.
+     * 比如有配置如
+     * <ul>
+     *     <li>logging.level.root=info</li>
+     *     <li>logging.level.com.github=error</li>
+     * </ul>
+     * 解析结果为
+     * <ul>
+     *     <li>root=info</li>
+     *     <li>com.github=error</li>
+     * </ul>
+     */
     private Map<String, String> getLoggingConfig(String configKey) {
         PropertyBinder binder = new PropertyBinder(this.environment);
         return binder.bind(configKey, Bindable.mapOf(String.class, String.class)).orElseGet(Collections::emptyMap);

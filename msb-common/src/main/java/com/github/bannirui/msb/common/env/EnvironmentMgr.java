@@ -93,7 +93,7 @@ public class EnvironmentMgr {
         } catch (IOException e) {
             throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, new Object[] {"资源文件"});
         }
-        if (Objects.equals("true", System.getProperty("msb.apollo"))) {
+        if (!Objects.equals("false", System.getProperty("msb.apollo"))) {
             // msb框架本身的配置放在了apollo 从远程拉配置到本地
             String url = properties.getProperty("apollo.meta.url");
             String uri = properties.getProperty("apollo.msb.uri");

@@ -69,7 +69,14 @@ public class LogBackConfigListener implements GenericApplicationListener {
      * 因此在{@link ApplicationPreparedEvent}时机可以用Apollo的配置了
      */
     public static final String APOLLO_PROPERTY_SOURCE_NAME = "ApolloPropertySources";
-    // 控制终端日志开关的key 启动参数--console.log=true
+    /**
+     * 环境变量 console.log
+     * 控制终端日志开关的key
+     * <ul>
+     *     <li>启动参数 --console.log=true</li>
+     *     <li>VM参数 -Dconsole.log=true</li>
+     * </ul>
+     */
     private static final String console_log_option_key = "console.log";
 
     static {
@@ -177,8 +184,12 @@ public class LogBackConfigListener implements GenericApplicationListener {
                 }
             }
         }
-        this.loggingSystem = new LogbackLoggingSystem(this.getClass().getClassLoader());
-        this.initialize(new MsbLoggingEnvironment(), event.getSpringApplication().getClassLoader());
+        // true or false
+        String consoleLogOption = System.getProperty(console_log_option_key);
+        if (Objects.equals("true", consoleLogOption)) {
+            this.loggingSystem = new LogbackLoggingSystem(this.getClass().getClassLoader());
+            this.initialize(new MsbLoggingEnvironment(), event.getSpringApplication().getClassLoader());
+        }
     }
 
     private void onApplicationPreparedEvent(ApplicationPreparedEvent event) {
@@ -214,10 +225,10 @@ public class LogBackConfigListener implements GenericApplicationListener {
 
     private void initializeEarlyLoggingLevel(ConfigurableEnvironment environment) {
         if (this.parseArgs && Objects.isNull(this.springBootLogLevel)) {
-            if (this.isSet(environment, "debug")) {
+            if (this.isSet(environment, LOG_LEVEL_KEY_PREFIX + "debug")) {
                 this.springBootLogLevel = LogLevel.DEBUG;
             }
-            if (this.isSet(environment, "trace")) {
+            if (this.isSet(environment, LOG_LEVEL_KEY_PREFIX + "trace")) {
                 this.springBootLogLevel = LogLevel.TRACE;
             }
         }

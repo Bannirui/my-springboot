@@ -46,9 +46,12 @@ public class App04 implements ApplicationRunner {
 
 ### 4 运行参数
 
-运行的时候指定参数
-- -Dmsb.apollo=false
-- --console.log=true
+必须制定的VM参数是`-Denv=dev`
+
+- 可以指定运行时参数
+  - -Dmsb.apollo=false声明框架本身没有使用apollo
+  - --console.log=true启用终端日志
+- 也可以直接运行 全部用缺省值
 
 ![](./../img/1731813833.png)
 
