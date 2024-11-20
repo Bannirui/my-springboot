@@ -2,7 +2,8 @@ package com.github.bannirui.msb.sample;
 
 import com.github.bannirui.msb.common.annotation.EnableMsbFramework;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -11,28 +12,19 @@ import org.springframework.boot.SpringApplication;
 @EnableMsbConfig
 public class App02 implements CommandLineRunner {
 
-    @Value("${name}")
-    private String name;
+    private static final Logger log = LoggerFactory.getLogger(App02.class);
 
-    @Value("${age}")
-    private Integer age;
+    @Value("${my-env}")
+    private String env;
 
-    @Value("${male}")
-    private Boolean male;
-
-    @Value("${ids}")
-    private List<Long> ids;
 
     public static void main(String[] args) {
         SpringApplication.run(App02.class, args);
-        System.out.println("App2启动");
+        log.info("App2启动成功");
     }
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("name=" + this.name);
-        System.out.println("age=" + this.age);
-        System.out.println("male=" + this.male);
-        System.out.println("ids=" + this.ids);
+        log.info("测试apollo env={}", this.env);
     }
 }

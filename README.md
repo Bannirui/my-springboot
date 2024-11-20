@@ -43,6 +43,7 @@ A framework based on SpringBoot, focusing on different section
       - 缺省值
         - 输出Banner时缺省值是true
         - 输出业务日志时缺省值是false
+    - -Dapollo.configService=http://127.0.0.1:8081/ 在使用Docker部署Apollo时因为网卡地址访问问题时 直接指定服务地址从而跳过服务发现
 
 ### 2 quick start
 - 启用框架
