@@ -5,9 +5,11 @@ import com.ctrip.framework.apollo.tracer.Tracer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Singleton;
 
+/**
+ * 仿写的{@link com.ctrip.framework.apollo.spring.util.SpringInjector}.
+ */
 public class SpringInjector {
 
     private static volatile Injector s_injector;
@@ -16,12 +18,15 @@ public class SpringInjector {
     public SpringInjector() {
     }
 
+    /**
+     * DCL单例.
+     */
     private static Injector getInjector() {
         if (s_injector == null) {
             synchronized (lock) {
                 if (s_injector == null) {
                     try {
-                        s_injector = Guice.createInjector(new Module[] {new SpringModule()});
+                        s_injector = Guice.createInjector(new SpringModule());
                     } catch (Throwable e) {
                         ApolloConfigException ex = new ApolloConfigException("Failed to initialize Spring Injector", e);
                         Tracer.logError(ex);
@@ -48,6 +53,7 @@ public class SpringInjector {
 
         @Override
         protected void configure() {
+            // 显式指定单例进行DI
             super.bind(PlaceholderHelper.class).in(Singleton.class);
             super.bind(SpringValueRegistry.class).in(Singleton.class);
             super.bind(ConfigPropertySourceFactory.class).in(Singleton.class);

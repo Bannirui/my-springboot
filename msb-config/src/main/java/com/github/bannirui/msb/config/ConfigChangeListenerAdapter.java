@@ -2,12 +2,14 @@ package com.github.bannirui.msb.config;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
-import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -16,13 +18,12 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
 public class ConfigChangeListenerAdapter implements ApplicationContextAware, BeanPostProcessor {
+    private static final Logger log = LoggerFactory.getLogger(ConfigChangeListenerAdapter.class);
     private ApplicationContext applicationContext;
     private static final String APOLLO_LISTENER_CLASSES = "com.github.bannirui.msb.config.ConfigChangeListener";
-    private static final List<String> APOLLO_LISTENER_METHODS =
-        Arrays.asList("apolloConfigOnChange", "publishEvent", "publishApolloConfigChangeEvent");
-    private static final String APOLLO_NAMESPACE_APPLICATION = "application";
-    public static final String ZSM_CONFIG_NAMESPACE = "_msb.System.Config";
-    private static final String LISTENER_ALL_NAMESPACE_SWITCH_KEY = "msb.config.listen.allnamespace";
+    private static final List<String> apollo_listener_methods = Arrays.asList("apolloConfigOnChange", "publishEvent", "publishApolloConfigChangeEvent");
+    private static final String apollo_namespace_application = "application";
+    public static final String LISTENER_ALL_NAMESPACE_SWITCH_KEY = "msb.config.listen.allnamespace";
     /**
      * {@link EnableMsbConfig}注解打在的类.
      */
@@ -38,36 +39,31 @@ public class ConfigChangeListenerAdapter implements ApplicationContextAware, Bea
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        Class clazz = bean.getClass();
+        Class<?> clazz = bean.getClass();
+        // 场景启动器一般打在启动类
         if (AnnotationUtils.findAnnotation(clazz, EnableMsbConfig.class) != null) {
             this.bootstrapClass = clazz;
             return bean;
         } else {
-            if (clazz.getName().equals("com.github.bannirui.msb.config.ConfigChangeListener")) {
-                List<Method> executeMethods = new ArrayList();
+            if (Objects.equals(clazz.getName(), ConfigChangeListener.class.getName())) {
+                List<Method> executeMethods = new ArrayList<>();
                 Method[] methods = clazz.getDeclaredMethods();
                 for (Method method : methods) {
-                    if (APOLLO_LISTENER_METHODS.contains(method.getName())) {
+                    if (apollo_listener_methods.contains(method.getName())) {
                         executeMethods.add(method);
                     }
                 }
-
                 if (!executeMethods.isEmpty()) {
                     /**
                      * {@link EnableMsbConfig}注解指定的apollo的namespace
                      */
-                    List<String> validListeningNamespaces = new ArrayList();
-                    if (StringUtil.isNotEmpty(this.applicationContext.getEnvironment().getProperty("msb.config.listen.allnamespace"))) {
-                        EnableMsbConfig enableConfigAnnotation =
-                            AnnotationUtils.findAnnotation(this.bootstrapClass, EnableMsbConfig.class);
-                        if (enableConfigAnnotation != null) {
-                            validListeningNamespaces = Arrays.asList(enableConfigAnnotation.value());
-                        }
-                    } else {
-                        validListeningNamespaces.add("application");
-                        validListeningNamespaces.add("_msb.System.Config");
+                    List<String> validListeningNamespaces = new ArrayList<>();
+                    EnableMsbConfig enableConfigAnnotation = AnnotationUtils.findAnnotation(this.bootstrapClass, EnableMsbConfig.class);
+                    if (Objects.nonNull(enableConfigAnnotation)) {
+                        validListeningNamespaces.addAll(Arrays.asList(enableConfigAnnotation.value()));
                     }
                     for (String namespace : validListeningNamespaces) {
+                        // apollo的config注册监听器 当配置发生了变更进行回调实现热更新
                         Config config = ConfigService.getConfig(namespace);
                         for (Method method : executeMethods) {
                             config.addChangeListener(changeEvent -> ReflectionUtils.invokeMethod(method, bean, new Object[] {changeEvent}));

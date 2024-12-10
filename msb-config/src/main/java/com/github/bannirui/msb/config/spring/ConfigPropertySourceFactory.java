@@ -12,9 +12,10 @@ public class ConfigPropertySourceFactory {
 
     private final List<ConfigPropertySource> configPropertySources = Lists.newLinkedList();
 
-    public ConfigPropertySourceFactory() {
-    }
-
+    /**
+     * @param name Apollo的nameSpace
+     * @param source Apollo的Config
+     */
     public ConfigPropertySource getConfigPropertySource(String name, Config source) {
         try {
             Class<ConfigPropertySource> clazz = ConfigPropertySource.class;

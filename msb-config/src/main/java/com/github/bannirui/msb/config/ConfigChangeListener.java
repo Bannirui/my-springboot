@@ -4,6 +4,7 @@ import com.github.bannirui.msb.common.util.StringUtil;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -23,9 +24,15 @@ import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
 import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 
+/**
+ *
+ */
 public class ConfigChangeListener implements ApplicationContextAware, EnvironmentAware {
-    private Logger logger = LoggerFactory.getLogger(ConfigChangeListener.class);
-    private String classResourcePattern = "classpath*:com/github/bannirui/**/*.class";
+    private static final Logger logger = LoggerFactory.getLogger(ConfigChangeListener.class);
+    /**
+     * 要扫描的所有class文件.
+     */
+    private static final String class_resource_pattern = "classpath*:com/github/bannirui/**/*.class";
     private Environment environment;
     private ApplicationContext applicationContext;
     private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
@@ -40,9 +47,9 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
         this.applicationContext = applicationContext;
         Resource[] resources = new Resource[0];
         try {
-            resources = this.resourcePatternResolver.getResources(this.classResourcePattern);
+            resources = this.resourcePatternResolver.getResources(ConfigChangeListener.class_resource_pattern);
         } catch (IOException e) {
-            this.logger.error("Resource 加载异常 errorMessage=", e);
+            ConfigChangeListener.logger.error("Resource加载异常 err=", e);
         }
         for (Resource resource : resources) {
             if (resource.isReadable()) {
@@ -56,15 +63,20 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
         this.environment = environment;
     }
 
-    private Class readResources(Resource resource) {
+    /**
+     * 找到被{@link ConfigurationProperties}注解的类
+     * @param resource class文件
+     * @return 没有被注解返回null
+     */
+    private Class<?> readResources(Resource resource) {
         try {
             MetadataReader metadataReader = this.metadataReaderFactory.getMetadataReader(resource);
             AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
             if (annotationMetadata.getAnnotationTypes().contains(ConfigurationProperties.class.getName())) {
                 ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
-                Class<?> aClass = Class.forName(sbd.getBeanClassName());
-                if (aClass != null && aClass.getAnnotation(ConfigurationProperties.class) != null) {
-                    return aClass;
+                Class<?> clz = Class.forName(sbd.getBeanClassName());
+                if (Objects.nonNull(clz) && clz.getAnnotation(ConfigurationProperties.class) != null) {
+                    return clz;
                 }
             }
             return null;
@@ -73,13 +85,18 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
         }
     }
 
-    private void putApolloValue(Class cla) {
+    /**
+     * 被{@link ConfigurationProperties}注解的类的setter方法全部缓存到集合中
+     * @param clz 被{@link ConfigurationProperties}注解的类
+     */
+    private void putApolloValue(Class<?> clz) {
         try {
-            if (cla != null) {
-                Object bean = this.getBean(this.applicationContext, cla);
+            if (clz != null) {
+                // 被{@link ConfigurationProperties}注解的Bean实例
+                Object bean = this.getBean(this.applicationContext, clz);
                 if (bean != null) {
                     Class<?> targetClass = AopUtils.getTargetClass(bean);
-                    Field[] declaredFields = cla.getDeclaredFields();
+                    Field[] declaredFields = clz.getDeclaredFields();
                     String prefix = "";
                     ConfigurationProperties configurationProperties = AnnotationUtils.findAnnotation(targetClass, ConfigurationProperties.class);
                     if (configurationProperties != null) {
@@ -89,9 +106,7 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
                             prefix = configurationProperties.prefix();
                         }
                     }
-
-                    Field[] fields = declaredFields;
-                    for (Field field : fields) {
+                    for (Field field : declaredFields) {
                         String key = "";
                         if (StringUtil.isNotEmpty(prefix)) {
                             key = prefix + "." + field.getName();
@@ -99,15 +114,13 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
                             key = field.getName();
                         }
                         String methodName = "set" + captureName(field.getName());
-                        Method method;
+                        Method method = null;
                         try {
-                            method = cla.getMethod(methodName, field.getType());
+                            method = clz.getMethod(methodName, field.getType());
                         } catch (Exception var15) {
-                            this.logger.warn("className={} 配置类 propertyName={} 不存在set方法或者set方法不规范,不支持自动配置变更",
+                            ConfigChangeListener.logger.warn("className={} 配置类 propertyName={} 不存在set方法或者set方法不规范,不支持自动配置变更",
                                 bean.getClass().getName(), field.getName());
-                            method = null;
                         }
-
                         if (method != null) {
                             ApolloValue apolloValue = new ApolloValue();
                             apolloValue.setMethod(method);
@@ -117,8 +130,8 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
                     }
                 }
             }
-        } catch (Exception var16) {
-            this.logger.warn("className={} 配置类不支持Apollo,配置自动变更", cla.getName());
+        } catch (Exception e) {
+            ConfigChangeListener.logger.warn("className={} 配置类不支持Apollo,配置自动变更", clz.getName());
         }
     }
 

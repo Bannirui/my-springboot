@@ -4,14 +4,17 @@ import com.github.bannirui.msb.common.startup.MsbImportSelectorController;
 import com.github.bannirui.msb.config.aop.FlowControlAop;
 import org.springframework.core.type.AnnotationMetadata;
 
+/**
+ * 监听Apollo的配置变更实现热更新
+ */
 public class EnableMsbConfigChangeListenerSelector extends MsbImportSelectorController {
-    public EnableMsbConfigChangeListenerSelector() {
-    }
 
     @Override
     protected String[] mySelectImports(AnnotationMetadata metadata) {
-        return new String[] {ConfigChangeListenerConfiguration.class.getName(),
+        return new String[] {
+            ConfigChangeListenerConfiguration.class.getName(),
             FlowControlAop.class.getName(),
-            ConfigChangeListenerAdapter.class.getName()};
+            ConfigChangeListenerAdapter.class.getName()
+        };
     }
 }

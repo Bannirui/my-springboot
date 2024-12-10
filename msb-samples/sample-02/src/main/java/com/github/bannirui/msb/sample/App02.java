@@ -14,9 +14,8 @@ public class App02 implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(App02.class);
 
-    @Value("${my-env}")
+    @Value("${msb-my-env}")
     private String env;
-
 
     public static void main(String[] args) {
         SpringApplication.run(App02.class, args);
@@ -25,6 +24,9 @@ public class App02 implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("测试apollo env={}", this.env);
+        while (true) {
+            log.info("cfg is {}", this.env);
+            Thread.sleep(1_000);
+        }
     }
 }

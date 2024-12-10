@@ -20,7 +20,7 @@ public abstract class MsbImportSelectorController implements ImportSelector {
     /**
      * 场景启动器.
      */
-    static enum EnableType {
+    enum EnableType {
         EnableMsbConfigChangeListener("EnableMsbConfig", "EnableMsbConfigChangeListenerSelector"),
         EnableMsbLog("EnableMsbLog", "EnableMsbLogImportSelector"),
         ;
@@ -48,11 +48,11 @@ public abstract class MsbImportSelectorController implements ImportSelector {
 
     /**
      * xxxImporter.
+     * <ul>
+     *     {@link EnableMsbConfig}import了{@link com.github.bannirui.msb.common.annotation.EnableMsbConfigChangeListener}
+     * </ul>
      */
     private static Set<String> enable_starter_set = new HashSet<>();
-
-    public MsbImportSelectorController() {
-    }
 
     @Override
     public String[] selectImports(AnnotationMetadata importingClassMetadata) {

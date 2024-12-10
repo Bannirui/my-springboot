@@ -27,25 +27,28 @@ A framework based on SpringBoot, focusing on different section
     - @EnableMsbFramework启用框架
     - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git))
     - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git))
-- VM/程序启动参数开关
-    - -Denv=xxx指定环境参数
-        - dev
-        - fat
-        - uat
-        - prod
-    - -Dmsb.apollo=x
-        - true框架本身启用apollo配置
-        - false框架本身不适用apollo配置
-        - 缺省值是true
-    - --console.log=x
-      - true 启用终端输出Banner
-      - false 终端不输出Banner
-      - 缺省值
+
+### 2 VM/启动参数
+- -Denv=xxx指定环境参数
+    - dev
+    - fat
+    - uat
+    - prod
+- -Dmsb.apollo=x
+    - true框架本身启用apollo配置 缺省值是true
+    - false框架本身不使用apollo配置
+- --console.log=x
+    - true 启用终端输出Banner
+    - false 终端不输出Banner
+    - 缺省值
         - 输出Banner时缺省值是true
         - 输出业务日志时缺省值是false
-    - -Dapollo.configService=http://127.0.0.1:8081/ 在使用Docker部署Apollo时因为网卡地址访问问题时 直接指定服务地址从而跳过服务发现
+- -Dapollo.configService=http://127.0.0.1:8081/ 在使用Docker部署Apollo时因为网卡地址访问问题时 直接指定服务地址从而跳过服务发现
+- autoUpdateInjectedSpringProperties
+  - true 开启对接Apollo热更新
+  - false 关闭对接Apollo热更新
 
-### 2 quick start
+### 3 quick start
 - 启用框架
   - [doc](./doc/启用框架.md)
   - [code](./msb-samples/sample-01)
@@ -62,7 +65,7 @@ A framework based on SpringBoot, focusing on different section
   - [doc](./doc/集成Cat.md)
   - [code](./msb-samples/sample-04)
 
-### 3 附件配置
+### 4 附件配置
 
 - 框架配置
 - [应用配置](./doc/app-apollo.properties)

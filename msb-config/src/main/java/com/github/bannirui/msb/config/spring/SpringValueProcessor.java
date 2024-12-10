@@ -23,13 +23,10 @@ import org.springframework.context.annotation.Bean;
 
 public class SpringValueProcessor extends ApolloProcessor implements BeanFactoryPostProcessor, BeanFactoryAware {
     private static final Logger logger = LoggerFactory.getLogger(SpringValueProcessor.class);
-    private final PlaceholderHelper placeholderHelper = (PlaceholderHelper) SpringInjector.getInstance(PlaceholderHelper.class);
-    private final SpringValueRegistry springValueRegistry = (SpringValueRegistry) SpringInjector.getInstance(SpringValueRegistry.class);
+    private final PlaceholderHelper placeholderHelper = SpringInjector.getInstance(PlaceholderHelper.class);
+    private final SpringValueRegistry springValueRegistry = SpringInjector.getInstance(SpringValueRegistry.class);
     private BeanFactory beanFactory;
     private Multimap<String, SpringValueDefinition> beanName2SpringValueDefinitions = LinkedListMultimap.create();
-
-    public SpringValueProcessor() {
-    }
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

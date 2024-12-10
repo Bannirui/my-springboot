@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +15,9 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
+/**
+ *
+ */
 public class AutoUpdateConfigChangeListener implements ConfigChangeListener {
     private static final Logger logger = LoggerFactory.getLogger(AutoUpdateConfigChangeListener.class);
     private final boolean typeConverterHasConvertIfNecessaryWithFieldParameter = this.testTypeConverterHasConvertIfNecessaryWithFieldParameter();
@@ -30,8 +32,8 @@ public class AutoUpdateConfigChangeListener implements ConfigChangeListener {
         this.beanFactory = beanFactory;
         this.typeConverter = this.beanFactory.getTypeConverter();
         this.environment = environment;
-        this.placeholderHelper = (PlaceholderHelper) SpringInjector.getInstance(PlaceholderHelper.class);
-        this.springValueRegistry = (SpringValueRegistry) SpringInjector.getInstance(SpringValueRegistry.class);
+        this.placeholderHelper = SpringInjector.getInstance(PlaceholderHelper.class);
+        this.springValueRegistry = SpringInjector.getInstance(SpringValueRegistry.class);
         this.gson = new Gson();
     }
 
@@ -39,23 +41,12 @@ public class AutoUpdateConfigChangeListener implements ConfigChangeListener {
     public void onChange(ConfigChangeEvent configChangeEvent) {
         Set<String> keys = configChangeEvent.changedKeys();
         if (!CollectionUtils.isEmpty(keys)) {
-            Iterator var3 = keys.iterator();
-            while (true) {
-                Collection targetValues;
-                do {
-                    do {
-                        if (!var3.hasNext()) {
-                            return;
-                        }
-
-                        String key = (String) var3.next();
-                        targetValues = this.springValueRegistry.get(this.beanFactory, key);
-                    } while (targetValues == null);
-                } while (targetValues.isEmpty());
-                Iterator var6 = targetValues.iterator();
-                while (var6.hasNext()) {
-                    SpringValue val = (SpringValue) var6.next();
-                    this.updateSpringValue(val);
+            for (String key : keys) {
+                Collection<SpringValue> targetVals = this.springValueRegistry.get(this.beanFactory, key);
+                if(!CollectionUtils.isEmpty(targetVals)) {
+                    for (SpringValue val : targetVals) {
+                        this.updateSpringValue(val);
+                    }
                 }
             }
         }

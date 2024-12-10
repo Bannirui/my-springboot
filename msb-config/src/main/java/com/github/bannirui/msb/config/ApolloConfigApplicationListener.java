@@ -4,7 +4,6 @@ package com.github.bannirui.msb.config;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
-import com.ctrip.framework.apollo.spring.util.SpringInjector;
 import com.github.bannirui.msb.common.LogBackConfigListener;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.enums.MsbEnv;
@@ -14,6 +13,7 @@ import com.github.bannirui.msb.common.util.ArrayUtil;
 import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.github.bannirui.msb.config.spring.ConfigPropertySourceFactory;
+import com.github.bannirui.msb.config.spring.SpringInjector;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -66,7 +66,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     }
 
     /**
-     * 容器启动 将注解中必要的apollo元信息缓存起来后面使用.
+     * 容器启动时解析出Apollo的meta地址.
      */
     private void onApplicationStartingEvent(ApplicationStartingEvent event) {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
@@ -123,7 +123,9 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         ImmutableSortedSet<Integer> orders = ImmutableSortedSet.copyOf(NAMESPACE_NAMES.keySet());
         for (Integer order : orders) {
             for (String namespace : NAMESPACE_NAMES.get(order)) {
+                // Apollo读取出NameSpace对应的配置
                 Config config = ConfigService.getConfig(namespace);
+                // {NameSpace, Config}缓存到Apollo中 注册变更事件监听器
                 ConfigPropertySource configPropertySource = this.configPropertySourceFactory.getConfigPropertySource(namespace, config);
                 composite.addFirstPropertySource(configPropertySource);
             }
@@ -131,6 +133,9 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         event.getEnvironment().getPropertySources().addLast(composite);
     }
 
+    /**
+     * 解析出{@link EnableMsbConfig}中指定的Apollo NameSpace.
+     */
     private void initNamespaces(Set<Object> sources) {
         sources.forEach(x ->
         {

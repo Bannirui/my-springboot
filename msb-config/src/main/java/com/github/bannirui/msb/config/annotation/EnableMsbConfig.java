@@ -1,6 +1,7 @@
 package com.github.bannirui.msb.config.annotation;
 
 import com.github.bannirui.msb.config.ConfigRegistrar;
+import com.github.bannirui.msb.config.EnableMsbConfigChangeListenerSelector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,13 +14,14 @@ import org.springframework.core.Ordered;
  * 远程配置中心启动器.
  * <ul>
  *     <li>远程中心的配置加载到内存</li>
- *     <li>注册监听器到配置中心 支持热加载</li>
+ *     <li>支持Spring的{@link org.springframework.beans.factory.annotation.Value}解析</li>
+ *     <li>注册监听器到Apollo配置中心 支持热加载</li>
  * </ul>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-@Import({ConfigRegistrar.class})
+@Import({ConfigRegistrar.class, EnableMsbConfigChangeListenerSelector.class})
 public @interface EnableMsbConfig {
 
     /**

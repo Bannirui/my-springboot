@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +33,7 @@ public class ConfigChangeListenerContainer {
     }
 
     public static Set<ConfigChangeListenerMetaData> getCheckedMetaData(Set<String> changedKeys) {
-        if (changedKeys != null && !changedKeys.isEmpty()) {
+        if (Objects.nonNull(changedKeys) && !changedKeys.isEmpty()) {
             Set<ConfigChangeListenerMetaData> result = new HashSet<>();
             container.keySet().forEach((key) -> {
                 Pattern p = Pattern.compile(key);

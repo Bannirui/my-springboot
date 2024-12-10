@@ -26,9 +26,6 @@ public class EntitySpringParamResolver implements SpringParamResolver {
 
     DefaultConversionService conversionService = new DefaultConversionService();
 
-    public EntitySpringParamResolver() {
-    }
-
     @Override
     public List<String> attentionKeys(Parameter parameter) {
         ConfigEntity configEntity = parameter.getType().getAnnotation(ConfigEntity.class);

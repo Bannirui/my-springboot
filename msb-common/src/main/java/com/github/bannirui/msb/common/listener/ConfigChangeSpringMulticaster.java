@@ -8,12 +8,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -23,7 +21,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 public class ConfigChangeSpringMulticaster implements ApplicationListener<ConfigChangeSpringEvent>, ApplicationContextAware, EnvironmentAware {
-    private static final Log logger = LogFactory.getLog(ConfigChangeSpringMulticaster.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigChangeSpringMulticaster.class);
     private ApplicationContext applicationContext;
     private final List<SpringParamResolver> springParamResolvers = ParamResolverDetector.getSpringParamResolverList();
     private ConfigurableEnvironment environment;
@@ -65,40 +63,33 @@ public class ConfigChangeSpringMulticaster implements ApplicationListener<Config
     private void multicastEvent(final ConfigChangeSpringEvent event, final ConfigChangeListenerMetaData metaData,
                                 final ApplicationContext applicationContext, final Environment environment,
                                 final List<SpringParamResolver> springParamResolvers) {
-        Future<Object> result = this.executorService.submit(new Callable<Object>() {
-            public Object call() throws Exception {
-                Method method = metaData.getMethod();
-                Object target = metaData.getObj();
-                Object[] params = new Object[method.getParameterCount()];
-                String[] paramNames = metaData.getParamNames();
-                int i = 0;
-                for (int len = method.getParameterCount(); i < len; ++i) {
-                    Parameter parameter = method.getParameters()[i];
-                    for (SpringParamResolver paramResolver : springParamResolvers) {
-                        if (paramResolver.isSupport(parameter)) {
-                            try {
-                                params[i] = paramResolver.resolveParameter(parameter, paramNames[i], event.getConfigChange(),
-                                    event.getConfigChange().getChangedConfigKeys(), environment, applicationContext);
-                            } catch (Exception e) {
-                                ConfigChangeSpringMulticaster.logger.warn(
-                                    String.format("事件监听类[%]方法[%s]参数[%s]在执行时出错", target.getClass().getName(), method.getName(),
-                                        paramNames[i]), e);
-                            }
-                            break;
+        this.executorService.submit(() -> {
+            Method method = metaData.getMethod();
+            Object target = metaData.getObj();
+            Object[] params = new Object[method.getParameterCount()];
+            String[] paramNames = metaData.getParamNames();
+            int i = 0;
+            for (int len = method.getParameterCount(); i < len; ++i) {
+                Parameter parameter = method.getParameters()[i];
+                for (SpringParamResolver paramResolver : springParamResolvers) {
+                    if (paramResolver.isSupport(parameter)) {
+                        try {
+                            params[i] = paramResolver.resolveParameter(parameter, paramNames[i], event.getConfigChange(), event.getConfigChange().getChangedConfigKeys(), environment, applicationContext);
+                        } catch (Exception e) {
+                            ConfigChangeSpringMulticaster.logger.warn("事件监听类[{}]方法[{}]参数[{}]在执行时出错", target.getClass().getName(), method.getName(), paramNames[i], e);
                         }
+                        break;
                     }
                 }
-                try {
-                    method.invoke(target, params);
-                } catch (InvocationTargetException e) {
-                    ConfigChangeSpringMulticaster.logger.error(
-                        String.format("事件监听类[%]方法[%s]在执行时出错", target.getClass().getName(), method.getName()), e.getTargetException());
-                } catch (Exception e) {
-                    ConfigChangeSpringMulticaster.logger.error(
-                        String.format("事件监听类[%]方法[%s]在执行时出错", target.getClass().getName(), method.getName()), e);
-                }
-                return null;
             }
+            try {
+                method.invoke(target, params);
+            } catch (InvocationTargetException e) {
+                ConfigChangeSpringMulticaster.logger.error("事件监听类[{}]方法[{}]在执行时出错", target.getClass().getName(), method.getName(), e.getTargetException());
+            } catch (Exception e) {
+                ConfigChangeSpringMulticaster.logger.error("事件监听类[{}]方法[{}]在执行时出错", target.getClass().getName(), method.getName(), e);
+            }
+            return null;
         });
     }
 }

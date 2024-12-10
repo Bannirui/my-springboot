@@ -27,9 +27,6 @@ public class RegEntitySpringParamResolver implements SpringParamResolver {
     private static final Logger logger = LoggerFactory.getLogger(RegEntitySpringParamResolver.class);
     DefaultConversionService conversionService = new DefaultConversionService();
 
-    public RegEntitySpringParamResolver() {
-    }
-
     @Override
     public List<String> attentionKeys(Parameter parameter) {
         List<String> result = new ArrayList<>();

@@ -20,7 +20,7 @@ public class SpringValueDefinitionProcessor implements BeanDefinitionRegistryPos
     private static final Map<BeanDefinitionRegistry, Multimap<String, SpringValueDefinition>> beanName2SpringValueDefinitions =
         Maps.newConcurrentMap();
     private static final Set<BeanDefinitionRegistry> PROPERTY_VALUES_PROCESSED_BEAN_FACTORIES = Sets.newConcurrentHashSet();
-    private final PlaceholderHelper placeholderHelper = (PlaceholderHelper) SpringInjector.getInstance(PlaceholderHelper.class);
+    private final PlaceholderHelper placeholderHelper = SpringInjector.getInstance(PlaceholderHelper.class);
 
     public SpringValueDefinitionProcessor() {
     }

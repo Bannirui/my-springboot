@@ -11,9 +11,6 @@ import org.springframework.core.env.Environment;
 
 public class ConfigChangeParamResolver implements SpringParamResolver {
 
-    public ConfigChangeParamResolver() {
-    }
-
     @Override
     public List<String> attentionKeys(Parameter parameter) {
         List<String> result = new ArrayList<>();

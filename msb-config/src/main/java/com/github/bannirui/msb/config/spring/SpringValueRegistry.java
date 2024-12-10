@@ -22,9 +22,6 @@ public class SpringValueRegistry {
     private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final Object LOCK = new Object();
 
-    public SpringValueRegistry() {
-    }
-
     public void register(BeanFactory beanFactory, String key, SpringValue springValue) {
         if (!this.registry.containsKey(beanFactory)) {
             synchronized (this.LOCK) {
@@ -33,7 +30,6 @@ public class SpringValueRegistry {
                 }
             }
         }
-
         this.registry.get(beanFactory).put(key, springValue);
         if (this.initialized.compareAndSet(false, true)) {
             this.initialize();
@@ -41,7 +37,7 @@ public class SpringValueRegistry {
     }
 
     public Collection<SpringValue> get(BeanFactory beanFactory, String key) {
-        Multimap<String, SpringValue> beanFactorySpringValues = (Multimap) this.registry.get(beanFactory);
+        Multimap<String, SpringValue> beanFactorySpringValues = this.registry.get(beanFactory);
         return beanFactorySpringValues == null ? null : beanFactorySpringValues.get(key);
     }
 
@@ -65,7 +61,7 @@ public class SpringValueRegistry {
             Iterator<Map.Entry<String, SpringValue>> springValueIterator = springValues.entries().iterator();
             while (springValueIterator.hasNext()) {
                 Map.Entry<String, SpringValue> springValue = (Map.Entry) springValueIterator.next();
-                if (!((SpringValue) springValue.getValue()).isTargetBeanValid()) {
+                if (!springValue.getValue().isTargetBeanValid()) {
                     springValueIterator.remove();
                 }
             }

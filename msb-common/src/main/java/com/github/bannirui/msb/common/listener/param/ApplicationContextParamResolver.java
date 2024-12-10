@@ -10,9 +10,6 @@ import org.springframework.core.env.Environment;
 
 public class ApplicationContextParamResolver implements SpringParamResolver {
 
-    public ApplicationContextParamResolver() {
-    }
-
     @Override
     public List<String> attentionKeys(Parameter parameter) {
         return null;
