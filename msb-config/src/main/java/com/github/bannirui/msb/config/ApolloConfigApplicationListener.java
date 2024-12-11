@@ -4,6 +4,8 @@ package com.github.bannirui.msb.config;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
+import com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory;
+import com.ctrip.framework.apollo.spring.util.SpringInjector;
 import com.github.bannirui.msb.common.LogBackConfigListener;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.enums.MsbEnv;
@@ -12,8 +14,6 @@ import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.common.util.ArrayUtil;
 import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
-import com.github.bannirui.msb.config.spring.ConfigPropertySourceFactory;
-import com.github.bannirui.msb.config.spring.SpringInjector;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -48,7 +48,8 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
      * 容器Environment准备好后找到容器中所有打了这个注解的类取到远程配置的namespace
      */
     private static final Multimap<Integer, String> NAMESPACE_NAMES = HashMultimap.create();
-    private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
+    private final com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(
+        ConfigPropertySourceFactory.class);
     private static final String APOLLO_ENV_RESOURCE_FILE = "classpath*:/META-INF/msb/apollo-env.properties";
 
     @Override

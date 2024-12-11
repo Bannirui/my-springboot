@@ -1,6 +1,9 @@
 package com.github.bannirui.msb.config.spring;
 
+import com.ctrip.framework.apollo.spring.property.PlaceholderHelper;
+import com.ctrip.framework.apollo.spring.util.SpringInjector;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.config.PropertySourcesProcessor;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -27,17 +30,17 @@ public class SpringValueDefinitionProcessor implements BeanDefinitionRegistryPos
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        if ("true".equals(EnvironmentMgr.getProperty("autoUpdateInjectedSpringProperties"))) {
+        if ("true".equals(EnvironmentMgr.getProperty(PropertySourcesProcessor.AUTO_UPDATE_INJECTED_SPRING_PROPERTIES_OPTION))) {
             this.processPropertyValues(registry);
         }
     }
 
     public static Multimap<String, SpringValueDefinition> getBeanName2SpringValueDefinitions(BeanDefinitionRegistry registry) {
-        Multimap<String, SpringValueDefinition> springValueDefinitions = (Multimap) beanName2SpringValueDefinitions.get(registry);
+        Multimap<String, SpringValueDefinition> springValueDefinitions = beanName2SpringValueDefinitions.get(registry);
         if (springValueDefinitions == null) {
             springValueDefinitions = LinkedListMultimap.create();
         }
-        return (Multimap) springValueDefinitions;
+        return springValueDefinitions;
     }
 
     private void processPropertyValues(BeanDefinitionRegistry beanRegistry) {
