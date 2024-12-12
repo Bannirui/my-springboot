@@ -16,16 +16,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
 /**
  * Apollo的观察者 监听配置变更 反射更新Spring内存值.
+ * {@link com.ctrip.framework.apollo.spring.property.AutoUpdateConfigChangeListener}
  */
 public class AutoUpdateApolloConfigChangeListener implements ConfigChangeListener {
     private static final Logger logger = LoggerFactory.getLogger(AutoUpdateApolloConfigChangeListener.class);
     private final boolean typeConverterHasConvertIfNecessaryWithFieldParameter = this.testTypeConverterHasConvertIfNecessaryWithFieldParameter();
-    private final Environment environment;
     private final ConfigurableBeanFactory beanFactory;
     private final TypeConverter typeConverter;
     // 解析${}
@@ -40,10 +39,9 @@ public class AutoUpdateApolloConfigChangeListener implements ConfigChangeListene
     private final SpringValueRegistry springValueRegistry;
     private final Gson gson;
 
-    public AutoUpdateApolloConfigChangeListener(Environment environment, ConfigurableListableBeanFactory beanFactory) {
+    public AutoUpdateApolloConfigChangeListener(ConfigurableListableBeanFactory beanFactory) {
         this.beanFactory = beanFactory;
         this.typeConverter = this.beanFactory.getTypeConverter();
-        this.environment = environment;
         this.placeholderHelper = SpringInjector.getInstance(PlaceholderHelper.class);
         this.springValueRegistry = SpringInjector.getInstance(SpringValueRegistry.class);
         this.gson = new Gson();
@@ -76,9 +74,8 @@ public class AutoUpdateApolloConfigChangeListener implements ConfigChangeListene
             Object value = this.resolvePropertyValue(springValue);
             springValue.update(value);
             logger.info("Auto update apollo changed value successfully, new value: {}, {}", value, springValue);
-        } catch (Throwable var3) {
-            Throwable ex = var3;
-            logger.error("Auto update apollo changed value failed, {}", springValue.toString(), ex);
+        } catch (Throwable e) {
+            logger.error("Auto update apollo changed value failed, {}", springValue.toString(), e);
         }
 
     }
@@ -96,7 +93,6 @@ public class AutoUpdateApolloConfigChangeListener implements ConfigChangeListene
         } else {
             value = this.typeConverter.convertIfNecessary(value, springValue.getTargetType(), springValue.getMethodParameter());
         }
-
         return value;
     }
 

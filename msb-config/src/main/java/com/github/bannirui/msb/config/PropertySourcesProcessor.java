@@ -14,22 +14,18 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 
 /**
- * Apollo配置的热更新.
+ * 向Apollo配置注册更新事件的监听器{@link AutoUpdateApolloConfigChangeListener} 实现的热更新.
  */
-public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, PriorityOrdered {
+public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProcessor, PriorityOrdered {
     // key是apollo配置namespace对应的优先级
     private static final Multimap<Integer, String> namespace_names = HashMultimap.create();
-    private ConfigurableEnvironment environment;
     private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(ConfigPropertySourceFactory.class);
-    // -DautoUpdateInjectedSpringProperties=true开启
-    public static final String AUTO_UPDATE_INJECTED_SPRING_PROPERTIES_OPTION = "autoUpdateInjectedSpringProperties";
+    // -Dapollo.autoUpdateInjectedSpringProperties=true开启热更新特性 Apollo中用的就是这个PropertyName
+    private static final String auto_update_injected_spring_properties_option = "apollo.autoUpdateInjectedSpringProperties";
 
     public static boolean addNamespaces(Collection<String> namespaces, int order) {
         return namespace_names.putAll(order, namespaces);
@@ -40,19 +36,14 @@ public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProce
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        if (Objects.equals("true", EnvironmentMgr.getProperty(PropertySourcesProcessor.AUTO_UPDATE_INJECTED_SPRING_PROPERTIES_OPTION))) {
-            AutoUpdateApolloConfigChangeListener listener = new AutoUpdateApolloConfigChangeListener(this.environment, (ConfigurableListableBeanFactory) registry);
+        if (Objects.equals("true", EnvironmentMgr.getProperty(PropertySourcesProcessor.auto_update_injected_spring_properties_option))) {
+            AutoUpdateApolloConfigChangeListener listener = new AutoUpdateApolloConfigChangeListener((ConfigurableListableBeanFactory) registry);
             List<ConfigPropertySource> configPropertySources = this.configPropertySourceFactory.getAllConfigPropertySources();
             for (ConfigPropertySource configPropertySource : configPropertySources) {
                 // 为apollo的每个配置注册监听器 实现热更新
                 configPropertySource.getSource().addChangeListener(listener);
             }
         }
-    }
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.environment = (ConfigurableEnvironment) environment;
     }
 
     @Override

@@ -116,8 +116,7 @@ public class ConfigChangeListenerSpringDetector implements BeanDefinitionRegistr
     }
 
     private String getPackageSearchPath(String basePackage) {
-        String packageSearchPath = "classpath*:" + this.resolveBasePackage(basePackage) + "/" + this.resourcePattern;
-        return packageSearchPath;
+        return "classpath*:" + this.resolveBasePackage(basePackage) + "/" + this.resourcePattern;
     }
 
     protected String resolveBasePackage(String basePackage) {
@@ -127,7 +126,7 @@ public class ConfigChangeListenerSpringDetector implements BeanDefinitionRegistr
     private void resolveAttentionKeys(Object target, Method method) {
         Parameter[] parameters = method.getParameters();
         if (parameters != null && parameters.length > 0) {
-            Set<String> keys = new HashSet();
+            Set<String> keys = new HashSet<>();
             boolean isAttentionAll = false;
             for (Parameter parameter : parameters) {
                 for (SpringParamResolver paramResolver : this.paramResolvers) {

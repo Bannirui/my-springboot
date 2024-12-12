@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractFlushService<T> implements CommitService.IFlush<T> {
 
-    private ExecutorService executorService;
-    private CommitService<T> commitService;
+    private final ExecutorService executorService;
+    private final CommitService<T> commitService;
 
     public AbstractFlushService() {
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(10), new ThreadFactory() {
