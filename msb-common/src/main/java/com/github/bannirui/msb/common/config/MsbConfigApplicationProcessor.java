@@ -1,11 +1,10 @@
 package com.github.bannirui.msb.common.config;
 
+import com.github.bannirui.msb.common.LogBackConfigListener;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.env.EnvironmentMgr;
-import com.github.bannirui.msb.common.properties.adapter.AdapterConfigMgr;
 import com.github.bannirui.msb.common.startup.MsbBannerProcessor;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
-import com.github.bannirui.msb.common.LogBackConfigListener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 
@@ -28,13 +27,9 @@ import org.springframework.core.Ordered;
  */
 public class MsbConfigApplicationProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
 
-    public MsbConfigApplicationProcessor() {
-    }
-
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         EnvironmentMgr.addMsbConfig2PropertySource(event.getEnvironment());
-        AdapterConfigMgr.loadAdapterPropertySource(event.getEnvironment());
     }
 
     @Override

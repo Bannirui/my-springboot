@@ -21,7 +21,7 @@ public class PropertyBinder {
     private Set<String> blacklist;
 
     public PropertyBinder(ConfigurableEnvironment environment) {
-        this(environment, new HashSet<String>());
+        this(environment, new HashSet<>());
     }
 
     public PropertyBinder(ConfigurableEnvironment environment, Set<String> blacklist) {
@@ -36,8 +36,7 @@ public class PropertyBinder {
 
     public <T> BindResult<T> bind(String configPrefix, Bindable<T> bindable) {
         return this.binder.bind(configPrefix, bindable,
-            Objects.nonNull(this.handler) ? this.handler :
-                new BlackListBindHandler(new IgnoreTopLevelConverterNotFoundBindHandler(), this.blacklist));
+            Objects.nonNull(this.handler) ? this.handler : new BlackListBindHandler(new IgnoreTopLevelConverterNotFoundBindHandler(), this.blacklist));
     }
 
     private Iterable<ConfigurationPropertySource> getConfigurationPropertySources() {

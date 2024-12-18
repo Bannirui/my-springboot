@@ -6,8 +6,6 @@ import com.github.bannirui.msb.common.register.AbstractBeanRegistrar;
 import com.github.bannirui.msb.common.register.BeanDefinition;
 
 public class ConfigChangeListenerConfiguration extends AbstractBeanRegistrar {
-    public ConfigChangeListenerConfiguration() {
-    }
 
     @Override
     public void registerBeans() {

@@ -18,9 +18,6 @@ public class BeanDefinition<T> {
     private String initMethodName;
     private String destroyMethodName;
 
-    private BeanDefinition() {
-    }
-
     public static <T> BeanDefinition<T> newInstance(Class<T> t) {
         BeanDefinition<T> beanDefinition = new BeanDefinition();
         beanDefinition.setBeanClass(t);

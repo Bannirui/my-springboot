@@ -8,8 +8,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class HttpUtil {
-    public HttpUtil() {
-    }
 
     public static String sendPostJson(String httpUrl, String json) throws IOException {
         HttpURLConnection httpURLConnection = (HttpURLConnection) (new URL(httpUrl)).openConnection();
@@ -26,12 +24,10 @@ public class HttpUtil {
         httpURLConnection.getOutputStream().close();
         StringBuilder sb = new StringBuilder();
         BufferedReader responseReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), StandardCharsets.UTF_8));
-
         String readLine;
         while ((readLine = responseReader.readLine()) != null) {
             sb.append(readLine);
         }
-
         String result = sb.toString();
         responseReader.close();
         return result;

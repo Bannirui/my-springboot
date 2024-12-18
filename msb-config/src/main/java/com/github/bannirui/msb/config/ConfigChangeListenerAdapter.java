@@ -29,9 +29,6 @@ public class ConfigChangeListenerAdapter implements ApplicationContextAware, Bea
      */
     private Class<?> bootstrapClass;
 
-    public ConfigChangeListenerAdapter() {
-    }
-
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;

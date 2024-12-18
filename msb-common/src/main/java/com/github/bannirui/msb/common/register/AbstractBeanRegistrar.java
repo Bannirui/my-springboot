@@ -21,9 +21,6 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
     protected BeanDefinitionRegistry registry;
     protected ApplicationContext applicationContext;
 
-    public AbstractBeanRegistrar() {
-    }
-
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         this.registry = registry;
@@ -41,89 +38,74 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
     }
 
     public abstract void registerBeans();
-    public boolean registerBeanDefinitionIfNotExists(BeanDefinition beanDefinition) {
+
+    /**
+     *
+     * @param beanDefinition
+     * @return <t>true</t>标识注册成功 <t>false</t>标识注册
+     */
+    public boolean registerBeanDefinitionIfNotExists(BeanDefinition<?> beanDefinition) {
         String beanName = beanDefinition.getBeanName() == null ? beanDefinition.getBeanClass().getName() : beanDefinition.getBeanName();
         if (this.registry.containsBeanDefinition(beanName)) {
             return false;
-        } else {
-            String[] candidates = this.registry.getBeanDefinitionNames();
-            String[] var4 = candidates;
-            int var5 = candidates.length;
-
-            for(int var6 = 0; var6 < var5; ++var6) {
-                String candidate = var4[var6];
-                org.springframework.beans.factory.config.BeanDefinition springBeanDefinition = this.registry.getBeanDefinition(candidate);
-                if (Objects.equals(springBeanDefinition.getBeanClassName(), beanDefinition.getBeanClass().getName()) && Objects.equals(candidate, beanName)) {
-                    return false;
-                }
-            }
-
-            BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(beanDefinition.getBeanClass());
-            if (beanDefinition != null) {
-                if (beanDefinition.getDependsOnList() != null) {
-                    beanDefinition.getDependsOnList().forEach((dependsOn) -> {
-                        beanDefinitionBuilder.addDependsOn((String)dependsOn);
-                    });
-                }
-
-                if (beanDefinition.getConstructorArgumentValues() != null) {
-                    beanDefinition.getConstructorArgumentValues().forEach((arg) -> {
-                        beanDefinitionBuilder.addConstructorArgValue(arg);
-                    });
-                }
-
-                if (beanDefinition.getConstructorArgumentBeanNames() != null) {
-                    beanDefinition.getConstructorArgumentBeanNames().forEach((arg) -> {
-                        beanDefinitionBuilder.addConstructorArgReference((String)arg);
-                    });
-                }
-
-                if (beanDefinition.getDestroyMethodName() != null) {
-                    beanDefinitionBuilder.setDestroyMethodName(beanDefinition.getDestroyMethodName());
-                }
-
-                if (beanDefinition.getInitMethodName() != null) {
-                    beanDefinitionBuilder.setInitMethodName(beanDefinition.getInitMethodName());
-                }
-
-                if (beanDefinition.getProperties() != null) {
-                    beanDefinition.getProperties().forEach((name, value) -> {
-                        beanDefinitionBuilder.addPropertyValue((String)name, value);
-                    });
-                }
-
-                if (beanDefinition.getPropertiesBeanNames() != null) {
-                    beanDefinition.getPropertiesBeanNames().forEach((name, value) -> {
-                        beanDefinitionBuilder.addPropertyReference((String)name, (String)value);
-                    });
-                }
-            }
-
-            this.registry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
-            return true;
         }
+        String[] candidates = this.registry.getBeanDefinitionNames();
+        for (String candidate : candidates) {
+            org.springframework.beans.factory.config.BeanDefinition springBeanDefinition = this.registry.getBeanDefinition(candidate);
+            if (Objects.equals(springBeanDefinition.getBeanClassName(), beanDefinition.getBeanClass().getName()) && Objects.equals(candidate, beanName)) {
+                return false;
+            }
+        }
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(beanDefinition.getBeanClass());
+        if (beanDefinition.getDependsOnList() != null) {
+            beanDefinition.getDependsOnList().forEach((dependsOn) -> {
+                beanDefinitionBuilder.addDependsOn((String) dependsOn);
+            });
+        }
+        if (beanDefinition.getConstructorArgumentValues() != null) {
+            beanDefinition.getConstructorArgumentValues().forEach((arg) -> {
+                beanDefinitionBuilder.addConstructorArgValue(arg);
+            });
+        }
+        if (beanDefinition.getConstructorArgumentBeanNames() != null) {
+            beanDefinition.getConstructorArgumentBeanNames().forEach((arg) -> {
+                beanDefinitionBuilder.addConstructorArgReference((String)arg);
+            });
+        }
+        if (beanDefinition.getDestroyMethodName() != null) {
+            beanDefinitionBuilder.setDestroyMethodName(beanDefinition.getDestroyMethodName());
+        }
+        if (beanDefinition.getInitMethodName() != null) {
+            beanDefinitionBuilder.setInitMethodName(beanDefinition.getInitMethodName());
+        }
+        if (beanDefinition.getProperties() != null) {
+            beanDefinition.getProperties().forEach((name, value) -> {
+                beanDefinitionBuilder.addPropertyValue((String)name, value);
+            });
+        }
+        if (beanDefinition.getPropertiesBeanNames() != null) {
+            beanDefinition.getPropertiesBeanNames().forEach((name, value) -> {
+                beanDefinitionBuilder.addPropertyReference((String)name, (String)value);
+            });
+        }
+        this.registry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
+        return true;
     }
 
     public boolean registerGenericBeanDefinitionIfNotExists(GenericBeanDefinition beanDefinition) {
         String beanName = beanDefinition.getBeanClassName();
         if (this.registry.containsBeanDefinition(beanName)) {
             return false;
-        } else {
-            String[] candidates = this.registry.getBeanDefinitionNames();
-            String[] var4 = candidates;
-            int var5 = candidates.length;
-
-            for(int var6 = 0; var6 < var5; ++var6) {
-                String candidate = var4[var6];
-                org.springframework.beans.factory.config.BeanDefinition springBeanDefinition = this.registry.getBeanDefinition(candidate);
-                if (Objects.equals(springBeanDefinition.getBeanClassName(), beanDefinition.getBeanClass().getName()) && Objects.equals(candidate, beanName)) {
-                    return false;
-                }
-            }
-
-            this.registry.registerBeanDefinition(beanName, beanDefinition);
-            return true;
         }
+        String[] candidates = this.registry.getBeanDefinitionNames();
+        for (String candidate : candidates) {
+            org.springframework.beans.factory.config.BeanDefinition springBeanDefinition = this.registry.getBeanDefinition(candidate);
+            if (Objects.equals(springBeanDefinition.getBeanClassName(), beanDefinition.getBeanClass().getName()) && Objects.equals(candidate, beanName)) {
+                return false;
+            }
+        }
+        this.registry.registerBeanDefinition(beanName, beanDefinition);
+        return true;
     }
 
     public String getProperty(String key) {

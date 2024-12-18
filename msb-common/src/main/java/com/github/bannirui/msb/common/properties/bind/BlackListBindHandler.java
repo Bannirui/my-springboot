@@ -10,12 +10,12 @@ import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.source.ConfigurationPropertyName;
 
+/**
+ * 配置key拦截 即针对配置key的黑名单.
+ */
 public class BlackListBindHandler extends AbstractBindHandler {
     private static final Logger logger = LoggerFactory.getLogger(BlackListBindHandler.class);
     private Set<String> blacklist = new HashSet<>();
-
-    public BlackListBindHandler() {
-    }
 
     public BlackListBindHandler(BindHandler handler) {
         super(handler);

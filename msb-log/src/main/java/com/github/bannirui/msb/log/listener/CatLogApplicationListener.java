@@ -42,9 +42,6 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
 
     private static final String SYSTEM_LOGGING_LEVEL = "system.logging.level";
 
-    public CatLogApplicationListener() {
-    }
-
     @Override
     public boolean supportsEventType(ResolvableType eventType) {
         return true;
@@ -146,10 +143,14 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
      *     <li>logging.level.root=info</li>
      *     <li>logging.level.com.github=error</li>
      * </ul>
-     * 解析结果为
+     * 关于解析结果
      * <ul>
-     *     <li>root=info</li>
-     *     <li>com.github=error</li>
+     *     <li>当key为logging.level.root时 结果为info</li>
+     *     <li>当key为logging.level时 结果为root=info</li>
+     * </ul>
+     * @param configKey <ul>
+     *                  <li>system.logging.level</li>
+     *                  <li>logging.level</li>
      * </ul>
      */
     private Map<String, String> getLoggingConfig(String configKey) {

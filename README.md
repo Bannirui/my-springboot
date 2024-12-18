@@ -29,6 +29,13 @@ A framework based on SpringBoot, focusing on different section
     - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git))
 
 ### 2 VM/启动参数
+
+```shell
+-Denv=dev
+-Dapollo.configService=http://127.0.0.1:8080/
+-Dapollo.autoUpdateInjectedSpringProperties=true
+```
+
 - -Denv=xxx指定环境参数
     - dev
     - fat
