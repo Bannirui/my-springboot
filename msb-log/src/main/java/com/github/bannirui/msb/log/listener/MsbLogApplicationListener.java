@@ -6,11 +6,11 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.AsyncMpscAppender;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.constant.EnvType;
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.properties.bind.PropertyBinder;
-import com.github.bannirui.msb.log.appender.AsyncFlushRollingFileAppender;
+import com.github.bannirui.msb.log.appender.FileAppender;
 import com.github.bannirui.msb.log.appender.ConsoleAppender;
-import com.github.bannirui.msb.log.configuration.AsyncAppenderProperty;
+import com.github.bannirui.msb.log.configuration.AsyncFileAppenderCfg;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -30,17 +30,28 @@ import org.springframework.core.Ordered;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-public class CatLogApplicationListener implements GenericApplicationListener, Ordered {
+public class MsbLogApplicationListener implements GenericApplicationListener, Ordered {
 
     private static AtomicBoolean environmentPreparedEventReentry = new AtomicBoolean(false);
     private static AtomicBoolean applicationPreparedEventReentry = new AtomicBoolean(false);
     private static AtomicBoolean applicationStartedEventReentry = new AtomicBoolean(false);
 
-    private Logger logger = LoggerFactory.getLogger(CatLogApplicationListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(MsbLogApplicationListener.class);
     private LoggingSystem loggingSystem;
     private ConfigurableEnvironment environment;
 
     private static final String SYSTEM_LOGGING_LEVEL = "system.logging.level";
+    /**
+     * logback-spring.xml中配置策略处理器
+     * <ul>
+     *     <li>控制台输出日志 console</li>
+     *     <li>文件输出日志 file</li>
+     *     <li>日志链路采集 cat</li>
+     * </ul>
+     */
+    private static final String console_appender_name = "console";
+    private static final String file_appender_name = "file";
+    private static final String cat_appender_name = "cat";
 
     @Override
     public boolean supportsEventType(ResolvableType eventType) {
@@ -69,13 +80,21 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
     }
 
     private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
+        /**
+         * 启用控制台日志
+         * <ul>
+         *     <li>msb框架配置文件中指定console.log=true 不推荐 业务型配置不要混合在框架中</li>
+         * </ul>
+         */
         PropertyBinder binder = new PropertyBinder(event.getEnvironment());
-        BindResult<String> bind = binder.bind(ConsoleAppender.CONSOLE_LOG, Bindable.of(String.class));
-        ConsoleAppender.showConsoleLog(bind.orElse("false"));
+        BindResult<String> bind = binder.bind(ConsoleAppender.CONSOLE_LOG_PROPERTY_KEY, Bindable.of(String.class));
+        if("true".equals(bind.orElse("false"))) {
+            // 启用日志控制台策略
+            ConsoleAppender.enable();
+        }
     }
 
     private void onApplicationPreparedEvent(ApplicationPreparedEvent event) {
-        this.checkAsyncFileAppenderExist();
         /**
          * 从容器中获取到{@link com.github.bannirui.msb.log.configuration.LogConfiguration}注入的{@link LoggingSystem}实例
          */
@@ -95,30 +114,44 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
          * </ul>
          */
         this.updateLogLevelByConfig("logging.level");
+        // 日志的文件策略
         this.addAsyncAppender();
         this.cancelFileAppenderImmediateFlush();
     }
 
-    private void checkAsyncFileAppenderExist() {
+    /**
+     * 日志策略是否存在文件策略{@link FileAppender}
+     * @return <t>true</t>标识配置了日志文件策略 <t>false</t>标识没有配置日志文件策略
+     */
+    private boolean checkAsyncFileAppenderExist() {
         Appender<ILoggingEvent> fileAppender = this.getFileAppender();
-        if (!(fileAppender instanceof AsyncFlushRollingFileAppender)) {
-            this.logger.error("没有检测到AsyncFlushRollingFileAppender");
-        }
+        return fileAppender instanceof FileAppender;
     }
 
+    /**
+     * 日志的文件策略.
+     */
     private Appender<ILoggingEvent> getFileAppender() {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        return loggerContext.getLogger("root").getAppender("file");
+        return loggerContext.getLogger("root").getAppender(MsbLogApplicationListener.file_appender_name);
     }
 
+    /**
+     * 设置日志全局级别.
+     */
     private void setDefaultRootLevel() {
-        if (!EnvironmentMgr.getEnv().contains(EnvType.DEV) && !EnvironmentMgr.getEnv().contains(EnvType.DEFAULT)) {
+        if (!MsbEnvironmentMgr.getEnv().contains(EnvType.DEV) && !MsbEnvironmentMgr.getEnv().contains(EnvType.DEFAULT)) {
             this.setLogLevel("ROOT", "error");
         } else {
             this.setLogLevel("ROOT", "info");
         }
     }
 
+    /**
+     * 设置日志级别.
+     * @param levelName like, root
+     * @param levelStr like, info
+     */
     private void setLogLevel(String levelName, String levelStr) {
         try {
             this.loggingSystem.setLogLevel(levelName, LogLevel.valueOf(levelStr.toUpperCase(Locale.ROOT)));
@@ -127,12 +160,19 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
         }
     }
 
-    private void updateLogLevelByConfig(String configKey) {
+    /**
+     * 设置日志级别.
+     * @param propertyKey <ul>
+     *                    <li>system.logging.level</li>
+     *                    <li>logging.level</li>
+     * </ul>
+     */
+    private void updateLogLevelByConfig(String propertyKey) {
         /**
          * root=info
          * com.github=error
          */
-        Map<String, String> levels = this.getLoggingConfig(configKey);
+        Map<String, String> levels = this.getLoggingConfig(propertyKey);
         levels.forEach(this::setLogLevel);
     }
 
@@ -165,8 +205,11 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
         });
     }
 
+    /**
+     * 为日志添加文件策略.
+     */
     private void addAsyncAppender() {
-        if (AsyncAppenderProperty.isEnable()) {
+        if (AsyncFileAppenderCfg.isEnable()) {
             LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
             ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("root");
             Appender<ILoggingEvent> fileAppender = rootLogger.getAppender("file");
@@ -180,9 +223,9 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
         AsyncMpscAppender ret = new AsyncMpscAppender();
         ret.setName("asyncMpscAppender");
         ret.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
-        ret.setQueueSize(AsyncAppenderProperty.getQueueSize());
-        ret.setNeverBlock(AsyncAppenderProperty.bNeverBlock());
-        ret.setDiscardingThreshold(AsyncAppenderProperty.getDiscardingThreshold());
+        ret.setQueueSize(AsyncFileAppenderCfg.getQueueSize());
+        ret.setNeverBlock(AsyncFileAppenderCfg.bNeverBlock());
+        ret.setDiscardingThreshold(AsyncFileAppenderCfg.getDiscardingThreshold());
         ret.addAppender(fileAppender);
         ret.start();
         return ret;
@@ -190,7 +233,7 @@ public class CatLogApplicationListener implements GenericApplicationListener, Or
 
     private void cancelFileAppenderImmediateFlush() {
         Appender<ILoggingEvent> fileAppender = this.getFileAppender();
-        if (fileAppender instanceof AsyncFlushRollingFileAppender appender) {
+        if (fileAppender instanceof FileAppender appender) {
             appender.setImmediateFlush(false);
         }
     }

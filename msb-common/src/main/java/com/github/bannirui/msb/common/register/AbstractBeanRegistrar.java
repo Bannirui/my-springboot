@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.common.register;
 
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.util.NumberUtil;
 import java.util.Objects;
 import org.springframework.beans.BeansException;
@@ -109,7 +109,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
     }
 
     public String getProperty(String key) {
-        return EnvironmentMgr.getProperty(this.env, key);
+        return MsbEnvironmentMgr.getProperty(this.env, key);
     }
 
     public String getPropertyNotNull(String key) {

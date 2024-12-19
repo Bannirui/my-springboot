@@ -16,8 +16,9 @@ public class App04 implements ApplicationRunner {
     private static final Logger logger = LoggerFactory.getLogger(App04.class);
 
     public static void main(String[] args) {
-        logger.info("App4启动");
+        logger.info("App4启动 pre");
         SpringApplication.run(App04.class, args);
+        logger.info("App4启动 post");
     }
 
     @Override

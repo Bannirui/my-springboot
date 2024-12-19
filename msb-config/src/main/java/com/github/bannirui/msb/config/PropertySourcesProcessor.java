@@ -3,7 +3,7 @@ package com.github.bannirui.msb.config;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.config.spring.AutoUpdateApolloConfigChangeListener;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -36,7 +36,7 @@ public class PropertySourcesProcessor implements BeanDefinitionRegistryPostProce
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        if (Objects.equals("true", EnvironmentMgr.getProperty(PropertySourcesProcessor.auto_update_injected_spring_properties_option))) {
+        if (Objects.equals("true", MsbEnvironmentMgr.getProperty(PropertySourcesProcessor.auto_update_injected_spring_properties_option))) {
             AutoUpdateApolloConfigChangeListener listener = new AutoUpdateApolloConfigChangeListener((ConfigurableListableBeanFactory) registry);
             List<ConfigPropertySource> configPropertySources = this.configPropertySourceFactory.getAllConfigPropertySources();
             for (ConfigPropertySource configPropertySource : configPropertySources) {

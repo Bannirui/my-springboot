@@ -1,8 +1,7 @@
 package com.github.bannirui.msb.common.config;
 
-import com.github.bannirui.msb.common.LogBackConfigListener;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.startup.MsbBannerProcessor;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
@@ -23,13 +22,12 @@ import org.springframework.core.Ordered;
  * 对接远程配置中心 要将配置中心的数据缓存到Spring中 即Environment中
  * 所以SpringBoot生命周期锚点是在Environment构建好{@link ApplicationEnvironmentPreparedEvent}
  * <p>
- * 因为{@link LogBackConfigListener}用的是{@link Ordered} 为了让Spring有序处理 这边也要用{@link Ordered}
  */
 public class MsbConfigApplicationProcessor implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
 
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
-        EnvironmentMgr.addMsbConfig2PropertySource(event.getEnvironment());
+        MsbEnvironmentMgr.addMsbConfig2PropertySource(event.getEnvironment());
     }
 
     @Override

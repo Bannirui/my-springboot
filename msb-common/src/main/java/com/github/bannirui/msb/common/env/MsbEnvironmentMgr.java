@@ -39,10 +39,11 @@ import org.springframework.util.ObjectUtils;
 /**
  * 配置信息处理.
  * 用于协助Spring Environment.
+ * 只限于对msb框架配置处理 业务应用配置信息通过{@link org.springframework.beans.factory.annotation.Value}或者{@link org.springframework.boot.context.properties.bind.Binder}处理.
  */
-public class EnvironmentMgr {
+public class MsbEnvironmentMgr {
 
-    private static final Logger logger = LoggerFactory.getLogger(EnvironmentMgr.class);
+    private static final Logger logger = LoggerFactory.getLogger(MsbEnvironmentMgr.class);
     private static final String env_key = "env";
     private static final String net_env_key = "netEnv";
     private static String USER_HOME_PATH = System.getProperty("user.home");
@@ -65,7 +66,7 @@ public class EnvironmentMgr {
         initMsbConfig();
     }
 
-    private EnvironmentMgr() {
+    private MsbEnvironmentMgr() {
         throw new IllegalStateException("Utility class");
     }
 
@@ -169,7 +170,7 @@ public class EnvironmentMgr {
             } else {
                 Properties props = new Properties();
                 try {
-                    props.load(EnvironmentMgr.class.getResourceAsStream("/META-INF/app.properties"));
+                    props.load(MsbEnvironmentMgr.class.getResourceAsStream("/META-INF/app.properties"));
                 } catch (Exception e) {
                     throw new ErrorCodeException(e, ExceptionEnum.FILE_EXCEPTION, new Object[] {"读取app.properties"});
                 }

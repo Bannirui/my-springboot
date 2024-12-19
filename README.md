@@ -44,16 +44,16 @@ A framework based on SpringBoot, focusing on different section
 - -Dmsb.apollo=x
     - true框架本身启用apollo配置 缺省值是true
     - false框架本身不使用apollo配置
-- --console.log=x
+- -Dconsole.log=x
     - true 启用终端输出Banner
     - false 终端不输出Banner
-    - 缺省值
-        - 输出Banner时缺省值是true
-        - 输出业务日志时缺省值是false
 - -Dapollo.configService=http://127.0.0.1:8081/ 在使用Docker部署Apollo时因为网卡地址访问问题时 直接指定服务地址从而跳过服务发现
 - -Dapollo.autoUpdateInjectedSpringProperties
   - true 开启对接Apollo热更新
   - false 关闭对接Apollo热更新
+- -Dmsb.log.asyncFileAppender.enable
+  - true 日志文件异步刷盘
+  - false 日志文件同步刷盘
 
 ### 3 quick start
 - 启用框架

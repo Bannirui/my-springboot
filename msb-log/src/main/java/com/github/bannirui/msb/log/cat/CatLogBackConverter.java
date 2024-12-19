@@ -3,10 +3,10 @@ package com.github.bannirui.msb.log.cat;
 import ch.qos.logback.classic.pattern.ClassicConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
+/**
+ * 为日志自定义trace id.
+ */
 public class CatLogBackConverter extends ClassicConverter {
-
-    public CatLogBackConverter() {
-    }
 
     /**
      * 生成日志的traceId

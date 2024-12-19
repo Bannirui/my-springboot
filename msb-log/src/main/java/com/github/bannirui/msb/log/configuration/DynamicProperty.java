@@ -3,7 +3,7 @@ package com.github.bannirui.msb.log.configuration;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.spi.PropertyDefiner;
 import ch.qos.logback.core.status.Status;
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.util.StringUtil;
 import java.io.File;
 
@@ -30,12 +30,9 @@ public class DynamicProperty implements PropertyDefiner {
         }
     }
 
-    public DynamicProperty() {
-    }
-
     @Override
     public String getPropertyValue() {
-        String appName = EnvironmentMgr.getAppName();
+        String appName = MsbEnvironmentMgr.getAppName();
         return curRootPath + appName;
     }
 

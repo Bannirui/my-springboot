@@ -1,14 +1,13 @@
 package com.github.bannirui.msb.common.startup;
 
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
-import com.github.bannirui.msb.common.LogBackConfigListener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 
@@ -37,13 +36,13 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEnviro
             logger.info(buildBannerText());
         }
         String msg = null;
-        if (Objects.nonNull(msg = EnvironmentMgr.getAppName())) {
+        if (Objects.nonNull(msg = MsbEnvironmentMgr.getAppName())) {
             logger.info("Application name is [{}]", msg);
         }
-        if (Objects.nonNull(msg = EnvironmentMgr.getEnv())) {
+        if (Objects.nonNull(msg = MsbEnvironmentMgr.getEnv())) {
             logger.info("Environment is set to [{}]", msg);
         }
-        if (Objects.nonNull(msg = EnvironmentMgr.getNetEnv())) {
+        if (Objects.nonNull(msg = MsbEnvironmentMgr.getNetEnv())) {
             logger.info("Network environment is set to [{}]", msg);
         }
     }

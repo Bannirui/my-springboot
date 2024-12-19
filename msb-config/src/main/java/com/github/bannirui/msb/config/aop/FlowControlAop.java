@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.config.aop;
 
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.config.processor.FlowControlProcessor;
 import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.FlowControlSwitch;
@@ -31,8 +31,8 @@ public class FlowControlAop {
             instance.put(flowControlSwitch.processor().getName(), flowControlProcessor);
         }
 
-        String weightRatio = StringUtil.isNotEmpty(EnvironmentMgr.getProperty("config.flowControl.weightRatio")) ?
-            EnvironmentMgr.getProperty("config.flowControl.weightRatio") : String.valueOf(flowControlSwitch.weightRatio());
+        String weightRatio = StringUtil.isNotEmpty(MsbEnvironmentMgr.getProperty("config.flowControl.weightRatio")) ?
+            MsbEnvironmentMgr.getProperty("config.flowControl.weightRatio") : String.valueOf(flowControlSwitch.weightRatio());
         if (flowControlProcessor.switchOff(Integer.valueOf(weightRatio), jp.getArgs())) {
             return jp.proceed(jp.getArgs());
         } else {

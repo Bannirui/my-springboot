@@ -8,13 +8,15 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AsyncFlushRollingFileAppender extends RollingFileAppender {
+/**
+ * 日志的文件策略.
+ */
+public class FileAppender<E> extends RollingFileAppender<E> {
 
-    private static Logger logger = LoggerFactory.getLogger(AsyncFlushRollingFileAppender.class);
+    private static Logger logger = LoggerFactory.getLogger(FileAppender.class);
     private volatile ScheduledExecutorService schedule;
-
-    public AsyncFlushRollingFileAppender() {
-    }
+    // 是否启用日志文件策略
+    private static volatile boolean option = true;
 
     @Override
     public void setImmediateFlush(boolean immediateFlush) {
@@ -23,12 +25,14 @@ public class AsyncFlushRollingFileAppender extends RollingFileAppender {
 
     @Override
     public void start() {
+        if(!option) {
+            return;
+        }
         super.start();
         this.setImmediateFlush(true);
         if (this.schedule == null) {
             synchronized (this) {
-                this.schedule =
-                    new ScheduledThreadPoolExecutor(1, (new ThreadFactoryBuilder()).setNameFormat("asyncFlush-pool-%d").setDaemon(true).build());
+                this.schedule = new ScheduledThreadPoolExecutor(1, (new ThreadFactoryBuilder()).setNameFormat("asyncFlush-pool-%d").setDaemon(true).build());
                 this.schedule.scheduleWithFixedDelay(() -> {
                     try {
                         if (super.getOutputStream() != null) {
@@ -36,8 +40,6 @@ public class AsyncFlushRollingFileAppender extends RollingFileAppender {
                         }
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
-                    } finally {
-                        // TODO: 2024/11/14
                     }
                 }, 1_000L, 1_000L, TimeUnit.MILLISECONDS);
             }

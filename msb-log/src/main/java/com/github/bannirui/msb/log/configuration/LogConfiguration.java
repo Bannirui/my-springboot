@@ -21,8 +21,6 @@ import org.springframework.context.support.AbstractApplicationContext;
  */
 @ConfigurationProperties(prefix = "logging")
 public class LogConfiguration {
-    public LogConfiguration() {
-    }
 
     @Bean
     public DynamicLogSystem dynamicLogSystem(LoggingSystem loggingSystem) {

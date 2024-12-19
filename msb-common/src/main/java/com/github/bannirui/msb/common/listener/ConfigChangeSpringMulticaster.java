@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.common.listener;
 
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.event.ConfigChangeSpringEvent;
 import com.github.bannirui.msb.common.listener.param.SpringParamResolver;
 import java.lang.reflect.InvocationTargetException;
@@ -54,7 +54,7 @@ public class ConfigChangeSpringMulticaster implements ApplicationListener<Config
     }
 
     private void init() throws BeansException {
-        String strDefaultInvokeTimeoutInSecond = EnvironmentMgr.getProperty("listener.invoke.timeoutInSecond");
+        String strDefaultInvokeTimeoutInSecond = MsbEnvironmentMgr.getProperty("listener.invoke.timeoutInSecond");
         if (strDefaultInvokeTimeoutInSecond != null) {
             this.defaultInvokeTimeoutInSecond = Integer.parseInt(strDefaultInvokeTimeoutInSecond);
         }

@@ -6,10 +6,9 @@ import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
-import com.github.bannirui.msb.common.LogBackConfigListener;
 import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.enums.MsbEnv;
-import com.github.bannirui.msb.common.env.EnvironmentMgr;
+import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.common.util.ArrayUtil;
 import com.github.bannirui.msb.common.util.StringUtil;
@@ -51,6 +50,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
     private final com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector.getInstance(
         ConfigPropertySourceFactory.class);
     private static final String APOLLO_ENV_RESOURCE_FILE = "classpath*:/META-INF/msb/apollo-env.properties";
+    private static final String apollo_property_source_name = "ApolloPropertySources";
 
     @Override
     public void onApplicationEvent(SpringApplicationEvent event) {
@@ -84,7 +84,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         }
         // apollo meta url
         String devMetaUrl, fatMetaUrl, uatMetaUrl, prodMetaUrl;
-        String netEnv = EnvironmentMgr.getNetEnv();
+        String netEnv = MsbEnvironmentMgr.getNetEnv();
         if (Objects.isNull(netEnv)) {
             devMetaUrl = System.getProperty("dev_meta", props.getProperty("dev.meta"));
             fatMetaUrl = System.getProperty("fat_meta", props.getProperty("fat.meta"));
@@ -115,12 +115,12 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
      * 将配置中心apollo的配置内容同步到缓存中.
      */
     private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
-        if (event.getEnvironment().getPropertySources().contains(LogBackConfigListener.APOLLO_PROPERTY_SOURCE_NAME)) {
+        if (event.getEnvironment().getPropertySources().contains(ApolloConfigApplicationListener.apollo_property_source_name)) {
             return;
         }
         Set<Object> sources = event.getSpringApplication().getAllSources();
         this.initNamespaces(sources);
-        CompositePropertySource composite = new CompositePropertySource(LogBackConfigListener.APOLLO_PROPERTY_SOURCE_NAME);
+        CompositePropertySource composite = new CompositePropertySource(ApolloConfigApplicationListener.apollo_property_source_name);
         ImmutableSortedSet<Integer> orders = ImmutableSortedSet.copyOf(NAMESPACE_NAMES.keySet());
         for (Integer order : orders) {
             for (String namespace : NAMESPACE_NAMES.get(order)) {

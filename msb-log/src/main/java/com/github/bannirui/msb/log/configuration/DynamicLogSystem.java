@@ -21,35 +21,47 @@ public class DynamicLogSystem {
     }
 
     @PostConstruct
-    public void initLogbackLoggingSystem() {
+    public void initLogbackLoggingSystem() {}
 
-    }
-
-    @ApolloConfigChangeListener({"application"})
-    private void logLevelOnChange(ConfigChangeEvent changeEvent) {
+    /**
+     * 监听Apollo关于日志的配置变更.
+     */
+    @ApolloConfigChangeListener()
+    public void logLevelOnChange(ConfigChangeEvent changeEvent) {
         for (String e : changeEvent.changedKeys()) {
-            if (e != null && e.startsWith(ConsoleAppender.CONSOLE_LOG)) {
+            // console.log
+            if(ConsoleAppender.CONSOLE_LOG_PROPERTY_KEY.equals(e)) {
                 ConfigChange configChange = changeEvent.getChange(e);
-                String levelName = configChange.getNewValue();
-                ConsoleAppender.showConsoleLog(levelName);
+                String consoleLogPropertyVal = configChange.getNewValue();
+                if("true".equals(consoleLogPropertyVal)) {
+                    ConsoleAppender.enable();
+                }
             }
+            // logging.level.root, like from debug to info
             if (e != null && e.startsWith(LOGGING_LEVEL_PREFIX)) {
                 ConfigChange configChange = changeEvent.getChange(e);
-                String levelName = e.substring(LOGGING_LEVEL_PREFIX.length(), e.length());
-                if (configChange.getNewValue() == null) {
-                    this.setLogLevel(levelName, "OFF");
-                } else {
-                    this.setLogLevel(levelName, configChange.getNewValue());
-                }
+                // root
+                String levelName = e.substring(LOGGING_LEVEL_PREFIX.length()+1);
+                if (configChange.getNewValue() == null) this.setLogLevel(levelName, "OFF");
+                else this.setLogLevel(levelName, configChange.getNewValue());
             }
         }
     }
 
-    public void setLogLevel(String levelName, String levelStr) {
+    /**
+     * 日志告警级别
+     * <ul>
+     *     <li>logging.level.root=info</li>
+     *     <li>logging.level.com.github.bannirui.msb=error</li>
+     * </ul>
+     * @param levelName root, com.github.bannirui.msb
+     * @param level OFF INFO WARNING ERROR
+     */
+    public void setLogLevel(String levelName, String level) {
         try {
-            this.logbackLoggingSystem.setLogLevel(levelName, LogLevel.valueOf(levelStr.toUpperCase()));
+            this.logbackLoggingSystem.setLogLevel(levelName, LogLevel.valueOf(level.toUpperCase()));
         } catch (Exception e) {
-            logger.warn("log级别设置失败 levelName:{} level:{}", levelName, levelStr, e);
+            logger.warn("log级别设置失败 levelName:{} level:{}", levelName, level, e);
         }
     }
 }
