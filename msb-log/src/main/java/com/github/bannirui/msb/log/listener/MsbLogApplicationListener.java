@@ -88,9 +88,9 @@ public class MsbLogApplicationListener implements GenericApplicationListener, Or
          */
         PropertyBinder binder = new PropertyBinder(event.getEnvironment());
         BindResult<String> bind = binder.bind(ConsoleAppender.CONSOLE_LOG_PROPERTY_KEY, Bindable.of(String.class));
-        if("true".equals(bind.orElse("false"))) {
-            // 启用日志控制台策略
-            ConsoleAppender.enable();
+        if("false".equals(bind.orElse("true"))) {
+            // 关闭日志控制台策略
+            ConsoleAppender.disable();
         }
     }
 

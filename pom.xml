@@ -34,6 +34,7 @@
         <module>msb-samples</module>
         <module>msb-http</module>
         <module>msb-sso</module>
+        <module>msb-bom</module>
     </modules>
 
     <properties>
@@ -148,8 +149,37 @@
             </dependency>
             <dependency>
                 <groupId>com.dianping.cat</groupId>
-                <artifactId>cat-client-decorate</artifactId>
-                <version>1.4.1.RELEASE</version>
+                <artifactId>cat-client</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>4.0.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-interpolation</artifactId>
+                <version>1.27</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-archiver</artifactId>
+                <version>4.10.0</version>
+            </dependency>
+            <!--plexus-utils只能用3.1.0的版本 因为搭配了cat-client的3.1.0 使用其他版本会在接入cat-client时报错-->
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-utils</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-io</artifactId>
+                <version>3.5.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

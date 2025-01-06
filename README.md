@@ -25,15 +25,17 @@ A framework based on SpringBoot, focusing on different section
 - 统一配置
 - 整合功能 注解式场景启动(@EnableXXX)
     - @EnableMsbFramework启用框架
-    - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git))
-    - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git))
+    - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git) [关于Apollo的部署](https://bannirui.github.io/2024/11/19/Docker/%E5%AE%89%E8%A3%85Apollo/))
+    - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git) [关于Cat的部署](https://bannirui.github.io/2024/11/26/Docker/%E5%AE%89%E8%A3%85Cat/))
 
 ### 2 VM/启动参数
 
 ```shell
 -Denv=dev
--Dapollo.configService=http://127.0.0.1:8080/
+-Dconsole.log=true
+-Dapollo.configService=http://127.0.0.1:8081/
 -Dapollo.autoUpdateInjectedSpringProperties=true
+-DCAT_HOME=/Users/dingrui/MyDev/code/java/cat/docker
 ```
 
 - -Denv=xxx指定环境参数
@@ -45,8 +47,8 @@ A framework based on SpringBoot, focusing on different section
     - true框架本身启用apollo配置 缺省值是true
     - false框架本身不使用apollo配置
 - -Dconsole.log=x
-    - true 启用终端输出Banner
-    - false 终端不输出Banner
+    - true 启用控制台日志 默认是启用
+    - false 控制台不输出日志
 - -Dapollo.configService=http://127.0.0.1:8081/ 在使用Docker部署Apollo时因为网卡地址访问问题时 直接指定服务地址从而跳过服务发现
 - -Dapollo.autoUpdateInjectedSpringProperties
   - true 开启对接Apollo热更新
@@ -54,6 +56,9 @@ A framework based on SpringBoot, focusing on different section
 - -Dmsb.log.asyncFileAppender.enable
   - true 日志文件异步刷盘
   - false 日志文件同步刷盘
+- -DCAT_HOME=/Users/dingrui/MyDev/code/java/cat/docker
+  - 指定cat客户端配置文件所在路径 cat默认为/data/appdatas/cat
+  - 没有指定client配置文用msb的resource路径为classpath:/META-INF/cat/client.xml
 
 ### 3 quick start
 - 启用框架
@@ -74,5 +79,5 @@ A framework based on SpringBoot, focusing on different section
 
 ### 4 附件配置
 
-- 框架配置
+- [框架配置](./doc/msb-apollo.properties)
 - [应用配置](./doc/app-apollo.properties)

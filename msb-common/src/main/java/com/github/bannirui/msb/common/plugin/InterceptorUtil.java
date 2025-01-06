@@ -10,9 +10,6 @@ public class InterceptorUtil {
 
     private static final String INTERCEPTOR_FILE_NAME = "com.github.bannirui.msb.common.plugin.Interceptor";
 
-    public InterceptorUtil() {
-    }
-
     public static <T> T getProxyObj(Class<T> clz, Class[] argumentTypes, Object[] arguments, String typePrefix) throws Exception {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clz);
