@@ -38,7 +38,7 @@ public class DefaultClientConfigManager implements LogEnabled, ClientConfigManag
         Domain domain = null;
         if (this.m_config != null) {
             Map<String, Domain> domains = this.m_config.getDomains();
-            domain = domains.isEmpty() ? null : (Domain) domains.values().iterator().next();
+            domain = domains.isEmpty() ? null : domains.values().iterator().next();
         }
 
         return domain != null ? domain : (new Domain("UNKNOWN")).setEnabled(false);
@@ -86,7 +86,7 @@ public class DefaultClientConfigManager implements LogEnabled, ClientConfigManag
         return this.m_config == null ? false : this.m_config.isDumpLocked();
     }
 
-    private ClientConfig loadConfigFromEnviroment() {
+    private ClientConfig loadConfigFromEnvironment() {
         String appName = this.loadProjectName();
         if (appName != null) {
             ClientConfig config = new ClientConfig();
@@ -178,7 +178,7 @@ public class DefaultClientConfigManager implements LogEnabled, ClientConfigManag
                     this.m_logger.warn(String.format("Global config file(%s) not found, IGNORED.", configFile));
                 }
             }
-            clientConfig = this.loadConfigFromEnviroment();
+            clientConfig = this.loadConfigFromEnvironment();
             if (clientConfig == null) {
                 clientConfig = this.loadConfigFromXml();
             }
@@ -189,8 +189,8 @@ public class DefaultClientConfigManager implements LogEnabled, ClientConfigManag
                 clientConfig.accept(new ClientConfigValidator());
             }
             this.m_config = clientConfig;
-        } catch (Exception var5) {
-            throw new InitializationException(var5.getMessage(), var5);
+        } catch (Exception e) {
+            throw new InitializationException(e.getMessage(), e);
         }
     }
 }

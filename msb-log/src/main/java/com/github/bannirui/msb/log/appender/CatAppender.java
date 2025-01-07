@@ -11,8 +11,6 @@ import com.github.bannirui.msb.log.cat.MsbCat;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 实现日志采集到远程服务器
@@ -23,21 +21,18 @@ import org.slf4j.LoggerFactory;
  */
 public class CatAppender extends AppenderBase<ILoggingEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CatAppender.class);
-
     @Override
-    protected void append(ILoggingEvent e) {
+    protected void append(ILoggingEvent event) {
         try {
             boolean isTraceMode = Cat.getManager().isTraceMode();
-            Level level = e.getLevel();
+            Level level = event.getLevel();
             if (level.isGreaterOrEqual(Level.ERROR)) {
-                this.logError(e);
+                this.logError(event);
             } else if (isTraceMode) {
-                this.logTrace(e);
+                this.logTrace(event);
             }
-            this.logTrace(e);
-        } catch (Exception var4) {
-            throw new LogbackException(e.getFormattedMessage(), var4);
+        } catch (Exception e) {
+            throw new LogbackException(event.getFormattedMessage(), e);
         }
     }
 
@@ -45,16 +40,14 @@ public class CatAppender extends AppenderBase<ILoggingEvent> {
         ThrowableProxy info = (ThrowableProxy) event.getThrowableProxy();
         if (info != null) {
             Throwable exception = info.getThrowable();
-            if (exception != null && exception.getMessage() != null &&
-                (exception.getMessage().indexOf("ORA-00001") >= 0 || exception.getMessage().indexOf("Duplicate entry") >= 0 ||
-                    exception.getMessage().indexOf("DuplicateKeyException") >= 0)) {
+            if (exception != null && exception.getMessage() != null
+                && (exception.getMessage().contains("ORA-00001") || exception.getMessage().contains("Duplicate entry") || exception.getMessage().contains("DuplicateKeyException"))) {
                 return;
             }
             if (exception != null && exception instanceof InvocationTargetException ex) {
                 Throwable e = ex.getTargetException();
-                if (e != null && e.getMessage() != null &&
-                    (e.getMessage().indexOf("ORA-00001") >= 0 || e.getMessage().indexOf("Duplicate entry") >= 0 ||
-                        e.getMessage().indexOf("DuplicateKeyException") >= 0)) {
+                if (e != null && e.getMessage() != null
+                    && (e.getMessage().contains("ORA-00001") || e.getMessage().contains("Duplicate entry") || e.getMessage().contains("DuplicateKeyException"))) {
                     return;
                 }
             }
@@ -62,8 +55,8 @@ public class CatAppender extends AppenderBase<ILoggingEvent> {
                 return;
             }
             String message = event.getFormattedMessage();
-            if (message != null && message.indexOf("ORA-00001") < 0 && message.indexOf("Duplicate entry") < 0 &&
-                message.indexOf("DuplicateKeyException") < 0) {
+            if (message != null && !message.contains("ORA-00001") && !message.contains("Duplicate entry")
+                && !message.contains("DuplicateKeyException")) {
                 Cat.logError(message, exception);
             } else {
                 Cat.logError(exception);

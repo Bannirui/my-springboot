@@ -27,5 +27,19 @@ public class App04 implements ApplicationRunner {
         logger.info("info 日志");
         logger.warn("warn 日志");
         logger.error("error 日志");
+
+        while (true) {
+            Thread.sleep(2_000);
+            logger.info("info级别日志");
+            try {
+                this.fn();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    private void fn() {
+        throw new RuntimeException("test");
     }
 }

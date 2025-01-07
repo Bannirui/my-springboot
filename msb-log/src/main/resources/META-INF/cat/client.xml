@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config mode="client">
     <servers>
+        # cat-client要连接的服务端
         <server ip="127.0.0.1" port="2280" http-port="8085"/>
     </servers>
+    # 客户端配置
+    <domain id="msb" enabled="true" />
 </config>

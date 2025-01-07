@@ -104,7 +104,7 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
 
     private DefaultMessageManager.Context getContext() {
         if (Cat.isInitialized()) {
-            DefaultMessageManager.Context ctx = (DefaultMessageManager.Context) this.m_context.get();
+            DefaultMessageManager.Context ctx = this.m_context.get();
             if (ctx != null) {
                 return ctx;
             } else {
@@ -138,7 +138,7 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
 
     @Override
     public MessageTree getThreadLocalMessageTree() {
-        DefaultMessageManager.Context ctx = (DefaultMessageManager.Context) this.m_context.get();
+        DefaultMessageManager.Context ctx = this.m_context.get();
         if (ctx == null) {
             this.setup();
         }
@@ -165,8 +165,9 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
         }
 
         final int size = this.m_configManager.getTaggedTransactionCacheSize();
-        this.m_taggedTransactions = new LinkedHashMap<String, TaggedTransaction>(size * 4 / 3 + 1, 0.75F, true) {
+        this.m_taggedTransactions = new LinkedHashMap<>(size * 4 / 3 + 1, 0.75F, true) {
             private static final long serialVersionUID = 1L;
+
             protected boolean removeEldestEntry(Map.Entry<String, TaggedTransaction> eldest) {
                 return this.size() >= size;
             }
@@ -202,7 +203,7 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
 
     @Override
     public void reset() {
-        DefaultMessageManager.Context ctx = (DefaultMessageManager.Context) this.m_context.get();
+        DefaultMessageManager.Context ctx = this.m_context.get();
         if (ctx != null) {
             if (ctx.m_totalDurationInMicros == 0L) {
                 ctx.m_stack.clear();
@@ -230,6 +231,8 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
         DefaultMessageManager.Context ctx;
         if (this.m_domain != null) {
             ctx = new DefaultMessageManager.Context(this.m_domain.getId(), this.m_hostName, this.m_domain.getIp());
+            // TODO: 2025/1/7 做成动态配置
+            ctx.setTraceMode(true);
         } else {
             ctx = new DefaultMessageManager.Context("Unknown", this.m_hostName, "");
         }
@@ -458,7 +461,7 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
         }
 
         public Transaction peekTransaction(DefaultMessageManager defaultMessageManager) {
-            return this.m_stack.isEmpty() ? null : (Transaction) this.m_stack.peek();
+            return this.m_stack.isEmpty() ? null : this.m_stack.peek();
         }
 
         public void setTraceMode(boolean traceMode) {
