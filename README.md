@@ -58,7 +58,7 @@ A framework based on SpringBoot, focusing on different section
   - false 日志文件同步刷盘
 - -DCAT_HOME=/Users/dingrui/MyDev/code/java/cat/docker
   - 指定cat客户端配置文件所在路径 cat默认为/data/appdatas/cat
-  - 没有指定client配置文用msb的resource路径为classpath:/META-INF/cat/client.xml
+  - 没有在CAT_HOME指定client配置文则用msb的resource路径 为classpath:/META-INF/cat/client.xml
 
 ### 3 quick start
 - 启用框架
