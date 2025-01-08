@@ -4,8 +4,6 @@ import java.util.Objects;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class ArrayUtil {
-    public ArrayUtil() {
-    }
 
     public static boolean isEquals(Object a1, Object a2) {
         return Objects.deepEquals(a1, a2);

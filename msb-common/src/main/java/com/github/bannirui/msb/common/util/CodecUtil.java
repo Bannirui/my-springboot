@@ -20,9 +20,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public class CodecUtil {
 
-    private CodecUtil() {
-    }
-
     public static String encodeForUTF8(String str) {
         return encode(str, "UTF-8");
     }

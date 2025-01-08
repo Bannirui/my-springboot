@@ -12,9 +12,6 @@ public class CopyUtil {
 
     public static final Logger log = LoggerFactory.getLogger(CopyUtil.class);
 
-    public CopyUtil() {
-    }
-
     public static <T> T copy(Object from, T infoTo) {
         if (from == null) {
             return null;

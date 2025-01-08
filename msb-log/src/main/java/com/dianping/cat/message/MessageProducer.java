@@ -14,6 +14,11 @@ public interface MessageProducer {
 
     void logTrace(String type, String name);
 
+    /**
+     *
+     * @param type Error or RuntimeException
+     * @param name Throwable对应的类名
+     */
     void logEvent(String type, String name, String status, String nameValuePairs);
 
     void logTrace(String type, String name, String status, String nameValuePairs);

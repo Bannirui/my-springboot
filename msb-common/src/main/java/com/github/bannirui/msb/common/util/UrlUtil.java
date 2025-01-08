@@ -7,9 +7,6 @@ public class UrlUtil {
 
     public static final Pattern domainPattern = Pattern.compile("(http|https)://(www.)?([\\w|-]+(\\.)?)+");
 
-    public UrlUtil() {
-    }
-
     public static String retrieveDomainFromUrl(String url) {
         Matcher m = domainPattern.matcher(url);
         if (m.find()) {

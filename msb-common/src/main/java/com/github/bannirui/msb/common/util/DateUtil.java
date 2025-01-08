@@ -5,9 +5,6 @@ import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
 
-    public DateUtil() {
-    }
-
     public static LocalDateTime newDateTime() {
         return LocalDateTime.now();
     }

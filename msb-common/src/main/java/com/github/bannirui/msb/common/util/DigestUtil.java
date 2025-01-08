@@ -8,9 +8,6 @@ public class DigestUtil {
     public static final String GBK = "GBK";
     public static final String UTF8 = "UTF-8";
 
-    public DigestUtil() {
-    }
-
     public static byte[] encryptMD5(byte[] data) throws Exception {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
         md5.update(data);

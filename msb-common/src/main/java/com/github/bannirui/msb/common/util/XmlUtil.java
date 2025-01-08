@@ -24,9 +24,6 @@ public class XmlUtil {
     private static Set<String> defaultPermissionSets = new HashSet<>(
         Arrays.asList("java.lang.*", "java.util.*", "java.util.concurrent.*", "com.zto.**"));
 
-    public XmlUtil() {
-    }
-
     private static XStream getXStream(Class clazz) {
         if (!xstreams.containsKey(clazz.toString())) {
             XStream xstream = new XStream(new DomDriver());

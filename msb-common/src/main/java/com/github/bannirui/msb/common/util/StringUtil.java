@@ -3,8 +3,6 @@ package com.github.bannirui.msb.common.util;
 import org.apache.commons.lang3.StringUtils;
 
 public class StringUtil {
-    public StringUtil() {
-    }
 
     public static boolean equals(String str1, String str2) {
         return StringUtils.equals(str1, str2);

@@ -1,12 +1,13 @@
 package com.dianping.cat.configuration;
 
-import com.dianping.cat.Cat;
 import com.dianping.cat.configuration.client.entity.ClientConfig;
 import com.dianping.cat.configuration.client.entity.Domain;
 import com.dianping.cat.configuration.client.entity.Server;
 import com.dianping.cat.configuration.client.transform.DefaultSaxParser;
 import com.github.bannirui.msb.log.cat.enhance.ClientConfigValidator;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
+import org.springframework.core.io.ClassPathResource;
 import org.unidal.helper.Files;
 
 public class DefaultClientConfigManager implements LogEnabled, ClientConfigManager, Initializable {
@@ -97,62 +99,49 @@ public class DefaultClientConfigManager implements LogEnabled, ClientConfigManag
         }
     }
 
-    private ClientConfig loadConfigFromXml() {
-        InputStream in = null;
-        try {
-            in = Thread.currentThread().getContextClassLoader().getResourceAsStream("/META-INF/cat/client.xml");
-            if (in == null) {
-                in = Cat.class.getResourceAsStream("/META-INF/cat/client.xml");
-            }
-            if (in == null) {
-                return null;
-            }
-            String xml = Files.forIO().readFrom(in, "utf-8");
-            this.m_logger.info(String.format("Resource file(%s) found.", Cat.class.getResource("/META-INF/cat/client.xml")));
-            return DefaultSaxParser.parse(xml);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (Exception var13) {
-                }
+    /**
+     * CAT_HOME配置了cat-client的接入配置
+     * /data/appdatas/cat
+     */
+    private ClientConfig loadConfigFromCatHome() {
+        File f = new File("/data/appdatas/cat/client.xml");
+        if(f.exists()) {
+            try (FileInputStream is = new FileInputStream(f)) {
+                String xml = Files.forIO().readFrom(is, "utf-8");
+                return DefaultSaxParser.parse(xml);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return null;
     }
 
-    private String loadProjectName() {
-        String appName = null;
-        InputStream in = null;
-        try {
-            in = Thread.currentThread().getContextClassLoader().getResourceAsStream(APP_CONFIG_FILE);
-            if (in == null) {
-                in = Cat.class.getResourceAsStream(APP_CONFIG_FILE);
-            }
-            if (in != null) {
-                Properties prop = new Properties();
-                prop.load(in);
-                appName = prop.getProperty("app.name");
-                if (appName == null) {
-                    this.m_logger.info("Can't find app.name from app.properties.");
-                    return null;
-                }
-                this.m_logger.info(String.format("Find domain name %s from app.properties.", appName));
-            } else {
-                this.m_logger.info(String.format("Can't find app.properties in %s", APP_CONFIG_FILE));
-            }
+    /**
+     * classpath:/META-INF/cat/client.xml配置了cat-client的接入配置
+     */
+    private ClientConfig loadConfigFromResources() {
+        try(InputStream is = new ClassPathResource("/META-INF/cat/client.xml").getInputStream()) {
+            String xml = Files.forIO().readFrom(is, "utf-8");
+            return DefaultSaxParser.parse(xml);
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (Exception var14) {
-                }
-            }
+        }
+        return null;
+    }
 
+    /**
+     * 应用的项目名 配置在classpath:/META-INF/app.properties
+     * key=app.id
+     */
+    private String loadProjectName() {
+        String appName = null;
+        try (InputStream is = new ClassPathResource(APP_CONFIG_FILE).getInputStream()) {
+            Properties prop = new Properties();
+            prop.load(is);
+            appName = prop.getProperty("app.id");
+            this.m_logger.info(String.format("Find domain name %s from app.properties.", appName));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return appName;
     }
@@ -178,9 +167,16 @@ public class DefaultClientConfigManager implements LogEnabled, ClientConfigManag
                     this.m_logger.warn(String.format("Global config file(%s) not found, IGNORED.", configFile));
                 }
             }
-            clientConfig = this.loadConfigFromEnvironment();
+            /**
+             * 优先级
+             * <ul>
+             *     <li>CAT_HOME</li>
+             *     <li>项目资源文件</li>
+             * </ul>
+             */
+            clientConfig = this.loadConfigFromCatHome();
             if (clientConfig == null) {
-                clientConfig = this.loadConfigFromXml();
+                clientConfig = this.loadConfigFromResources();
             }
             if (globalConfig != null && clientConfig != null) {
                 globalConfig.accept(new ClientConfigMerger(clientConfig));

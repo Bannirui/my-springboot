@@ -13,9 +13,6 @@ public class NetUtil {
     private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
     private static volatile InetAddress LOCAL_ADDRESS = getLocalAddress0();
 
-    private NetUtil() {
-    }
-
     private static boolean isValidAddress(InetAddress address) {
         if (address != null && !address.isLoopbackAddress()) {
             String name = address.getHostAddress();

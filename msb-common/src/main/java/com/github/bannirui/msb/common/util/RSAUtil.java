@@ -26,9 +26,6 @@ public class RSAUtil {
     private static final int MAX_ENCRYPT_BLOCK = 117;
     private static final int MAX_DECRYPT_BLOCK = 128;
 
-    public RSAUtil() {
-    }
-
     public static Map<String, Object> genKeyPair() throws Exception {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
         keyPairGen.initialize(1024);

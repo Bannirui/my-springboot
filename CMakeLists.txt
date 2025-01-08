@@ -4,7 +4,7 @@ project(my-springboot Java)
 
 # 检测jre版本 java -version的结果不是标准输出 而是标准错误 需要重定向
 set(check_java java)
-set(jre_ver_require 17)
+set(jre_ver_require 21)
 execute_process(
         COMMAND sh -c "${check_java} -version 2>&1"
         OUTPUT_VARIABLE _v1

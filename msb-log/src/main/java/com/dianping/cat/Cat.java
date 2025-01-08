@@ -11,11 +11,13 @@ import com.dianping.cat.message.Trace;
 import com.dianping.cat.message.Transaction;
 import com.dianping.cat.message.spi.MessageManager;
 import com.dianping.cat.message.spi.MessageTree;
+import com.github.bannirui.msb.common.util.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Objects;
+import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.springframework.core.io.ClassPathResource;
@@ -55,7 +57,8 @@ public class Cat {
                     }
                     if (Objects.isNull(f) || !f.exists()) {
                         try {
-                            f = new ClassPathResource("/META-INF/cat/client.xml").getFile();
+                            f = File.createTempFile("tmp", "txt");
+                            FileUtils.copyInputStreamToFile(new ClassPathResource("/META-INF/cat/client.xml").getInputStream(), f);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

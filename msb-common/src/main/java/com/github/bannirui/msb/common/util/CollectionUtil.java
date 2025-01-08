@@ -5,9 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class CollectionUtil {
-    public CollectionUtil() {
-    }
-
     public static <T extends Comparable<? super T>> void sort(List<T> list) {
         Collections.sort(list);
     }

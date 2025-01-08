@@ -3,8 +3,6 @@ package com.github.bannirui.msb.common.util;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NumberUtil {
-    public NumberUtil() {
-    }
 
     public static int toInt(String str) {
         return NumberUtils.toInt(str);

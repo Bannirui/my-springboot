@@ -5,8 +5,6 @@ import java.util.Map;
 import org.springframework.util.Assert;
 
 public class AssertUtil {
-    public AssertUtil() {
-    }
 
     public static void notNull(Object obj) {
         Assert.notNull(obj, "the object argument must be null");

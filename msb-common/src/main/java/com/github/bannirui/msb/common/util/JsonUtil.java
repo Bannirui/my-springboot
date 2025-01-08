@@ -17,9 +17,6 @@ public class JsonUtil {
     private static final SerializerFeature[] FEATURES;
     private static SerializeConfig config;
 
-    public JsonUtil() {
-    }
-
     public static String toJSON(Object object) {
         return JSON.toJSONString(object, FEATURES);
     }

@@ -11,6 +11,7 @@ import com.dianping.cat.message.Trace;
 import com.dianping.cat.message.Transaction;
 import com.dianping.cat.message.spi.MessageManager;
 import com.dianping.cat.message.spi.MessageTree;
+import com.github.bannirui.msb.common.util.StringUtil;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import org.unidal.lookup.annotation.Inject;
@@ -33,28 +34,30 @@ public class DefaultMessageProducer implements MessageProducer {
 
     @Override
     public void logError(String message, Throwable cause) {
-        if (Cat.getManager().isCatEnabled()) {
-            if (this.shouldLog(cause)) {
-                this.m_manager.getThreadLocalMessageTree().setSample(false);
-                StringWriter writer = new StringWriter(2048);
-                if (message != null) {
-                    writer.write(message);
-                    writer.write(32);
-                }
-                cause.printStackTrace(new PrintWriter(writer));
-                String detailMessage = writer.toString();
-                if (cause instanceof Error) {
-                    this.logEvent("Error", cause.getClass().getName(), "ERROR", detailMessage);
-                } else if (cause instanceof RuntimeException) {
-                    this.logEvent("RuntimeException", cause.getClass().getName(), "ERROR", detailMessage);
-                } else {
-                    this.logEvent("Exception", cause.getClass().getName(), "ERROR", detailMessage);
-                }
-            }
-        } else {
+        /**
+         * cat-client的client.xml配置domain的enabled
+         */
+        if(!Cat.getManager().isCatEnabled()) {
             cause.printStackTrace();
+            return;
         }
-
+        if (!this.shouldLog(cause)) return;
+        this.m_manager.getThreadLocalMessageTree().setSample(false);
+        StringWriter writer = new StringWriter(2048);
+        if (message != null) {
+            writer.write(message);
+            // 空格
+            writer.write(32);
+        }
+        cause.printStackTrace(new PrintWriter(writer));
+        String detailMessage = writer.toString();
+        if (cause instanceof Error) {
+            this.logEvent("Error", cause.getClass().getName(), "ERROR", detailMessage);
+        } else if (cause instanceof RuntimeException) {
+            this.logEvent("RuntimeException", cause.getClass().getName(), "ERROR", detailMessage);
+        } else {
+            this.logEvent("Exception", cause.getClass().getName(), "ERROR", detailMessage);
+        }
     }
 
     @Override
@@ -70,7 +73,7 @@ public class DefaultMessageProducer implements MessageProducer {
     @Override
     public void logEvent(String type, String name, String status, String nameValuePairs) {
         Event event = this.newEvent(type, name);
-        if (nameValuePairs != null && nameValuePairs.length() > 0) {
+        if(StringUtil.isNotBlank(nameValuePairs)) {
             event.addData(nameValuePairs);
         }
         event.setStatus(status);
@@ -89,7 +92,7 @@ public class DefaultMessageProducer implements MessageProducer {
     public void logMetric(String name, String status, String nameValuePairs) {
         String type = "";
         Metric metric = this.newMetric(type, name);
-        if (nameValuePairs != null && nameValuePairs.length() > 0) {
+        if(StringUtil.isNotBlank(nameValuePairs)) {
             metric.addData(nameValuePairs);
         }
         metric.setStatus(status);
@@ -98,14 +101,14 @@ public class DefaultMessageProducer implements MessageProducer {
 
     @Override
     public void logTrace(String type, String name) {
-        this.logTrace(type, name, "0", (String) null);
+        this.logTrace(type, name, "0", null);
     }
 
     @Override
     public void logTrace(String type, String name, String status, String nameValuePairs) {
         if (this.m_manager.isTraceMode()) {
             Trace trace = this.newTrace(type, name);
-            if (nameValuePairs != null && nameValuePairs.length() > 0) {
+            if(StringUtil.isNotBlank(nameValuePairs)) {
                 trace.addData(nameValuePairs);
             }
             trace.setStatus(status);
@@ -119,8 +122,7 @@ public class DefaultMessageProducer implements MessageProducer {
             this.m_manager.setup();
         }
         if (this.m_manager.isMessageEnabled()) {
-            DefaultEvent event = new DefaultEvent(type, name, this.m_manager);
-            return event;
+            return new DefaultEvent(type, name, this.m_manager);
         } else {
             return NullMessage.EVENT;
         }
@@ -150,8 +152,8 @@ public class DefaultMessageProducer implements MessageProducer {
                 tree.setMessageId(this.createMessageId());
             }
             DefaultForkedTransaction transaction = new DefaultForkedTransaction(type, name, this.m_manager);
-            if (this.m_manager instanceof DefaultMessageManager) {
-                ((DefaultMessageManager) this.m_manager).linkAsRunAway(transaction);
+            if (this.m_manager instanceof DefaultMessageManager dmm) {
+                dmm.linkAsRunAway(transaction);
             }
             this.m_manager.start(transaction, true);
             return transaction;
@@ -212,8 +214,7 @@ public class DefaultMessageProducer implements MessageProducer {
             this.m_manager.setup();
         }
         if (this.m_manager.isMessageEnabled()) {
-            DefaultTrace trace = new DefaultTrace(type, name, this.m_manager);
-            return trace;
+            return new DefaultTrace(type, name, this.m_manager);
         } else {
             return NullMessage.TRACE;
         }
@@ -249,6 +250,6 @@ public class DefaultMessageProducer implements MessageProducer {
     }
 
     private boolean shouldLog(Throwable e) {
-        return this.m_manager instanceof DefaultMessageManager ? ((DefaultMessageManager) this.m_manager).shouldLog(e) : true;
+        return !(this.m_manager instanceof DefaultMessageManager dmm) || dmm.shouldLog(e);
     }
 }

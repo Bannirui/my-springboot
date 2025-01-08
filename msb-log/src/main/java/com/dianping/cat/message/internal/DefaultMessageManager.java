@@ -231,8 +231,6 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
         DefaultMessageManager.Context ctx;
         if (this.m_domain != null) {
             ctx = new DefaultMessageManager.Context(this.m_domain.getId(), this.m_hostName, this.m_domain.getIp());
-            // TODO: 2025/1/7 做成动态配置
-            ctx.setTraceMode(true);
         } else {
             ctx = new DefaultMessageManager.Context("Unknown", this.m_hostName, "");
         }
@@ -257,7 +255,6 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
             this.m_firstMessage = false;
             this.m_logger.warn("CAT client is not enabled because it's not initialized yet");
         }
-
     }
 
     class TransactionHelper {
@@ -318,7 +315,7 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
             MessageTree tree = ctx.m_tree;
             Stack<Transaction> stack = ctx.m_stack;
             Message message = tree.getMessage();
-            if (message instanceof DefaultTransaction) {
+            if (message instanceof DefaultTransaction source) {
                 String id = tree.getMessageId();
                 if (id == null) {
                     id = DefaultMessageManager.this.nextMessageId();
@@ -326,7 +323,6 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
                 }
                 String rootId = tree.getRootMessageId();
                 String childId = DefaultMessageManager.this.nextMessageId();
-                DefaultTransaction source = (DefaultTransaction) message;
                 DefaultTransaction target = new DefaultTransaction(source.getType(), source.getName(), DefaultMessageManager.this);
                 target.setTimestamp(source.getTimestamp());
                 target.setDurationInMicros(source.getDurationInMicros());
@@ -356,21 +352,19 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
         public void validate(Transaction parent, Transaction transaction) {
             if (transaction.isStandalone()) {
                 List<Message> children = transaction.getChildren();
-                int len = children.size();
-                for (int i = 0; i < len; ++i) {
-                    Message message = (Message) children.get(i);
-                    if (message instanceof Transaction) {
-                        this.validate(transaction, (Transaction) message);
+                children.forEach(child -> {
+                    if (child instanceof Transaction t) {
+                        this.validate(transaction, t);
                     }
-                }
-                if (!transaction.isCompleted() && transaction instanceof DefaultTransaction) {
-                    this.markAsNotCompleted((DefaultTransaction) transaction);
+                });
+                if (!transaction.isCompleted() && transaction instanceof DefaultTransaction dt) {
+                    this.markAsNotCompleted(dt);
                 }
             } else if (!transaction.isCompleted()) {
-                if (transaction instanceof DefaultForkedTransaction) {
-                    this.linkAsRunAway((DefaultForkedTransaction) transaction);
-                } else if (transaction instanceof DefaultTaggedTransaction) {
-                    this.markAsRunAway(parent, (DefaultTaggedTransaction) transaction);
+                if (transaction instanceof DefaultForkedTransaction dft) {
+                    this.linkAsRunAway(dft);
+                } else if (transaction instanceof DefaultTaggedTransaction dtt) {
+                    this.markAsRunAway(parent, dtt);
                 }
             }
         }
@@ -403,7 +397,7 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
                 tree.setMessage(message);
                 DefaultMessageManager.this.flush(tree);
             } else {
-                Transaction parent = (Transaction) this.m_stack.peek();
+                Transaction parent = this.m_stack.peek();
                 this.addTransactionChild(message, parent);
             }
         }
@@ -429,19 +423,19 @@ public class DefaultMessageManager extends ContainerHolder implements MessageMan
 
         public boolean end(DefaultMessageManager manager, Transaction transaction) {
             if (!this.m_stack.isEmpty()) {
-                Transaction current = (Transaction) this.m_stack.pop();
+                Transaction current = this.m_stack.pop();
                 if (transaction == current) {
-                    DefaultMessageManager.this.m_validator.validate(this.m_stack.isEmpty() ? null : (Transaction) this.m_stack.peek(), current);
+                    DefaultMessageManager.this.m_validator.validate(this.m_stack.isEmpty() ? null : this.m_stack.peek(), current);
                 } else {
                     while (transaction != current && !this.m_stack.empty()) {
-                        DefaultMessageManager.this.m_validator.validate((Transaction) this.m_stack.peek(), current);
-                        current = (Transaction) this.m_stack.pop();
+                        DefaultMessageManager.this.m_validator.validate(this.m_stack.peek(), current);
+                        current = this.m_stack.pop();
                     }
                 }
                 if (this.m_stack.isEmpty()) {
                     MessageTree tree = this.m_tree.copy();
-                    this.m_tree.setMessageId((String) null);
-                    this.m_tree.setMessage((Message) null);
+                    this.m_tree.setMessageId(null);
+                    this.m_tree.setMessage(null);
                     if (this.m_totalDurationInMicros > 0L) {
                         this.adjustForTruncatedTransaction((Transaction) tree.getMessage());
                     }
