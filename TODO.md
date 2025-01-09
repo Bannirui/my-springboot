@@ -10,8 +10,9 @@ TODO
   - [X] 控制台输出Banner
   - [X] 控制台日志
   - [X] 文件日志
-  - [ ] 整合Cat
-  - [ ] 检索日志
+  - [X] 整合Cat
+  - [X] 检索Cat中Throwable异常日志
+  - [X] 检索Cat中Trace日志
 - [ ] MQ
   - 消费者监听器
   - 生产者发送
