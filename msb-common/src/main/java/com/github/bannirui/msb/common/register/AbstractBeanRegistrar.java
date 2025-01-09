@@ -1,8 +1,8 @@
 package com.github.bannirui.msb.common.register;
 
 import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
-import com.github.bannirui.msb.common.util.NumberUtil;
 import java.util.Objects;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -125,7 +125,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
 
     public Long getPropertyAsLong(String key) {
         String property = this.getProperty(key);
-        return property == null ? null : NumberUtil.toLong(property);
+        return property == null ? null : NumberUtils.toLong(property);
     }
 
     public Long getPropertyAsLongNotNull(String key) {
@@ -141,7 +141,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
 
     public Integer getPropertyAsInteger(String key) {
         String property = this.getProperty(key);
-        return property == null ? null : NumberUtil.toInt(property);
+        return property == null ? null : NumberUtils.toInt(property);
     }
 
     public Integer getPropertyAsIntegerNotNull(String key) {
@@ -157,7 +157,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
 
     public Double getPropertyAsDouble(String key) {
         String property = this.getProperty(key);
-        return property == null ? null : NumberUtil.toDouble(property);
+        return property == null ? null : NumberUtils.toDouble(property);
     }
 
     public Double getPropertyAsDoubleNotNull(String key) {

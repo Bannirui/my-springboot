@@ -2,9 +2,9 @@ package com.github.bannirui.msb.common.listener;
 
 import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.listener.param.SpringParamResolver;
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -18,7 +18,7 @@ public class ParamResolverDetector {
 
     static {
         String springParamResolvers = MsbEnvironmentMgr.getProperty("listener.param.resolvers");
-        if (StringUtil.isNotEmpty(springParamResolvers)) {
+        if (StringUtils.isNotEmpty(springParamResolvers)) {
             String[] paramResolverClassNames = springParamResolvers.split(",");
             for (String paramResolverClassName : paramResolverClassNames) {
                 try {

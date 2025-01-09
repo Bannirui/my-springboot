@@ -9,7 +9,7 @@ public class EnableIdGeneratorImportSelector extends MsbImportSelectorController
     }
 
     @Override
-    protected String[] mySelectImports(AnnotationMetadata metadata) {
+    protected String[] mySelectorImports(AnnotationMetadata metadata) {
         return new String[] {IdGeneratorConfiguration.class.getName()};
     }
 }

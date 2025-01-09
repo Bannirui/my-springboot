@@ -73,7 +73,7 @@ public class StringUtil {
     }
 
     public static String toLowerCaseFirstOne(String s) {
-        if (s != null && s.length() != 0) {
+        if (StringUtils.isNotEmpty(s)) {
             return Character.isLowerCase(s.charAt(0)) ? s : Character.toLowerCase(s.charAt(0)) + s.substring(1);
         } else {
             return s;
@@ -81,7 +81,7 @@ public class StringUtil {
     }
 
     public static String toUpperCaseFirstOne(String s) {
-        if (s != null && s.length() != 0) {
+        if (StringUtils.isNotEmpty(s)) {
             return Character.isUpperCase(s.charAt(0)) ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
         } else {
             return s;

@@ -17,6 +17,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
+/**
+ * 为业务应用Apollo namespace的配置注册观察者 监听配置的变更事件.
+ */
 public class ConfigChangeListenerAdapter implements ApplicationContextAware, BeanPostProcessor {
     private static final Logger log = LoggerFactory.getLogger(ConfigChangeListenerAdapter.class);
     private ApplicationContext applicationContext;
@@ -57,6 +60,7 @@ public class ConfigChangeListenerAdapter implements ApplicationContextAware, Bea
                     List<String> validListeningNamespaces = new ArrayList<>();
                     EnableMsbConfig enableConfigAnnotation = AnnotationUtils.findAnnotation(this.bootstrapClass, EnableMsbConfig.class);
                     if (Objects.nonNull(enableConfigAnnotation)) {
+                        // 业务应用的Apollo配置namespace
                         validListeningNamespaces.addAll(Arrays.asList(enableConfigAnnotation.value()));
                     }
                     for (String namespace : validListeningNamespaces) {

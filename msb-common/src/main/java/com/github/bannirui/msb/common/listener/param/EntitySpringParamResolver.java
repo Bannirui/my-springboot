@@ -35,7 +35,7 @@ public class EntitySpringParamResolver implements SpringParamResolver {
         Class<?> paramClass = parameter.getType();
         List<String> result = new ArrayList<>();
         String prefix = null;
-        if (StringUtil.isNotEmpty(configEntity.prefix())) {
+        if (StringUtils.isNotEmpty(configEntity.prefix())) {
             prefix = configEntity.prefix();
         } else {
             prefix = StringUtil.toLowerCaseFirstOne(paramClass.getSimpleName());
@@ -68,7 +68,7 @@ public class EntitySpringParamResolver implements SpringParamResolver {
         ConfigEntity configEntity = parameter.getType().getAnnotation(ConfigEntity.class);
         Class<?> paramClass = parameter.getType();
         String prefix = null;
-        if (StringUtil.isNotEmpty(configEntity.prefix())) {
+        if (StringUtils.isNotEmpty(configEntity.prefix())) {
             prefix = configEntity.prefix();
         } else {
             prefix = StringUtil.toLowerCaseFirstOne(paramClass.getSimpleName());

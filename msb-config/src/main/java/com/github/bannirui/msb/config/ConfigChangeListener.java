@@ -1,10 +1,9 @@
 package com.github.bannirui.msb.config;
 
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -25,7 +24,9 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 
 /**
- *
+ * {@link ConfigurationProperties}注解标识的类中的成员作为配置key缓存起来.
+ * 通过{@link org.springframework.context.annotation.Import}注入到Spring中
+ * 监听Apollo更新事件
  */
 public class ConfigChangeListener implements ApplicationContextAware, EnvironmentAware {
     private static final Logger logger = LoggerFactory.getLogger(ConfigChangeListener.class);
@@ -75,7 +76,7 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
             if (annotationMetadata.getAnnotationTypes().contains(ConfigurationProperties.class.getName())) {
                 ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
                 Class<?> clz = Class.forName(sbd.getBeanClassName());
-                if (Objects.nonNull(clz) && clz.getAnnotation(ConfigurationProperties.class) != null) {
+                if (clz.getAnnotation(ConfigurationProperties.class) != null) {
                     return clz;
                 }
             }
@@ -100,19 +101,20 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
                     String prefix = "";
                     ConfigurationProperties configurationProperties = AnnotationUtils.findAnnotation(targetClass, ConfigurationProperties.class);
                     if (configurationProperties != null) {
-                        if (StringUtil.isNotEmpty(configurationProperties.value())) {
+                        if (StringUtils.isNotEmpty(configurationProperties.value())) {
                             prefix = configurationProperties.value();
-                        } else if (StringUtil.isNotEmpty(configurationProperties.prefix())) {
+                        } else if (StringUtils.isNotEmpty(configurationProperties.prefix())) {
                             prefix = configurationProperties.prefix();
                         }
                     }
                     for (Field field : declaredFields) {
                         String key = "";
-                        if (StringUtil.isNotEmpty(prefix)) {
+                        if (StringUtils.isNotEmpty(prefix)) {
                             key = prefix + "." + field.getName();
                         } else {
                             key = field.getName();
                         }
+                        // setter方法名
                         String methodName = "set" + captureName(field.getName());
                         Method method = null;
                         try {
@@ -125,6 +127,7 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
                             ApolloValue apolloValue = new ApolloValue();
                             apolloValue.setMethod(method);
                             apolloValue.setObj(bean);
+                            // cache
                             ApolloValue.getApolloValueMap().put(key, apolloValue);
                         }
                     }
@@ -143,8 +146,12 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
         }
     }
 
+    /**
+     * 成员名称首字母大写 用于拼接到方法中的驼峰命名.
+     * @param name 成员名 如myName
+     * @return 如MyName
+     */
     public static String captureName(String name) {
-        name = name.substring(0, 1).toUpperCase() + name.substring(1);
-        return name;
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 }

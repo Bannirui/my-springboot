@@ -4,9 +4,9 @@ import com.ctrip.framework.apollo.spring.annotation.ApolloAnnotationProcessor;
 import com.ctrip.framework.apollo.spring.annotation.SpringValueProcessor;
 import com.ctrip.framework.apollo.spring.property.SpringValueDefinitionProcessor;
 import com.ctrip.framework.apollo.spring.util.BeanRegistrationUtil;
-import com.github.bannirui.msb.common.util.ArrayUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -33,7 +33,7 @@ public class ConfigRegistrar implements ImportBeanDefinitionRegistrar {
         // 应用关注的配置中心的namespace
         String[] namespaces = attributes.getStringArray("value");
         int order = attributes.getNumber("order");
-        if(!ArrayUtil.isEmpty(namespaces)) {
+        if (ArrayUtils.isNotEmpty(namespaces)) {
             PropertySourcesProcessor.addNamespaces(Lists.newArrayList(namespaces), order);
         }
         // ${}解析

@@ -4,7 +4,6 @@ import com.github.bannirui.msb.common.annotation.MsbPlugin;
 import com.github.bannirui.msb.common.enums.ExceptionEnum;
 import com.github.bannirui.msb.common.ex.ErrorCodeException;
 import com.github.bannirui.msb.common.ex.FrameworkException;
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -135,7 +135,7 @@ public class PluginConfigManger {
             } catch (Exception e) {
                 errorClassNames = errorClassNames + className + ",";
             }
-            if (StringUtil.isNotEmpty(errorClassNames)) {
+            if (StringUtils.isNotEmpty(errorClassNames)) {
                 throw FrameworkException.getInstance("Cannot init {} class", new Object[] {errorClassNames});
             }
         }

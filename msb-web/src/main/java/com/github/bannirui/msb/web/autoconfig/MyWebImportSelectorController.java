@@ -10,7 +10,7 @@ import org.springframework.core.type.AnnotationMetadata;
 public class MyWebImportSelectorController extends MsbImportSelectorController {
 
     @Override
-    protected String[] mySelectImports(AnnotationMetadata metadata) {
+    protected String[] mySelectorImports(AnnotationMetadata metadata) {
         return new String[]{WebConfig.class.getName()};
     }
 }

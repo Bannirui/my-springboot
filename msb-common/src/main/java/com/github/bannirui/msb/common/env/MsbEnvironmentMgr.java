@@ -9,7 +9,6 @@ import com.github.bannirui.msb.common.enums.ExceptionEnum;
 import com.github.bannirui.msb.common.ex.ErrorCodeException;
 import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.common.util.FileUtil;
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -98,10 +97,10 @@ public class MsbEnvironmentMgr {
             // msb框架本身的配置放在了apollo 从远程拉配置到本地
             String url = properties.getProperty("apollo.meta.url");
             String uri = properties.getProperty("apollo.msb.uri");
-            if (StringUtil.isNotBlank(url) && StringUtil.isNotBlank(uri)) {
+            if (StringUtils.isNotBlank(url) && StringUtils.isNotBlank(uri)) {
                 try {
                     String ret = readApolloConfig(Collections.singletonList(url), uri);
-                    if (StringUtil.isBlank(ret)) {
+                    if (StringUtils.isBlank(ret)) {
                         return;
                     }
                     // 从apollo远程拉下来的配置结果解析缓存起来
@@ -210,7 +209,7 @@ public class MsbEnvironmentMgr {
 
     private static List<String> getApolloConfigNode(String apolloMetaUrl) throws IOException {
         String nodes = httpGet(apolloMetaUrl);
-        if (StringUtil.isEmpty(nodes)) {
+        if (StringUtils.isEmpty(nodes)) {
             logger.error("MSB can not find apollo nodes from url: {}, response string is null!", apolloMetaUrl);
             throw new FrameworkException(FrameworkException.ERR_DEF, "MSB can not find apollo nodes");
         } else {
@@ -301,7 +300,7 @@ public class MsbEnvironmentMgr {
         try {
             if (msbFile.exists() && FileUtil.canRead(msbFile)) {
                 String ret = FileUtils.readFileToString(msbFile);
-                if (StringUtil.isNotEmpty(ret)) {
+                if (StringUtils.isNotEmpty(ret)) {
                     apolloMap = parseApolloStrRet(ret.trim());
                 } else {
                     logger.error("msb缓存配置读取失败");

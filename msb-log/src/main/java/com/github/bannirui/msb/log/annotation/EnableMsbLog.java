@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.log.annotation;
 
-import com.github.bannirui.msb.log.autoconfigure.EnableMsbLogImportSelector;
+import com.github.bannirui.msb.log.autoconfigure.MsbLogImportSelector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Import({EnableMsbLogImportSelector.class})
+@Import({MsbLogImportSelector.class})
 public @interface EnableMsbLog {
 
 }

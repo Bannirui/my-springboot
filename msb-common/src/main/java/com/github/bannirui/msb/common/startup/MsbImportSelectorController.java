@@ -18,11 +18,44 @@ import org.springframework.core.type.AnnotationMetadata;
 public abstract class MsbImportSelectorController implements ImportSelector {
 
     /**
-     * 场景启动器.
+     * cache starter and importer.
+     */
+    private static Set<String> starters = new HashSet<>();
+    private static Set<String> importers = new HashSet<>();
+
+    /**
+     * @param importingClassMetadata 通过场景启动器import的Bean
+     */
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        // xxxImportSelector
+        EnableType type = EnableType.get8Importer(this.getClass().getSimpleName());
+        if (Objects.nonNull(type) && this.isEnable(type)) {
+            starters.add(type.getStarter());
+            importers.add(type.getImporter());
+            return this.mySelectorImports(importingClassMetadata);
+        } else {
+            return new String[0];
+        }
+    }
+
+    protected abstract String[] mySelectorImports(AnnotationMetadata metadata);
+
+    private boolean isEnable(EnableType enableType) {
+        return true;
+    }
+
+    public static Set<String> getEnableModules() {
+        return importers;
+    }
+
+
+    /**
+     * 场景启动器 n:1 一个场景启动器starter可能需要import多个Bean
      */
     enum EnableType {
-        EnableMsbConfigChangeListener("EnableMsbConfig", "EnableMsbConfigChangeListenerSelector"),
-        EnableMsbLog("EnableMsbLog", "EnableMsbLogImportSelector"),
+        MsbConfigChangeListener("EnableMsbConfig", "MsbConfigChangeListenerSelector"),
+        MsbLog("EnableMsbLog", "MsbLogImportSelector"),
         ;
 
         private final String starter;
@@ -44,35 +77,5 @@ public abstract class MsbImportSelectorController implements ImportSelector {
         public static EnableType get8Importer(String name) {
             return Arrays.stream(values()).filter(e -> e.getImporter().equals(name)).findFirst().orElseGet(() -> null);
         }
-    }
-
-    /**
-     * xxxImporter.
-     * <ul>
-     *     {@link EnableMsbConfig}import了{@link com.github.bannirui.msb.common.annotation.EnableMsbConfigChangeListener}
-     * </ul>
-     */
-    private static Set<String> enable_starter_set = new HashSet<>();
-
-    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        // xxxImportSelector
-        EnableType type = EnableType.get8Importer(this.getClass().getSimpleName());
-        if (Objects.nonNull(type) && this.isEnable(type)) {
-            enable_starter_set.add(type.getImporter());
-            return this.mySelectImports(importingClassMetadata);
-        } else {
-            return new String[0];
-        }
-    }
-
-    protected abstract String[] mySelectImports(AnnotationMetadata metadata);
-
-    private boolean isEnable(EnableType enableType) {
-        return true;
-    }
-
-    public static Set<String> getEnableModules() {
-        return enable_starter_set;
     }
 }

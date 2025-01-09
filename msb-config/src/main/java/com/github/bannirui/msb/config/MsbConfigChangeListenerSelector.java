@@ -5,12 +5,13 @@ import com.github.bannirui.msb.config.aop.FlowControlAop;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
+ * 由{@link com.github.bannirui.msb.config.annotation.EnableMsbConfig}注入Spring
  * 监听Apollo的配置变更实现热更新
  */
-public class EnableMsbConfigChangeListenerSelector extends MsbImportSelectorController {
+public class MsbConfigChangeListenerSelector extends MsbImportSelectorController {
 
     @Override
-    protected String[] mySelectImports(AnnotationMetadata metadata) {
+    protected String[] mySelectorImports(AnnotationMetadata metadata) {
         return new String[] {
             ConfigChangeListenerConfiguration.class.getName(),
             FlowControlAop.class.getName(),

@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.config.annotation;
 
 import com.github.bannirui.msb.config.ConfigRegistrar;
-import com.github.bannirui.msb.config.EnableMsbConfigChangeListenerSelector;
+import com.github.bannirui.msb.config.MsbConfigChangeListenerSelector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,7 +21,7 @@ import org.springframework.core.Ordered;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-@Import({ConfigRegistrar.class, EnableMsbConfigChangeListenerSelector.class})
+@Import({ConfigRegistrar.class, MsbConfigChangeListenerSelector.class})
 public @interface EnableMsbConfig {
 
     /**

@@ -3,12 +3,12 @@ package com.github.bannirui.msb.common.listener;
 import com.github.bannirui.msb.common.annotation.EnableMsbConfigChangeListener;
 import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.listener.param.SpringParamResolver;
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -110,7 +110,7 @@ public class ConfigChangeListenerSpringDetector implements BeanDefinitionRegistr
 
     private void init() {
         String configBasePackage = MsbEnvironmentMgr.getProperty("listener.basePackage");
-        if (StringUtil.isNotEmpty(configBasePackage)) {
+        if (StringUtils.isNotEmpty(configBasePackage)) {
             this.basePackage = configBasePackage;
         }
     }

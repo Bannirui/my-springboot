@@ -10,6 +10,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystem;
 
+/**
+ * 日志配置调整 监听Apollo配置
+ * <ul>
+ *     <li>console输出</li>
+ *     <li>log level</li>
+ * </ul>
+ */
 public class DynamicLogSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(DynamicLogSystem.class);

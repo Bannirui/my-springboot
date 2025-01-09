@@ -11,9 +11,9 @@ import com.dianping.cat.message.Trace;
 import com.dianping.cat.message.Transaction;
 import com.dianping.cat.message.spi.MessageManager;
 import com.dianping.cat.message.spi.MessageTree;
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import org.apache.commons.lang3.StringUtils;
 import org.unidal.lookup.annotation.Inject;
 
 public class DefaultMessageProducer implements MessageProducer {
@@ -73,7 +73,7 @@ public class DefaultMessageProducer implements MessageProducer {
     @Override
     public void logEvent(String type, String name, String status, String nameValuePairs) {
         Event event = this.newEvent(type, name);
-        if(StringUtil.isNotBlank(nameValuePairs)) {
+        if(StringUtils.isNotBlank(nameValuePairs)) {
             event.addData(nameValuePairs);
         }
         event.setStatus(status);
@@ -92,7 +92,7 @@ public class DefaultMessageProducer implements MessageProducer {
     public void logMetric(String name, String status, String nameValuePairs) {
         String type = "";
         Metric metric = this.newMetric(type, name);
-        if(StringUtil.isNotBlank(nameValuePairs)) {
+        if(StringUtils.isNotBlank(nameValuePairs)) {
             metric.addData(nameValuePairs);
         }
         metric.setStatus(status);
@@ -108,7 +108,7 @@ public class DefaultMessageProducer implements MessageProducer {
     public void logTrace(String type, String name, String status, String nameValuePairs) {
         if (this.m_manager.isTraceMode()) {
             Trace trace = this.newTrace(type, name);
-            if(StringUtil.isNotBlank(nameValuePairs)) {
+            if(StringUtils.isNotBlank(nameValuePairs)) {
                 trace.addData(nameValuePairs);
             }
             trace.setStatus(status);

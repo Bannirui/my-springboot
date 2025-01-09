@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.log.configuration;
 
-import com.github.bannirui.msb.log.autoconfigure.EnableMsbLogImportSelector;
+import com.github.bannirui.msb.log.autoconfigure.MsbLogImportSelector;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.annotation.Bean;
@@ -8,7 +8,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * <ul>
- *     <li>{@link com.github.bannirui.msb.log.annotation.EnableMsbLog}中通过{@link org.springframework.context.annotation.Import}注解向容器中注入了{@link EnableMsbLogImportSelector}</li>
+ *     <li>{@link com.github.bannirui.msb.log.annotation.EnableMsbLog}中通过{@link org.springframework.context.annotation.Import}注解向容器中注入了{@link MsbLogImportSelector}</li>
  *     <li>最终向容器中注入了当前类</li>
  *     <li>当前类又注入了{@link DynamicLogSystem}</li>
  * </ul>

@@ -2,10 +2,10 @@ package com.github.bannirui.msb.config.aop;
 
 import com.github.bannirui.msb.common.enums.ExceptionEnum;
 import com.github.bannirui.msb.common.ex.ErrorCodeException;
-import com.github.bannirui.msb.common.util.ArrayUtil;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.util.ReflectionUtils;
 
 public class MethodManager {
@@ -39,7 +39,7 @@ public class MethodManager {
         sb.append(".");
         sb.append(methodName);
         sb.append("(");
-        if (!ArrayUtil.isEmpty(paramsClass)) {
+        if (ArrayUtils.isNotEmpty(paramsClass)) {
             for (Class<?> c : paramsClass) {
                 sb.append(c.getName());
                 sb.append(",");

@@ -5,14 +5,12 @@ import com.github.bannirui.msb.log.configuration.LogConfiguration;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
- * {@link com.github.bannirui.msb.log.annotation.EnableMsbLog}
+ * 由{@link com.github.bannirui.msb.log.annotation.EnableMsbLog}注入Spring
  */
-public class EnableMsbLogImportSelector extends MsbImportSelectorController {
-    public EnableMsbLogImportSelector() {
-    }
+public class MsbLogImportSelector extends MsbImportSelectorController {
 
     @Override
-    protected String[] mySelectImports(AnnotationMetadata metadata) {
+    protected String[] mySelectorImports(AnnotationMetadata metadata) {
         return new String[]{LogConfiguration.class.getName()};
     }
 }

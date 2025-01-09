@@ -10,8 +10,6 @@ import com.github.bannirui.msb.common.constant.AppEventListenerSort;
 import com.github.bannirui.msb.common.enums.MsbEnv;
 import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.common.ex.FrameworkException;
-import com.github.bannirui.msb.common.util.ArrayUtil;
-import com.github.bannirui.msb.common.util.StringUtil;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -20,6 +18,8 @@ import com.google.common.collect.Multimap;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
@@ -74,7 +74,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
         Properties props = new Properties();
         try {
             Resource[] resources = resolver.getResources(APOLLO_ENV_RESOURCE_FILE);
-            if (!ArrayUtil.isEmpty(resources)) {
+            if (ArrayUtils.isNotEmpty(resources)) {
                 for (Resource resource : resources) {
                     props.load(resource.getInputStream());
                 }
@@ -97,7 +97,7 @@ public class ApolloConfigApplicationListener implements ApplicationListener<Spri
             prodMetaUrl = System.getProperty(netEnv + "_prod_meta", props.getProperty(netEnv + "prod.meta"));
         }
         String curEnv = System.getProperty("env");
-        if (StringUtil.isBlank(curEnv)) {
+        if (StringUtils.isBlank(curEnv)) {
             throw new FrameworkException(FrameworkException.ERR_DEF, "env could not found");
         }
         String key = "apollo.meta";

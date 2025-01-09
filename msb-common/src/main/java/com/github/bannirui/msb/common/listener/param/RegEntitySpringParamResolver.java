@@ -2,7 +2,6 @@ package com.github.bannirui.msb.common.listener.param;
 
 import com.github.bannirui.msb.common.annotation.ConfigEntity;
 import com.github.bannirui.msb.common.properties.ConfigChange;
-import com.github.bannirui.msb.common.util.StringUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,6 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -146,7 +146,7 @@ public class RegEntitySpringParamResolver implements SpringParamResolver {
                 }
                 ConfigEntity configEntity =
                     Class.forName(paramGenericType.getActualTypeArguments()[1].getTypeName()).getAnnotation(ConfigEntity.class);
-                if (Objects.nonNull(configEntity) && StringUtil.isNotEmpty(configEntity.regexp())) {
+                if (Objects.nonNull(configEntity) && StringUtils.isNotEmpty(configEntity.regexp())) {
                     return true;
                 }
             }
