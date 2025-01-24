@@ -8,9 +8,6 @@ import java.text.MessageFormat;
  */
 public class ErrorCodeException extends BaseException {
 
-    public ErrorCodeException() {
-    }
-
     public ErrorCodeException(ErrorCode code, Object... args) {
         super(code.getCode(), MessageFormat.format(code.getMsg(), args));
     }

@@ -91,7 +91,7 @@ public class MsbEnvironmentMgr {
             properties = new Properties();
             properties.load(resource.getInputStream());
         } catch (IOException e) {
-            throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, new Object[] {"资源文件"});
+            throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, "资源文件");
         }
         if (!Objects.equals("false", System.getProperty("msb.apollo"))) {
             // msb框架本身的配置放在了apollo 从远程拉配置到本地
@@ -171,7 +171,7 @@ public class MsbEnvironmentMgr {
                 try {
                     props.load(MsbEnvironmentMgr.class.getResourceAsStream("/META-INF/app.properties"));
                 } catch (Exception e) {
-                    throw new ErrorCodeException(e, ExceptionEnum.FILE_EXCEPTION, new Object[] {"读取app.properties"});
+                    throw new ErrorCodeException(e, ExceptionEnum.FILE_EXCEPTION, "读取app.properties");
                 }
                 appName = props.getProperty(AppCfg.APP_ID_KEY);
             }
@@ -246,7 +246,7 @@ public class MsbEnvironmentMgr {
             return null;
         }
         try {
-            return httpGet((String) urls.get(curPos) + uri);
+            return httpGet(urls.get(curPos) + uri);
         } catch (IOException e) {
             ++curPos;
             if (curPos >= urls.size()) {
@@ -255,7 +255,7 @@ public class MsbEnvironmentMgr {
             }
             return recursiveReadApolloConfig(urls, uri, curPos, curCnt, cntLimit);
         } catch (Exception e) {
-            throw new FrameworkException(FrameworkException.ERR_DEF, "cannot read apollo config from url as " + (String) urls.get(curPos));
+            throw new FrameworkException(FrameworkException.ERR_DEF, "cannot read apollo config from url as " + urls.get(curPos));
         }
     }
 

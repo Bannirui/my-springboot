@@ -38,14 +38,14 @@ public class WrapperUtil {
         return wrapperObj(clz, wrapperArgTypes, wrapperArgs, typePrefix);
     }
 
-    private static <T> T wrapperObj(Class<T> clz, Class[] argTypes, Object[] args, String typePrefix) throws Exception {
-        List<PluginDecorator<Class>> wrapperDecorators =
+    private static <T> T wrapperObj(Class clz, Class[] argTypes, Object[] args, String typePrefix) throws Exception {
+        List<PluginDecorator<Class<?>>> wrapperDecorators =
             PluginConfigManger.getOrderedPluginClasses("com.github.bannirui.msb.common.plugin.Wrapper", typePrefix, true);
         if (Objects.isNull(wrapperDecorators) || wrapperDecorators.isEmpty()) {
             return (T) args[args.length - 1];
         }
         Object tmp = null;
-        for (PluginDecorator<Class> pd : wrapperDecorators) {
+        for (PluginDecorator<Class<?>> pd : wrapperDecorators) {
             Class tClass = pd.getPlugin();
             Constructor constructor = tClass.getConstructor(argTypes);
             tmp = constructor.newInstance(args);

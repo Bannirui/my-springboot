@@ -9,10 +9,16 @@ public class Interceptor implements MethodInterceptor {
 
     private MethodInterceptor methodInterceptor;
 
+    /**
+     * 自定义拦截器
+     */
     public Interceptor(MethodInterceptor methodInterceptor) {
         this.methodInterceptor = methodInterceptor;
     }
 
+    /**
+     * 对代理对象进行增强 {@link org.springframework.cglib.proxy.Enhancer}代理对象的每个方法调用都会回调到这
+     */
     @Override
     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
         Object result = null;

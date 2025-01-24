@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
 
 public abstract class AbstractBeanRegistrar implements ApplicationContextAware, BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
-    protected ConfigurableEnvironment env;
+    private ConfigurableEnvironment env;
     protected BeanDefinitionRegistry registry;
     protected ApplicationContext applicationContext;
 
@@ -108,8 +108,11 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
         return true;
     }
 
+    /**
+     * 读取配置优先级 JVM->远程配置中心->本地配置文件
+     */
     public String getProperty(String key) {
-        return MsbEnvironmentMgr.getProperty(this.env, key);
+        return MsbEnvironmentMgr.getProperty(key);
     }
 
     public String getPropertyNotNull(String key) {

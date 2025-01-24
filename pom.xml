@@ -29,8 +29,10 @@
         <module>msb-common</module>
         <!--apollo remote config-->
         <module>msb-config</module>
-        <!--log etl-->
+        <!--log and cat-->
         <module>msb-log</module>
+        <!--mq sender and consumer-->
+        <module>msb-mq</module>
         <module>msb-web</module>
         <module>msb-samples</module>
         <module>msb-http</module>
@@ -64,6 +66,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>msb-log</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-mq</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -189,6 +196,55 @@
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-io</artifactId>
                 <version>3.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>5.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-tools</artifactId>
+                <version>5.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>3.9.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springside</groupId>
+                <artifactId>springside-utils</artifactId>
+                <version>5.0.0-RC1</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.14</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ini4j</groupId>
+                <artifactId>ini4j</artifactId>
+                <version>0.5.4</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>2.0.54</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.yammer.metrics/metrics-core -->
+            <dependency>
+                <groupId>com.yammer.metrics</groupId>
+                <artifactId>metrics-core</artifactId>
+                <version>2.2.0</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper -->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>3.9.3</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

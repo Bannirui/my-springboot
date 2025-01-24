@@ -1,7 +1,8 @@
 package com.github.bannirui.msb.common.startup;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.context.annotation.ImportSelector;
@@ -56,6 +57,7 @@ public abstract class MsbImportSelectorController implements ImportSelector {
     enum EnableType {
         MsbConfigChangeListener("EnableMsbConfig", "MsbConfigChangeListenerSelector"),
         MsbLog("EnableMsbLog", "MsbLogImportSelector"),
+        MsbMQ("EnableMsbMQ", "MsbMQImportSelector"),
         ;
 
         private final String starter;
@@ -74,8 +76,14 @@ public abstract class MsbImportSelectorController implements ImportSelector {
             return this.importer;
         }
 
+        private static final Map<String, EnableType> cache_by_importer = new HashMap<>();
+        static {
+            for (EnableType e : EnableType.values()) {
+                cache_by_importer.put(e.getImporter(), e);
+            }
+        }
         public static EnableType get8Importer(String name) {
-            return Arrays.stream(values()).filter(e -> e.getImporter().equals(name)).findFirst().orElseGet(() -> null);
+            return cache_by_importer.get(name);
         }
     }
 }

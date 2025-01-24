@@ -21,32 +21,33 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 
 public class PluginConfigManger {
 
-    private static final String APP_CAT_PROPERTIES_CLASSPATH = "classpath*:META-INF/msb/plugin/**";
-    private static final Map<String, Properties> CANT_PROPERTIES_MAP = new HashMap<>();
+    // cglib动态代理拦截器
+    private static final String dynamic_proxy_interceptor = "classpath*:META-INF/msb/plugin/*";
+    /**
+     * 缓存拦截器
+     * <ul>
+     *     <li>key 配置文件名</li>
+     *     <li>val 拦截器信息<ul>
+     *         <li>k 标识</li>
+     *         <li>v 拦截器的全限定路径</li>
+     *     </ul></li>
+     * </ul>
+     */
+    private static final Map<String, Properties> CACHE_INTERCEPTOR_BY_FILENAME = new HashMap<>();
 
     static {
         ResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
         try {
-            Resource[] resources = patternResolver.getResources("classpath*:META-INF/msb/plugin/**");
+            Resource[] resources = patternResolver.getResources("classpath*:/META-INF/msb/plugin/**");
             for (Resource resource : resources) {
                 Properties props = new Properties();
                 props.load(resource.getInputStream());
                 String fileName = resource.getFilename();
-                if (CANT_PROPERTIES_MAP.containsKey(fileName)) {
-                    Properties properties = CANT_PROPERTIES_MAP.get(fileName);
-                    for (Map.Entry<Object, Object> e : props.entrySet()) {
-                        properties.setProperty((String) e.getKey(), (String) e.getValue());
-                    }
-                } else {
-                    CANT_PROPERTIES_MAP.put(fileName, props);
-                }
+                CACHE_INTERCEPTOR_BY_FILENAME.computeIfAbsent(fileName, k -> new Properties()).putAll(props);
             }
         } catch (Exception e) {
-            throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, new Object[] {"msb资源文件"});
+            throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, "msb资源文件");
         }
-    }
-
-    public PluginConfigManger() {
     }
 
     public static Set<String> getPropertyValueSet(String fileName) {
@@ -67,7 +68,7 @@ public class PluginConfigManger {
     }
 
     public static Properties getProperty(String fileName) {
-        return CANT_PROPERTIES_MAP.get(fileName);
+        return CACHE_INTERCEPTOR_BY_FILENAME.get(fileName);
     }
 
     public static String getProperty(String fileName, String key) {
@@ -75,7 +76,7 @@ public class PluginConfigManger {
         if (Objects.isNull(properties)) {
             return null;
         }
-        return Objects.nonNull(properties.getProperty(key)) ? properties.getProperty(key).toString() : null;
+        return Objects.nonNull(properties.getProperty(key)) ? properties.getProperty(key) : null;
     }
 
     public static void setProperty(String fileName, String key, String value) {
@@ -85,66 +86,87 @@ public class PluginConfigManger {
         }
     }
 
+    /**
+     * @param fileName classpath:/META-INF/msb/plugin下拦截器配置文件名
+     * @param prefix ${fileName}中配置内容的key前缀 用于模糊搜索所有key
+     * @return 配置文件中所有指定前缀的key
+     */
     public static Set<String> getPropertyKeySetWithPrefix(String fileName, String prefix) {
+        // 配置文件中所有key
         Set<String> allKeySet = getPropertyKeySet(fileName);
         Set<String> result = new HashSet<>();
         if (Objects.nonNull(allKeySet) && !allKeySet.isEmpty()) {
-            allKeySet.forEach(x -> {
-                if (x.startsWith(prefix)) {
-                    result.add(x);
+            allKeySet.forEach(propertyKey -> {
+                if (propertyKey.startsWith(prefix)) {
+                    result.add(propertyKey);
                 }
             });
         }
         return result;
     }
 
-    public static List<PluginDecorator<Class>> getOrderedPluginClasses(String fileName, boolean reverse) {
+    public static List<PluginDecorator<Class<?>>> getOrderedPluginClasses(String fileName, boolean reverse) {
+        // 所有拦截器
         Set<String> classNames = getPropertyValueSet(fileName);
+        // 拦截器封装
         return getOrderedPluginClass(classNames, reverse);
     }
 
-    public static List<PluginDecorator<Class>> getOrderedPluginClasses(String fileName, String prefix, boolean reverse) {
+    /**
+     * @param fileName classpath:/META-INF/msb/plugin下的配置文件 用于配置动态代理的拦截器
+     * @param prefix classpath:/META-INF/msb/plugin下配置了拦截器 拦截器的property key的前缀 用于模糊匹配到所有的拦截器
+     * @param reverse 指定拦截器的回调顺序 <t>TRUE</t>拦截器优先级逆序 默认优先级升序
+     * @return 拦截器封装
+     */
+    public static List<PluginDecorator<Class<?>>> getOrderedPluginClasses(String fileName, String prefix, boolean reverse) {
+        // 配置文件中所有指定前缀的key
         Set<String> classNameKeys = getPropertyKeySetWithPrefix(fileName, prefix);
         if (Objects.isNull(classNameKeys) || classNameKeys.isEmpty()) {
             return new ArrayList<>();
         }
+        // 拦截器实现的类全限定名
         Set<String> classNames = new HashSet<>();
-        for (String className : classNames) {
+        for (String className : classNameKeys) {
             classNames.add(getProperty(fileName, className));
         }
         return getOrderedPluginClass(classNames, reverse);
     }
 
-    public static List<PluginDecorator<Class>> getOrderedPluginClass(Set<String> classNames, boolean reverse) {
+    /**
+     * @param classNames 拦截器类路径全限定名
+     * @param reverse {@link MsbPlugin}注解指定拦截器有优先级 没有通过该注解标识使用默认值0 该字段用于指定逆序执行拦截器 默认优先级升序
+     * @return 拦截器的封装
+     */
+    public static List<PluginDecorator<Class<?>>> getOrderedPluginClass(Set<String> classNames, boolean reverse) {
         if (Objects.isNull(classNames) || classNames.isEmpty()) {
             return new ArrayList<>();
         }
-        List<PluginDecorator<Class>> result = new ArrayList<>();
+        List<PluginDecorator<Class<?>>> result = new ArrayList<>();
         for (String className : classNames) {
             String errorClassNames = "";
             try {
                 Class<?> clazz = Class.forName(className);
+                // 注解标识优先级
                 MsbPlugin mp = clazz.getAnnotation(MsbPlugin.class);
-                PluginDecorator pd = null;
+                PluginDecorator<Class<?>> pd = null;
                 if (Objects.nonNull(mp)) {
-                    pd = new PluginDecorator(clazz, mp.order());
+                    pd = new PluginDecorator<>(clazz, mp.order());
                 } else {
-                    pd = new PluginDecorator(clazz, 0);
+                    pd = new PluginDecorator<>(clazz, 0);
                 }
                 result.add(pd);
             } catch (Exception e) {
                 errorClassNames = errorClassNames + className + ",";
             }
             if (StringUtils.isNotEmpty(errorClassNames)) {
-                throw FrameworkException.getInstance("Cannot init {} class", new Object[] {errorClassNames});
+                throw FrameworkException.getInstance("Cannot init {} class", errorClassNames);
             }
         }
         if (!result.isEmpty()) {
+            // 默认order升序 即优先级降序 order越小优先级越大
+            Collections.sort(result);
             if (reverse) {
-                Collections.sort(result);
                 Collections.reverse(result);
-            } else {
-                Collections.sort(result);
             }
         }
         return result;
@@ -163,7 +185,7 @@ public class PluginConfigManger {
         return (String) key;
     }
 
-    public static void insertIntoOrderedList(List<PluginDecorator<Class>> srcList, boolean reverse, PluginDecorator<Class> target) {
+    public static void insertIntoOrderedList(List<PluginDecorator<Class<?>>> srcList, boolean reverse, PluginDecorator<Class<?>> target) {
         int pos = 0;
         if (reverse) {
             for (PluginDecorator pd : srcList) {

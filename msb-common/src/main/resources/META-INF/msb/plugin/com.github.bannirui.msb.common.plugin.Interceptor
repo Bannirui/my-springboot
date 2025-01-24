@@ -1,0 +1,4 @@
+# mq sender proxy interceptor
+MMS.Producer.CatMMSInterceptor=com.github.bannirui.msb.log.cat.mq.CatMMSInterceptor
+# mq subscribe proxy interceptor
+MMS.Consumer.CatMMSMessageListenerInterceptor=com.github.bannirui.msb.log.cat.mq.CatMMSMessageListenerInterceptor

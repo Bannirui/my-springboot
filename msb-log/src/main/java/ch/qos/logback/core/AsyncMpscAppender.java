@@ -10,9 +10,6 @@ public class AsyncMpscAppender extends AsyncAppenderBase<ILoggingEvent> {
 
     boolean includeCallerData = false;
 
-    public AsyncMpscAppender() {
-    }
-
     public boolean isIncludeCallerData() {
         return includeCallerData;
     }
@@ -46,7 +43,7 @@ public class AsyncMpscAppender extends AsyncAppenderBase<ILoggingEvent> {
             super.addError("Invalid queue size [" + super.queueSize + "]");
         } else {
             if (super.neverBlock) {
-                super.blockingQueue = new MpscBlockingQueue4Log(super.queueSize);
+                super.blockingQueue = new MpscBlockingQueue4Log<>(super.queueSize);
             } else {
                 super.blockingQueue = new ArrayBlockingQueue<>(super.queueSize);
             }

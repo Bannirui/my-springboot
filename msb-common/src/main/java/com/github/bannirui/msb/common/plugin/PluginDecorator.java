@@ -2,8 +2,17 @@ package com.github.bannirui.msb.common.plugin;
 
 import com.github.bannirui.msb.common.ex.FrameworkException;
 
-public class PluginDecorator<T extends Class> implements Comparable {
+/**
+ * 封装{@link Interceptor}拦截器
+ */
+public class PluginDecorator<T extends Class<?>> implements Comparable<Object> {
+    /**
+     * 动态代理回调的拦截器类 是{@link Interceptor}的派生
+     */
     T plugin;
+    /**
+     * 用于标识{@link PluginDecorator#plugin}的优先级 值越大优先级越低 通过{@link com.github.bannirui.msb.common.annotation.MsbPlugin}指定
+     */
     int order;
     Object instance;
 
@@ -43,12 +52,9 @@ public class PluginDecorator<T extends Class> implements Comparable {
     @Override
     public int compareTo(Object o) {
         if (!(o instanceof PluginDecorator)) {
-            throw FrameworkException.getInstance("PluginDecorator can not compare to other type", new Object[0]);
+            throw FrameworkException.getInstance("PluginDecorator can not compare to other type");
         }
-        PluginDecorator other = (PluginDecorator) o;
-        if (this.order == other.order) {
-            return 0;
-        }
-        return this.order > other.order ? 1 : -1;
+        PluginDecorator<T> other = (PluginDecorator<T>) o;
+        return this.order-other.order;
     }
 }

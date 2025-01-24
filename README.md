@@ -27,6 +27,9 @@ A framework based on SpringBoot, focusing on different section
     - @EnableMsbFramework启用框架
     - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git) [关于Apollo的部署](https://bannirui.github.io/2024/11/19/Docker/%E5%AE%89%E8%A3%85Apollo/))
     - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git) [关于Cat的部署](https://bannirui.github.io/2024/11/26/Docker/%E5%AE%89%E8%A3%85Cat/))
+    - @EnableMsbMQ启用消息队列
+      - 接入RocketMQ([部署RocketMQ](https://bannirui.github.io/2025/01/09/Docker/%E9%83%A8%E7%BD%B2RocketMQ/))
+      - 接入Kafka
 
 ### 2 VM/启动参数
 
@@ -73,11 +76,15 @@ A framework based on SpringBoot, focusing on different section
 - 控制台日志输出Banner
   - [doc](./doc/控制台输出Banner.md)
   - [code](./msb-samples/sample-04)
-- 日志接入Cat
+- 接入Cat
   - [doc](./doc/集成Cat.md)
   - [code](./msb-samples/sample-04)
+- 接入MQ
+  - [doc](./doc/集成MQ.md)
+  - [code]()
 
 ### 4 附件配置
 
-- [框架配置](./doc/msb-apollo.properties)
+- [框架配置Resource](./doc/msb-resource.properties)
+- [框架配置Apollo](./doc/msb-apollo.properties)
 - [应用配置](./doc/app-apollo.properties)
