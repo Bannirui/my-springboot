@@ -1,9 +1,11 @@
 package com.github.bannirui.msb.mq.sdk.utils;
 
+import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.mq.sdk.common.MmsEnv;
 import com.google.common.collect.Maps;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,17 +34,20 @@ public class Utils {
         return version;
     }
 
+    /**
+     * 字符串形式配置解析成{@link Properties}形式
+     * @param source Properties标准格式的字符串 每对配置用换行符
+     */
     public static Properties parseProperties(String source) throws IOException {
         Properties properties = new Properties();
-        if(MapUtils.isNotEmpty(properties)) {
-            try {
-                properties.load(new ByteArrayInputStream(source.getBytes("UTF-8")));
-                return properties;
-            } catch (IOException e) {
-                throw e;
-            }
-        } else {
+        if(StringUtils.isEmpty(source)) {
             return properties;
+        }
+        try {
+            properties.load(new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)));
+            return properties;
+        } catch (IOException e) {
+            throw FrameworkException.getInstance("str转Properties失败{0}", e);
         }
     }
 

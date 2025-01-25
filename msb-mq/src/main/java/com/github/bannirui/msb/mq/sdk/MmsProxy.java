@@ -7,6 +7,7 @@ import com.github.bannirui.msb.mq.sdk.metrics.MmsMetrics;
 import com.github.bannirui.msb.mq.sdk.utils.Utils;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
 import com.github.bannirui.msb.mq.sdk.zookeeper.MmsZookeeper;
+import java.util.Objects;
 import org.apache.zookeeper.AddWatchMode;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -32,6 +33,9 @@ public abstract class MmsProxy<K extends MmsMetrics> extends AbstractMmsService 
             newMetadata = MmsProxy.this.getZkInstance().readTopicMetadata(MmsProxy.this.metadata.getName());
         } else {
             newMetadata = MmsProxy.this.getZkInstance().readConsumerGroupMetadata(MmsProxy.this.metadata.getName());
+        }
+        if(Objects.isNull(newMetadata)) {
+            return;
         }
         logger.info("metadata {} change notified", newMetadata.toString());
         if (!MmsProxy.this.metadata.getClusterMetadata().getBrokerType().equals(((MmsMetadata)newMetadata).getClusterMetadata().getBrokerType())) {

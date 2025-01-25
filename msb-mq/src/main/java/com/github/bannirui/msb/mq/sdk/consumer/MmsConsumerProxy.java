@@ -19,6 +19,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 消费者代理 屏蔽中间件差异和细节
+ * @param <T> 消息体类型
+ */
 public abstract class MmsConsumerProxy<T> extends MmsProxy<MmsConsumerMetrics> implements Consumer {
     protected static final Logger logger = LoggerFactory.getLogger(MmsConsumerProxy.class);
     protected MessageListener listener;

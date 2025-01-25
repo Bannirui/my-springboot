@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.mq.sdk.config;
 
 public class MmsClientConfig {
-    public static enum CONSUMER {
+    public enum CONSUMER {
         CONSUME_THREAD_MIN("consumeThreadMin"),
         CONSUME_THREAD_MAX("consumeThreadMax"),
         ORDERLY_CONSUME_PARTITION_PARALLELISM("orderlyConsumePartitionParallelism"),
@@ -18,7 +18,7 @@ public class MmsClientConfig {
 
         private final String key;
 
-        private CONSUMER(String key) {
+        CONSUMER(String key) {
             this.key = key;
         }
 

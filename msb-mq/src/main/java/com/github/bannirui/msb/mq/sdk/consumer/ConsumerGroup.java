@@ -4,8 +4,17 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 
 public class ConsumerGroup {
+    /**
+     * consumer group
+     */
     private String consumerGroup;
+    /**
+     * consumer
+     */
     private String consumerName = "CONSUMER_DEFAULT_NAME";
+    /**
+     * tag *标识所有
+     */
     private Set<String> tags = Sets.newHashSet();
 
     public ConsumerGroup(String consumerGroup) {

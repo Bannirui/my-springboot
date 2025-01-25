@@ -139,6 +139,12 @@ public class Mms extends AbstractMmsService {
         ConsumerFactory.getConsumer(new ConsumerGroup(consumerGroup, "CONSUMER_DEFAULT_NAME", tags), new Properties(), listener);
     }
 
+    /**
+     * @param consumerGroup consumer group
+     * @param tags
+     * @param listener
+     * @param properties
+     */
     protected void doSubscribe(String consumerGroup, Set<String> tags, MessageListener listener, Properties properties) {
         if (!this.running) {
             logger.error("MMS is not running,will not consume message");

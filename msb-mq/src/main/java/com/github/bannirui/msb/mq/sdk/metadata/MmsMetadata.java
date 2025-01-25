@@ -7,6 +7,13 @@ import com.github.bannirui.msb.mq.sdk.utils.Utils;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * 注册中心存储的my message service的元数据
+ * <ul>
+ *     <li>topic</li>
+ *     <li>consumer group</li>
+ * </ul>
+ */
 public class MmsMetadata {
 
     /**
@@ -14,6 +21,13 @@ public class MmsMetadata {
      * topic还是consumer group
      */
     private String type;
+    /**
+     * 作为zk节点名称
+     * <ul>
+     *     <li>/mms/topic/${name}</li>
+     *     <li>/mms/consumergroup/${name}</li>
+     * </ul>
+     */
     private String name;
     private ClusterMetadata clusterMetadata;
     private String domain;

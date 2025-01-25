@@ -1,8 +1,8 @@
 package com.github.bannirui.msb.mq.sdk.consumer;
 
+import com.github.bannirui.msb.mq.sdk.common.MmsException;
 import com.github.bannirui.msb.mq.sdk.common.RocketMQConsumeType;
 import com.github.bannirui.msb.mq.sdk.common.SLA;
-import com.github.bannirui.msb.mq.sdk.common.MmsException;
 import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
 import java.util.Collection;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class ConsumerFactory {
     /**
      * <ul>
-     *     <li>key ConsumerGroup_ConsumerName</li>
+     *     <li>key 消费者 group_name
      *     <li>val </li>
      * </ul>
      */
@@ -43,34 +43,40 @@ public class ConsumerFactory {
             logger.warn("consumerGroup中有空格 请检查监听器中的consumerGroup是否填多了空格 这很可能会导致消费监听不成功");
         }
         String cacheName = consumerGroup + "_" + name;
-        return consumers.computeIfAbsent(cacheName, k->{
-            MmsConsumerProxy consumer = null;
-            ConsumerGroupMetadata metadata = null;
-            try {
-                metadata = RouterManager.getZkInstance().readConsumerGroupMetadata(consumerGroup);
-            } catch (Throwable e) {
-                logger.error("get consumer metadata error", e);
-                throw MmsException.METAINFO_EXCEPTION;
+        if(!consumers.containsKey(cacheName)) {
+            synchronized (ConsumerFactory.class) {
+                if(!consumers.containsKey(cacheName)) {
+                    MmsConsumerProxy consumer = null;
+                    ConsumerGroupMetadata metadata = null;
+                    try {
+                        metadata = RouterManager.getZkInstance().readConsumerGroupMetadata(consumerGroup);
+                    } catch (Throwable e) {
+                        logger.error("get consumer metadata error", e);
+                        throw MmsException.METAINFO_EXCEPTION;
+                    }
+                    if(Objects.isNull(metadata)) {
+                        logger.error("no consumer metadata for {}", consumerGroup);
+                        throw MmsException.METAINFO_EXCEPTION;
+                    }
+                    rewriteConsumerGroup(metadata);
+                    logger.info("Consumer created {}", metadata);
+                    SLA sla = SLA.parse(properties);
+                    RocketMQConsumeType type = RocketMQConsumeType.parse(properties);
+                    Properties configProperties = new Properties();
+                    configProperties.put("metadata", metadata);
+                    configProperties.put("sla", sla);
+                    configProperties.put("name", name);
+                    configProperties.put("tags", tags);
+                    configProperties.put("properties", properties);
+                    configProperties.put("listener", listener);
+                    configProperties.put("isNewPush", type.isNewPush);
+                    consumer = ProxyFactory.getProxy(configProperties);
+                    consumers.putIfAbsent(cacheName, consumer);
+                    return consumer;
+                }
             }
-            if(Objects.isNull(metadata)) {
-                throw MmsException.MetainfoException;
-            }
-            rewriteConsumerGroup(metadata);
-            logger.info("Consumer created {}", metadata);
-            SLA sla = SLA.parse(properties);
-            RocketMQConsumeType type = RocketMQConsumeType.parse(properties);
-            Properties configProperties = new Properties();
-            configProperties.put("metadata", metadata);
-            configProperties.put("sla", sla);
-            configProperties.put("name", name);
-            configProperties.put("tags", tags);
-            configProperties.put("properties", properties);
-            configProperties.put("listener", listener);
-            configProperties.put("isNewPush", type.isNewPush);
-            consumer = ProxyFactory.getProxy(configProperties);
-            consumers.putIfAbsent(cacheName, consumer);
-            return consumer;
-        });
+        }
+        return consumers.get(cacheName);
     }
 
     protected static void rewriteConsumerGroup(ConsumerGroupMetadata metadata) {

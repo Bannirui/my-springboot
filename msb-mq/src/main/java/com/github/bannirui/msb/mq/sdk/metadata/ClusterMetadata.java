@@ -2,8 +2,16 @@ package com.github.bannirui.msb.mq.sdk.metadata;
 
 import com.github.bannirui.msb.mq.sdk.common.BrokerType;
 
+/**
+ * 存在注册中心的my message service集群信息
+ */
 public class ClusterMetadata {
     private String clusterName;
+    /**
+     * <ul>
+     *     <li>RocketMQ name server, host:9876</li>
+     * </ul>
+     */
     private String bootAddr;
     /**
      * mq中间件类型

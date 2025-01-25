@@ -3,6 +3,7 @@ package com.github.bannirui.msb.mq.sdk.consumer;
 import com.github.bannirui.msb.mq.sdk.common.BrokerType;
 import com.github.bannirui.msb.mq.sdk.common.SLA;
 import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +19,7 @@ public class ProxyFactory {
         Set<String> tags = (Set<String>) configProperties.get("tags");
         Properties properties = (Properties)configProperties.get("properties");
         MessageListener listener = (MessageListener)configProperties.get("listener");
-        if (BrokerType.ROCKETMQ.equals(metadata.getClusterMetadata().getBrokerType())) {
+        if(Objects.equals(BrokerType.ROCKETMQ, metadata.getClusterMetadata().getBrokerType())) {
             if (!StringUtils.isBlank(metadata.getReleaseStatus()) && !metadata.getReleaseStatus().equals("all")) {
                 if (isNewPush) {
                     consumer = new MmsLiteConsumerGroupProxy(metadata, sla, name, tags, properties, listener, BrokerType.ROCKETMQ.getName());

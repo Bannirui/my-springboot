@@ -1,5 +1,6 @@
 package com.github.bannirui.msb.mq.sdk.zookeeper;
 
+import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.mq.sdk.common.BrokerType;
 import com.github.bannirui.msb.mq.sdk.common.MmsConst;
 import com.github.bannirui.msb.mq.sdk.common.MmsException;
@@ -55,7 +56,7 @@ public class MmsZookeeper extends ZooKeeper {
                 super.setData(path, zkMeta.getBytes(StandardCharsets.UTF_8), -1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -76,7 +77,7 @@ public class MmsZookeeper extends ZooKeeper {
                 super.setData(path, topicZkData.getBytes(StandardCharsets.UTF_8), -1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -97,7 +98,7 @@ public class MmsZookeeper extends ZooKeeper {
                 super.setData(path, cgZkData.getBytes(StandardCharsets.UTF_8), -1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -207,12 +208,12 @@ public class MmsZookeeper extends ZooKeeper {
             Stat exists = super.exists(zkPath, false);
             if (Objects.isNull(exists)) {
                 logger.error("zk path not existed: {}", zkPath);
-                return null;
+                throw FrameworkException.getInstance("zk节点[{0}]不存在", zkPath);
             }
             byte[] data = super.getData(zkPath, false, null);
             if(Objects.isNull(data)) {
                 logger.error("zk data is null for path: {}", zkPath);
-                return null;
+                throw FrameworkException.getInstance("zk节点[{0}]数据不存在", zkPath);
             }
             Properties properties = Utils.parseProperties(new String(data));
             metadata.setName(name);
