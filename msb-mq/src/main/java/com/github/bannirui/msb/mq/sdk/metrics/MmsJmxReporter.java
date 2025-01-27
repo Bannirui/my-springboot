@@ -1,17 +1,12 @@
 package com.github.bannirui.msb.mq.sdk.metrics;
 
 import com.github.bannirui.msb.mq.sdk.common.MmsThreadFactory;
-import com.github.bannirui.msb.mq.sdk.consumer.ConsumerFactory;
-import com.github.bannirui.msb.mq.sdk.consumer.MmsConsumerProxy;
-import com.github.bannirui.msb.mq.sdk.producer.ProducerFactory;
 import com.github.bannirui.msb.mq.sdk.producer.MmsProducerProxy;
+import com.github.bannirui.msb.mq.sdk.producer.ProducerFactory;
 import com.github.bannirui.msb.mq.sdk.utils.Utils;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Gauge;
-import com.yammer.metrics.core.Histogram;
-import com.yammer.metrics.core.Metered;
-import com.yammer.metrics.core.Timer;
+import com.yammer.metrics.core.*;
 import com.yammer.metrics.stats.Snapshot;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +29,8 @@ public class MmsJmxReporter implements Runnable {
     public void run() {
         if (this.running) {
             ProducerFactory.getProducers().forEach(MmsProducerProxy::statistics);
-            ConsumerFactory.getConsumers().forEach(MmsConsumerProxy::statistics);
+            // todo
+            // ConsumerFactory.getConsumers().forEach(MmsConsumerProxy::statistics);
         }
     }
 

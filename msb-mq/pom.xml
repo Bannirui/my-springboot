@@ -7,6 +7,7 @@
         <groupId>com.github.bannirui</groupId>
         <artifactId>my-springboot</artifactId>
         <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>msb-mq</artifactId>

@@ -3,12 +3,13 @@ package com.github.bannirui.msb.mq.configuration;
 import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.mq.annotation.MMSBatchListener;
 import com.github.bannirui.msb.mq.annotation.MMSListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MMSContext {
     private static final Logger logger = LoggerFactory.getLogger(MMSContext.class);
@@ -29,7 +30,7 @@ public class MMSContext {
     /**
      * <ul>
      *     <li>key consumer group+tag</li>
-     *     <li>val 监听器配置</li>
+     *     <li>val 监听器配置 哪个Bean实例哪个方法什么参数 用于回调</li>
      * </ul>
      * <ul>
      *     <li>当tag是*时 key就是group~*</li>
@@ -51,6 +52,14 @@ public class MMSContext {
         MMSContext.mmsConfMap = mmsConfMap;
     }
 
+    /**
+     * 封装mq监听器信息 用于回调
+     * @param consumerGroup mq consumer group
+     * @param method {@link MMSListener}注解标识的方法
+     * @param obj {@link MMSListener}注解标识的是方法 该方法所在的实例 Spring容器的Bean
+     * @param params 方法中映射mq属性的参数
+     * @param tag 监听的消息tag
+     */
     public static MMSConf getMMSConf(String consumerGroup, Method method, Object obj, List<Map<String, Object>> params, String tag) {
         MMSConf MMSConf = new MMSConf();
         MMSConf.setConsumerGroup(consumerGroup);

@@ -6,7 +6,8 @@
     <parent>
         <groupId>com.github.bannirui</groupId>
         <artifactId>msb-samples</artifactId>
-        <version>3.2.4</version>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>sample-03</artifactId>
@@ -30,6 +31,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.github.bannirui.msb.sample.App03</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

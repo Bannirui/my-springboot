@@ -7,10 +7,12 @@
         <groupId>com.github.bannirui</groupId>
         <artifactId>my-springboot</artifactId>
         <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>msb-samples</artifactId>
     <packaging>pom</packaging>
+
     <modules>
         <module>sample-01</module>
         <module>sample-02</module>

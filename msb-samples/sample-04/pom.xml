@@ -5,12 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.github.bannirui</groupId>
-        <artifactId>my-springboot</artifactId>
-        <version>3.2.4</version>
-        <relativePath>../../pom.xml</relativePath>
+        <artifactId>msb-samples</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>sample-04</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
@@ -28,6 +29,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.github.bannirui.msb.sample.App04</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

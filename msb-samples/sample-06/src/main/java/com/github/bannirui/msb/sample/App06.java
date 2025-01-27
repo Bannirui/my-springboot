@@ -14,7 +14,11 @@ import com.github.bannirui.msb.mq.sdk.common.MmsType;
 import com.github.bannirui.msb.mq.sdk.consumer.MsgConsumedStatus;
 import com.github.bannirui.msb.mq.sdk.metadata.ClusterMetadata;
 import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
+import com.github.bannirui.msb.mq.sdk.metadata.TopicMetadata;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +52,27 @@ public class App06 implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        // cluster and consumer
-        // this.registerConsumerGroup();
+         // cluster and consumer
+        // this.initZk();
+        this.registerConsumerGroup();
+        // this.cleanZk();
         // mq发送消息
         // this.mmsTemplate.send("a", "1", 1);
     }
-
+    private void initZk() {
+        try {
+            RouterManager.getZkInstance().create("/mms/cluster", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            RouterManager.getZkInstance().create("/mms/topic", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            RouterManager.getZkInstance().create("/mms/consumergroup", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (KeeperException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private void cleanZk() {
+        RouterManager.getInstance().deleteTopic("topic_a");
+        RouterManager.getInstance().deleteConsumerGroup("group_a");
+        RouterManager.getInstance().deleteCluster("cluster_a");
+    }
     private void registerConsumerGroup() {
         // cluster
         ClusterMetadata cluster = new ClusterMetadata();
@@ -63,6 +82,13 @@ public class App06 implements ApplicationRunner {
         // zk注册mq cluster
         RouterManager.getZkInstance().writeClusterMetadata(cluster);
         log.info("向zk中注册了cluster信息");
+        TopicMetadata topic = new TopicMetadata();
+        topic.setType(MmsType.TOPIC.getName());
+        topic.setName("topic_a");
+        topic.setClusterMetadata(cluster);
+        topic.setIsEncrypt(false);
+        RouterManager.getInstance().writeTopicMetadata(topic);
+        log.info("向zk中注册了topic信息");
         // zk注册mq consumer group
         ConsumerGroupMetadata consumer = new ConsumerGroupMetadata();
         consumer.setType(MmsType.CONSUMER_GROUP.getName());
