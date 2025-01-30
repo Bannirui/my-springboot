@@ -62,7 +62,7 @@ public class MMSSubscribeEventListener implements ApplicationListener<Applicatio
                     properties.put(MmsClientConfig.CONSUMER.ORDERLY_CONSUME_THREAD_SIZE, subscribeInfo.getOrderlyConsumeThreadSize());
                 }
                 this.MMSSubscribeTemplate.subscribe(consumerGroup, subscribeInfo.getTags(), proxyObj, properties);
-                logger.info("MMS消费消息 ConsumerGroup={} tags={}", consumerGroup, subscribeInfo.getTags());
+                logger.info("MMS订阅消息 ConsumerGroup={} tags={}", consumerGroup, subscribeInfo.getTags());
             } catch (Exception e) {
                 throw FrameworkException.getInstance(e, "消费组订阅失败：ConsumerGroup={0}", consumerGroup);
             }

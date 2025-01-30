@@ -34,14 +34,14 @@ import org.springframework.core.env.Environment;
 public class MMSListenerInitialization implements BeanPostProcessor, EnvironmentAware, PriorityOrdered {
     private static final Logger logger = LoggerFactory.getLogger(MMSListenerInitialization.class);
 
-    private Map<String, MMSListenerProperties> mmsListenerPropertiesMap;
+    private Map<String, MMSListenerProperties> mmsListenerPropertiesMap = new HashMap<>();
 
     public void setEnvironment(Environment environment) {
         // msb配置
-        List<MMSListenerProperties>
-            MMSListenerPropertiesList = Binder.get(environment).bind("msb.mq.consumer", Bindable.listOf(MMSListenerProperties.class)).orElseGet(ArrayList::new);
-        this.mmsListenerPropertiesMap = MMSListenerPropertiesList.stream().filter((p) -> StringUtils.isNotBlank(p.getConsumerGroup())).collect(Collectors.toMap(
-            MMSListenerProperties::getConsumerGroup, Function.identity()));
+        List<MMSListenerProperties> mmsListenerProperties = Binder.get(environment).bind("msb.mq.consumer", Bindable.listOf(MMSListenerProperties.class)).orElseGet(ArrayList::new);
+        if(CollectionUtils.isNotEmpty(mmsListenerProperties)) {
+            this.mmsListenerPropertiesMap = mmsListenerProperties.stream().filter((p) -> StringUtils.isNotBlank(p.getConsumerGroup())).collect(Collectors.toMap(MMSListenerProperties::getConsumerGroup, Function.identity()));
+        }
     }
 
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

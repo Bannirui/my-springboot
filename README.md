@@ -21,13 +21,13 @@ A framework based on SpringBoot, focusing on different section
 
 ### 1 特性
 
-- 基于SpringBoot
-- 统一配置
-- 整合功能 注解式场景启动(@EnableXXX)
+- [x] 基于SpringBoot
+- [x] 远程配置中心
+- [x] 整合功能 注解式场景启动(@EnableXXX)
     - @EnableMsbFramework启用框架
     - @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git) [关于Apollo的部署](https://bannirui.github.io/2024/11/19/Docker/%E5%AE%89%E8%A3%85Apollo/))
     - @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git) [关于Cat的部署](https://bannirui.github.io/2024/11/26/Docker/%E5%AE%89%E8%A3%85Cat/))
-    - @EnableMsbMQ启用消息队列
+    - @EnableMsbMQ启用消息队列 [在msb和mq中间件增加一层用于屏蔽mq平台中间件差异性](./doc/my-message-service架构设计.md)
       - 接入RocketMQ([部署RocketMQ](https://bannirui.github.io/2025/01/09/Docker/%E9%83%A8%E7%BD%B2RocketMQ/))
       - 接入Kafka
 
@@ -81,7 +81,7 @@ A framework based on SpringBoot, focusing on different section
   - [code](./msb-samples/sample-04)
 - 接入MQ
   - [doc](./doc/集成MQ.md)
-  - [code]()
+  - [code](./msb-samples/sample-06)
 
 ### 4 附件配置
 

@@ -62,7 +62,6 @@ public class RocketmqConsumerProxy extends MmsConsumerProxy<MessageExt> {
             } else {
                 this.consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
             }
-
             if (!StringUtils.isEmpty(broadCast) && Boolean.parseBoolean(broadCast)) {
                 this.consumer.setMessageModel(MessageModel.BROADCASTING);
             }
