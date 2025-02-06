@@ -4,18 +4,6 @@ import com.github.bannirui.msb.common.ex.FrameworkException;
 import com.github.bannirui.msb.mq.annotation.MMSListener;
 import com.github.bannirui.msb.mq.annotation.MMSListenerParameter;
 import com.google.common.collect.Lists;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,14 +16,22 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.env.Environment;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
- * {@link MMSListener}注解标识的监听器配置缓存起来.
+ * 把{@link MMSListener}注解标识的监听器配置缓存起来.
  */
 public class MMSListenerInitialization implements BeanPostProcessor, EnvironmentAware, PriorityOrdered {
     private static final Logger logger = LoggerFactory.getLogger(MMSListenerInitialization.class);
 
     private Map<String, MMSListenerProperties> mmsListenerPropertiesMap = new HashMap<>();
 
+    @Override
     public void setEnvironment(Environment environment) {
         // msb配置
         List<MMSListenerProperties> mmsListenerProperties = Binder.get(environment).bind("msb.mq.consumer", Bindable.listOf(MMSListenerProperties.class)).orElseGet(ArrayList::new);
@@ -44,10 +40,12 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
         }
     }
 
+    @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         return bean;
     }
 
+    @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Method[] methods = bean.getClass().getMethods();
         // 找到mq的监听器
@@ -135,6 +133,7 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
         return bean;
     }
 
+    @Override
     public int getOrder() {
         return -2147483648;
     }

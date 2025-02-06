@@ -1,10 +1,7 @@
 package com.github.bannirui.msb.mq.configuration;
 
 import com.github.bannirui.msb.common.ex.FrameworkException;
-import com.github.bannirui.msb.mq.annotation.MMSBatchListener;
 import com.github.bannirui.msb.mq.annotation.MMSListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -12,21 +9,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MMSContext {
-    private static final Logger logger = LoggerFactory.getLogger(MMSContext.class);
     /**
-     * {@link MMSListener}指定的消费者配置信息
+     * {@link MMSListener}注解指定的消费者配置信息
      * <ul>key consumer group</ul>
      * <ul>val 消费者配置</ul>
      */
     private static Map<String, MMSSubscribeInfo> consumerInfo = new ConcurrentHashMap<>();
-    /**
-     * {@link MMSBatchListener}指定的消费者配置信息
-     */
-    private static Map<String, MMSSubscribeInfo> batchConsumerInfo = new ConcurrentHashMap<>();
-    /**
-     * {@link MMSTemplate}指定的消费者配置信息
-     */
-    private static Map<String, MMSSubscribeInfo> templateConsumerInfo = new ConcurrentHashMap<>();
     /**
      * <ul>
      *     <li>key consumer group+tag</li>
@@ -91,38 +79,6 @@ public class MMSContext {
         });
     }
 
-    public static void putBatchConsumerInfo(String consumerGroup, MMSSubscribeInfo info) {
-        if (batchConsumerInfo.containsKey(consumerGroup)) {
-            MMSSubscribeInfo MMSSubscribeInfo = batchConsumerInfo.get(consumerGroup);
-            info.getTags().forEach((tag) -> {
-                MMSSubscribeInfo.getTags().add(tag);
-            });
-            MMSSubscribeInfo.setConsumeThreadMax(info.getConsumeThreadMax());
-            MMSSubscribeInfo.setConsumeThreadMin(info.getConsumeThreadMin());
-            MMSSubscribeInfo.setMaxBatchRecords(info.getMaxBatchRecords());
-            MMSSubscribeInfo.setIsOrderly(info.getIsOrderly());
-            MMSSubscribeInfo.setIsNewPush(info.getIsNewPush());
-        } else {
-            batchConsumerInfo.put(consumerGroup, info);
-        }
-    }
-
-    public static void putTemplateConsumerInfo(String consumerGroup, MMSSubscribeInfo info) {
-        if (templateConsumerInfo.containsKey(consumerGroup)) {
-            MMSSubscribeInfo MMSSubscribeInfo = templateConsumerInfo.get(consumerGroup);
-            info.getTags().forEach((tag) -> {
-                MMSSubscribeInfo.getTags().add(tag);
-            });
-            MMSSubscribeInfo.setConsumeThreadMax(info.getConsumeThreadMax());
-            MMSSubscribeInfo.setConsumeThreadMin(info.getConsumeThreadMin());
-            MMSSubscribeInfo.setMaxBatchRecords(info.getMaxBatchRecords());
-            MMSSubscribeInfo.setIsOrderly(info.getIsOrderly());
-            MMSSubscribeInfo.setIsNewPush(info.getIsNewPush());
-        } else {
-            templateConsumerInfo.put(consumerGroup, info);
-        }
-    }
-
     /**
      * 准备往监听器的消费者配置中增加tag 前置校验tag是否合法
      * <ul>
@@ -135,7 +91,6 @@ public class MMSContext {
     public static boolean checkTag(String consumerGroup, String tag) {
         Map<String, MMSSubscribeInfo> allConsumerInfo = new ConcurrentHashMap<>();
         allConsumerInfo.putAll(consumerInfo);
-        allConsumerInfo.putAll(batchConsumerInfo);
         if (allConsumerInfo.containsKey(consumerGroup)) {
             if ("*".equals(tag) && !allConsumerInfo.get(consumerGroup).getTags().isEmpty()) {
                 throw FrameworkException.getInstance("MMS订阅的消息Tag不合法，不能在consumerGroup=" + consumerGroup + "设置了具体的tag又设置*");
@@ -147,33 +102,11 @@ public class MMSContext {
         return true;
     }
 
-    public static void checkTagForTemplateId(String templateId) {
-        if (templateConsumerInfo.containsKey(templateId)) {
-            throw FrameworkException.getInstance("模版消费组[{}]不可重复订阅", templateId);
-        }
-    }
-
     public static Map<String, MMSSubscribeInfo> getConsumerInfo() {
         return consumerInfo;
     }
 
     public static void setConsumerInfo(Map<String, MMSSubscribeInfo> consumerInfo) {
         MMSContext.consumerInfo = consumerInfo;
-    }
-
-    public static Map<String, MMSSubscribeInfo> getTemplateConsumerInfo() {
-        return templateConsumerInfo;
-    }
-
-    public static void setTemplateConsumerInfo(Map<String, MMSSubscribeInfo> templateConsumerInfo) {
-        MMSContext.templateConsumerInfo = templateConsumerInfo;
-    }
-
-    public static Map<String, MMSSubscribeInfo> getBatchConsumerInfo() {
-        return batchConsumerInfo;
-    }
-
-    public static void setBatchConsumerInfo(Map<String, MMSSubscribeInfo> batchConsumerInfo) {
-        MMSContext.batchConsumerInfo = batchConsumerInfo;
     }
 }

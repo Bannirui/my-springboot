@@ -1,5 +1,8 @@
 package com.github.bannirui.msb.mq.configuration;
 
+/**
+ * MQ监听器的配置信息.
+ */
 public class MMSListenerProperties {
     private String consumerGroup;
     private String templateName;
@@ -14,9 +17,6 @@ public class MMSListenerProperties {
     private String maxReconsumeTimes;
     private String isNewPush;
     private String orderlyConsumeThreadSize;
-
-    public MMSListenerProperties() {
-    }
 
     public String getConsumeBatchSize() {
         return this.consumeBatchSize;

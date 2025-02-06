@@ -4,20 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.github.bannirui.msb.mq.sdk.Mms;
 import com.github.bannirui.msb.mq.sdk.MmsProxy;
+import com.github.bannirui.msb.mq.sdk.common.MmsException;
 import com.github.bannirui.msb.mq.sdk.common.SLA;
 import com.github.bannirui.msb.mq.sdk.common.SimpleMessage;
 import com.github.bannirui.msb.mq.sdk.common.StatisticLoggerType;
-import com.github.bannirui.msb.mq.sdk.common.MmsException;
 import com.github.bannirui.msb.mq.sdk.message.statistic.StatisticsInfo;
-import com.github.bannirui.msb.mq.sdk.metadata.TopicMetadata;
 import com.github.bannirui.msb.mq.sdk.metadata.MmsMetadata;
+import com.github.bannirui.msb.mq.sdk.metadata.TopicMetadata;
 import com.github.bannirui.msb.mq.sdk.metrics.MmsProducerMetrics;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Random;
 
 public abstract class MmsProducerProxy extends MmsProxy<MmsProducerMetrics> implements Producer {
     private static final Logger logger= LoggerFactory.getLogger(MmsProducerProxy.class);

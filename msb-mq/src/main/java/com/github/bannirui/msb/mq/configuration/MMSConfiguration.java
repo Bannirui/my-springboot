@@ -19,8 +19,7 @@ public class MMSConfiguration extends AbstractBeanRegistrar {
         this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(MmsMsbImpl.class).addConstructorArgValue(this.getProperty("mms.nameServerAddress")));
         // 缓存监听器配置
         this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(MMSListenerInitialization.class));
-        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(MMSBatchListenerInitialization.class));
-        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(MMSListenerTemplateInitialization.class));
+        // 订阅mq
         this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(MMSSubscribeEventListener.class));
     }
 

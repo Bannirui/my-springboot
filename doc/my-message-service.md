@@ -1,6 +1,6 @@
 MMS
 ---
-my-message-service
+[my-message-service git项目](https://github.com/Bannirui/my-message-service.git)
 
 ### 1 目的
 对msb屏蔽掉mq中间件的平台差异性 约定统一性配置

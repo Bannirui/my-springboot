@@ -4,9 +4,10 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.github.bannirui.msb.mq.sdk.message.statistic.ProducerStatisticsInfo;
 import com.github.bannirui.msb.mq.sdk.message.statistic.StatisticsInfo;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class MmsProducerMetrics extends MmsMetrics {
     private static final Logger logger = LoggerFactory.getLogger(MmsProducerMetrics.class);
