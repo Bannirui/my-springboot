@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.sample;
 
-import com.github.bannirui.msb.common.annotation.EnableMsbFramework;
+import com.github.bannirui.msb.annotation.EnableMsbFramework;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.github.bannirui.msb.sample.component.MyComponent;
 import java.util.List;

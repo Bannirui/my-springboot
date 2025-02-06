@@ -3,7 +3,7 @@ package com.github.bannirui.msb.log.cat;
 import com.dianping.cat.Cat;
 import com.dianping.cat.message.Event;
 import com.dianping.cat.message.Transaction;
-import com.github.bannirui.msb.common.plugin.InterceptorUtil;
+import com.github.bannirui.msb.plugin.InterceptorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

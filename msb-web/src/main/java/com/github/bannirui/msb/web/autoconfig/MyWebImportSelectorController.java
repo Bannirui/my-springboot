@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.web.autoconfig;
 
-import com.github.bannirui.msb.common.startup.MsbImportSelectorController;
+import com.github.bannirui.msb.startup.MsbImportSelectorController;
 import com.github.bannirui.msb.web.config.WebConfig;
 import org.springframework.core.type.AnnotationMetadata;
 

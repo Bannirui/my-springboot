@@ -3,7 +3,7 @@ package com.github.bannirui.msb.config;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySource;
 import com.ctrip.framework.apollo.spring.config.ConfigPropertySourceFactory;
 import com.ctrip.framework.apollo.spring.util.SpringInjector;
-import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
+import com.github.bannirui.msb.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.config.spring.AutoUpdateApolloConfigChangeListener;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

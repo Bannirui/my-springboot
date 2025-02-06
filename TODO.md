@@ -14,8 +14,11 @@ TODO
   - [X] 检索Cat中Throwable异常日志
   - [X] 检索Cat中Trace日志
 - [ ] MQ
-  - 消费者监听器
-  - 生产者发送
+  - [X] RocketMQ消费者监听器
+  - [X] RocketMQ生产者发送
+  - [ ] Kafka消费者监听器
+  - [ ] Kafka生产者发送
+  - [ ] 抽象消息服务屏蔽MQ中间件
 - [ ] ORM
   - [ ] 整合Mybatis-Plus
   - [ ] 多数据源

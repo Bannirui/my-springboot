@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.config.aop;
 
-import com.github.bannirui.msb.common.enums.ExceptionEnum;
-import com.github.bannirui.msb.common.ex.ErrorCodeException;
+import com.github.bannirui.msb.enums.ExceptionEnum;
+import com.github.bannirui.msb.ex.ErrorCodeException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

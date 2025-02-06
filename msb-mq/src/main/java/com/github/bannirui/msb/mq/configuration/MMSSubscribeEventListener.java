@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.mq.configuration;
 
-import com.github.bannirui.msb.common.ex.FrameworkException;
-import com.github.bannirui.msb.common.plugin.InterceptorUtil;
+import com.github.bannirui.msb.ex.FrameworkException;
+import com.github.bannirui.msb.plugin.InterceptorUtil;
 import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

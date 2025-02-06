@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.mq.sdk.zookeeper;
 
-import com.github.bannirui.msb.common.ex.FrameworkException;
+import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.mq.sdk.common.BrokerType;
 import com.github.bannirui.msb.mq.sdk.common.MmsConst;
 import com.github.bannirui.msb.mq.sdk.common.MmsException;

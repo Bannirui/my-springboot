@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.mq.configuration;
 
 import com.alibaba.fastjson.JSON;
-import com.github.bannirui.msb.common.ex.FrameworkException;
+import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
 import com.github.bannirui.msb.mq.sdk.common.SimpleMessage;
 import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;

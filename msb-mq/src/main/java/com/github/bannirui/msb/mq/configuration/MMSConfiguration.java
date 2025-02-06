@@ -1,9 +1,9 @@
 package com.github.bannirui.msb.mq.configuration;
 
-import com.github.bannirui.msb.common.ex.FrameworkException;
-import com.github.bannirui.msb.common.plugin.InterceptorUtil;
-import com.github.bannirui.msb.common.register.AbstractBeanRegistrar;
-import com.github.bannirui.msb.common.register.BeanDefinition;
+import com.github.bannirui.msb.ex.FrameworkException;
+import com.github.bannirui.msb.plugin.InterceptorUtil;
+import com.github.bannirui.msb.register.AbstractBeanRegistrar;
+import com.github.bannirui.msb.register.BeanDefinition;
 import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;

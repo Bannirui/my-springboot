@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.config.aop;
 
-import com.github.bannirui.msb.common.env.MsbEnvironmentMgr;
+import com.github.bannirui.msb.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.config.annotation.FlowControlSwitch;
 import com.github.bannirui.msb.config.processor.FlowControlProcessor;
 import java.lang.reflect.Method;

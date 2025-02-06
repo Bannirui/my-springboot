@@ -1,9 +1,9 @@
 package com.github.bannirui.msb.config;
 
-import com.github.bannirui.msb.common.listener.ConfigChangeListenerSpringDetector;
-import com.github.bannirui.msb.common.listener.ConfigChangeSpringMulticaster;
-import com.github.bannirui.msb.common.register.AbstractBeanRegistrar;
-import com.github.bannirui.msb.common.register.BeanDefinition;
+import com.github.bannirui.msb.listener.ConfigChangeListenerSpringDetector;
+import com.github.bannirui.msb.listener.ConfigChangeSpringMulticaster;
+import com.github.bannirui.msb.register.AbstractBeanRegistrar;
+import com.github.bannirui.msb.register.BeanDefinition;
 
 public class ConfigChangeListenerConfiguration extends AbstractBeanRegistrar {
 

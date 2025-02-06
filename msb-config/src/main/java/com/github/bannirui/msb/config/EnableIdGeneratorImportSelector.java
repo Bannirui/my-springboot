@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.config;
 
-import com.github.bannirui.msb.common.startup.MsbImportSelectorController;
+import com.github.bannirui.msb.startup.MsbImportSelectorController;
 import org.springframework.core.type.AnnotationMetadata;
 
 public class EnableIdGeneratorImportSelector extends MsbImportSelectorController {

@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.log.cat.mq;
 
-import com.github.bannirui.msb.common.annotation.MsbPlugin;
-import com.github.bannirui.msb.common.plugin.Interceptor;
+import com.github.bannirui.msb.annotation.MsbPlugin;
+import com.github.bannirui.msb.plugin.Interceptor;
 import java.lang.reflect.Method;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;

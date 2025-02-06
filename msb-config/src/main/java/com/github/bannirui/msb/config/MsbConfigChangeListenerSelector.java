@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.config;
 
-import com.github.bannirui.msb.common.startup.MsbImportSelectorController;
+import com.github.bannirui.msb.startup.MsbImportSelectorController;
 import com.github.bannirui.msb.config.aop.FlowControlAop;
 import org.springframework.core.type.AnnotationMetadata;
 

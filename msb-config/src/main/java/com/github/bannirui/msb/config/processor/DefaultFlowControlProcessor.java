@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.config.processor;
 
-import com.github.bannirui.msb.common.enums.ExceptionEnum;
-import com.github.bannirui.msb.common.ex.ErrorCodeException;
+import com.github.bannirui.msb.enums.ExceptionEnum;
+import com.github.bannirui.msb.ex.ErrorCodeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

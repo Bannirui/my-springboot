@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.config;
 
-import com.github.bannirui.msb.common.id.EasyGenerator;
-import com.github.bannirui.msb.common.register.AbstractBeanRegistrar;
+import com.github.bannirui.msb.id.EasyGenerator;
+import com.github.bannirui.msb.register.AbstractBeanRegistrar;
 import java.util.Objects;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;

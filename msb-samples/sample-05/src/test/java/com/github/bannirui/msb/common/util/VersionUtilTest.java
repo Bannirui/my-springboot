@@ -1,5 +1,6 @@
 package com.github.bannirui.msb.common.util;
 
+import com.github.bannirui.msb.util.VersionUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

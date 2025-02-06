@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.mq.configuration;
 
-import com.github.bannirui.msb.common.ex.FrameworkException;
+import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.mq.annotation.MMSListener;
 import com.github.bannirui.msb.mq.annotation.MMSListenerParameter;
 import com.google.common.collect.Lists;

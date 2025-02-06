@@ -1,0 +1,1 @@
+Mybatis.OptimisticLocker.OptimisticLockerMybatisPlugin=com.zto.titans.orm.plugins.OptimisticLockerInterceptor

@@ -11,7 +11,6 @@ import com.dianping.cat.message.Trace;
 import com.dianping.cat.message.Transaction;
 import com.dianping.cat.message.spi.MessageManager;
 import com.dianping.cat.message.spi.MessageTree;
-import com.github.bannirui.msb.common.util.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
