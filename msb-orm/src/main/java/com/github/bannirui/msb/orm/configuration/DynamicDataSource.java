@@ -1,5 +1,26 @@
 package com.github.bannirui.msb.orm.configuration;
 
+import com.github.bannirui.msb.orm.util.DataSourceHelp;
+import com.github.bannirui.msb.orm.util.ReleaseDataSourceRunnable;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.jdbc.datasource.AbstractDataSource;
+import org.springframework.jdbc.datasource.lookup.DataSourceLookupFailureException;
+
+import javax.sql.DataSource;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 public class DynamicDataSource extends AbstractDataSource implements DisposableBean, Closeable {
     private static final Logger log = LoggerFactory.getLogger(DynamicDataSource.class);
     private volatile HikariDataSource dataSource;
@@ -20,34 +41,25 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
     }
 
     public void updateDataSource(HikariConfig hikariConfig, long forceCloseWaitSeconds) {
-        Exception exception = null;
-
         try {
             this.writeLock.lock();
             this.createNewDataSource(hikariConfig, forceCloseWaitSeconds);
-        } catch (Exception var9) {
-            exception = var9;
+        } catch (Exception e) {
+            log.error("更新数据源时出现异常:", e);
         } finally {
             this.writeLock.unlock();
         }
-
-        if (exception != null) {
-            log.error("更新数据源时出现异常:", exception);
-        }
-
     }
 
     public DataSource determineTargetDataSource() {
         try {
             this.readLock.lock();
-            HikariDataSource var1 = this.dataSource;
-            return var1;
-        } catch (Exception var5) {
-            log.error("获取数据源时出现异常:", var5);
+            return this.dataSource;
+        } catch (Exception e) {
+            log.error("获取数据源时出现异常:", e);
         } finally {
             this.readLock.unlock();
         }
-
         throw new DataSourceLookupFailureException("未查询到数据源");
     }
 
@@ -58,7 +70,6 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
         if (releaseDataSource != null) {
             DataSourceHelp.asyncRelease(new ReleaseDataSourceRunnable(releaseDataSource, forceCloseWaitSeconds));
         }
-
     }
 
     public HikariDataSource getDataSource() {
@@ -69,11 +80,13 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
         return this.getDataSource().getPoolName();
     }
 
+    @Override
     public void destroy() throws Exception {
         DataSourceHelp.shutdown();
         this.close();
     }
 
+    @Override
     public void close() throws IOException {
         if (this.dataSource != null) {
             this.dataSource.close();
@@ -82,22 +95,27 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
 
     }
 
+    @Override
     public Connection getConnection() throws SQLException {
         return this.determineTargetDataSource().getConnection();
     }
 
+    @Override
     public Connection getConnection(String username, String password) throws SQLException {
         return this.determineTargetDataSource().getConnection(username, password);
     }
 
+    @Override
     public int getLoginTimeout() throws SQLException {
         return this.determineTargetDataSource().getLoginTimeout();
     }
 
+    @Override
     public void setLoginTimeout(int timeout) throws SQLException {
         this.determineTargetDataSource().setLoginTimeout(timeout);
     }
 
+    @Override
     public PrintWriter getLogWriter() {
         try {
             return this.determineTargetDataSource().getLogWriter();
@@ -107,23 +125,27 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
         }
     }
 
+    @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
         this.determineTargetDataSource().setLogWriter(pw);
     }
 
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         return this.determineTargetDataSource().unwrap(iface);
     }
 
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return this.determineTargetDataSource().isWrapperFor(iface);
     }
 
+    @Override
     public java.util.logging.Logger getParentLogger() {
         try {
             return this.determineTargetDataSource().getParentLogger();
-        } catch (SQLFeatureNotSupportedException var2) {
-            var2.printStackTrace();
+        } catch (SQLFeatureNotSupportedException e) {
+            e.printStackTrace();
             return super.getParentLogger();
         }
     }

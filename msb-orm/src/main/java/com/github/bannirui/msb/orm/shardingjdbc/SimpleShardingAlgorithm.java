@@ -1,14 +1,20 @@
 package com.github.bannirui.msb.orm.shardingjdbc;
 
+import com.github.bannirui.msb.ex.FrameworkException;
+import com.github.bannirui.msb.orm.property.TableConfig;
+import com.github.bannirui.msb.orm.util.ShardingJdbcUtil;
+import org.apache.shardingsphere.api.sharding.ShardingValue;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class SimpleShardingAlgorithm implements IShardingAlgorithm {
     public static final String MOD = "mod";
     public static final String HASH = "hash";
     private TableConfig tableConfig;
     private SimpleShardingAlgorithm.DatabaseShardingAlgorithm dataBaseShardingAlgorithm = new SimpleShardingAlgorithm.DatabaseShardingAlgorithm();
     private SimpleShardingAlgorithm.TableShardingAlgorithm tableShardingAlgorithm = new SimpleShardingAlgorithm.TableShardingAlgorithm();
-
-    public SimpleShardingAlgorithm() {
-    }
 
     public void setTableConfig(TableConfig tableConfig) {
         this.tableConfig = tableConfig;
@@ -41,17 +47,14 @@ public class SimpleShardingAlgorithm implements IShardingAlgorithm {
                 if (!SimpleShardingAlgorithm.this.tableConfig.getStrategy().equalsIgnoreCase("hash")) {
                     throw FrameworkException.getInstance("sharding jdbc 策略设置非法:{}", new Object[]{SimpleShardingAlgorithm.this.tableConfig.getStrategy()});
                 }
-
                 int hashcode = number.hashCode();
                 if (hashcode < 0) {
                     hashcode = Math.abs(hashcode);
                 }
-
                 value = (long)hashcode;
             } else {
                 value = Long.parseLong(number.toString());
             }
-
             Long moduloValue = value % tableSize;
             return ShardingJdbcUtil.generationCurrentTableName(logicTableName, moduloValue, SimpleShardingAlgorithm.this.tableConfig.getFormat());
         }
@@ -61,7 +64,7 @@ public class SimpleShardingAlgorithm implements IShardingAlgorithm {
         }
 
         public Collection<String> doInSharding(Collection<String> collection, ShardingValue<Long> shardingValue) {
-            List<String> tableNames = new ArrayList(shardingValue.getValues().size());
+            List<String> tableNames = new ArrayList<>(shardingValue.getValues().size());
             Iterator var4 = shardingValue.getValues().iterator();
 
             while(var4.hasNext()) {

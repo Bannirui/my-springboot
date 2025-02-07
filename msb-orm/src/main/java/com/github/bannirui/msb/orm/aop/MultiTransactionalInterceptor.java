@@ -3,8 +3,6 @@ package com.github.bannirui.msb.orm.aop;
 import com.github.bannirui.msb.enums.ExceptionEnum;
 import com.github.bannirui.msb.ex.ErrorCodeException;
 import com.github.bannirui.msb.orm.annotation.MultiTransactional;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -20,6 +18,9 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Aspect
 public class MultiTransactionalInterceptor implements ApplicationContextAware {
@@ -93,6 +94,7 @@ public class MultiTransactionalInterceptor implements ApplicationContextAware {
         return proceed;
     }
 
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }

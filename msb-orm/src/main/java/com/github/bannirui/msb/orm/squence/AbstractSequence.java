@@ -1,13 +1,18 @@
 package com.github.bannirui.msb.orm.squence;
 
+import com.github.bannirui.msb.ex.FrameworkException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public abstract class AbstractSequence implements Sequence {
     private static final Logger logger = LoggerFactory.getLogger(GroupSequence.class);
     protected volatile SequenceRange currentRange;
     protected final Lock lock = new ReentrantLock();
     protected SequenceDao sequenceDao;
-
-    public AbstractSequence() {
-    }
 
     public void init() throws SQLException {
         this.sequenceDao = this.getSequenceDao();

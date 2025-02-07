@@ -1,10 +1,14 @@
 package com.github.bannirui.msb.orm.util;
 
-public class PageHelperDialectUtil {
-    private static Map<String, Class<?>> dialectAliasMap = new HashMap();
+import com.github.bannirui.msb.ex.FrameworkException;
+import com.github.pagehelper.dialect.helper.*;
 
-    public PageHelperDialectUtil() {
-    }
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+public class PageHelperDialectUtil {
+    private static Map<String, Class<?>> dialectAliasMap = new HashMap<>();
 
     public static String getDialectClassName(String jdbcUrl) {
         String dbType = fromJdbcUrl(jdbcUrl);

@@ -1,5 +1,12 @@
 package com.github.bannirui.msb.orm.squence;
 
+import com.github.bannirui.msb.ex.FrameworkException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.*;
+
 public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao {
     private static final Logger logger = LoggerFactory.getLogger(DefaultSequenceDao.class);
     private static final int MIN_STEP = 1;
@@ -86,7 +93,6 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
         } finally {
             closeDbResource((ResultSet)rs, stmt, conn);
         }
-
     }
 
     protected String getInsertSql() {

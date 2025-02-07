@@ -1,16 +1,22 @@
 package com.github.bannirui.msb.orm.plugin;
 
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Signature;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 @Intercepts({@Signature(
     type = Executor.class,
     method = "update",
     args = {MappedStatement.class, Object.class}
 )})
 public class OptimisticLockerInterceptor implements Interceptor {
-    private Map<Class<?>, Field> fieldCache = new HashMap();
-
-    public OptimisticLockerInterceptor() {
-    }
-
+    private Map<Class<?>, Field> fieldCache = new HashMap<>();
     public Object intercept(Invocation invocation) throws Throwable {
         Object[] args = invocation.getArgs();
         MappedStatement ms = (MappedStatement)args[0];
@@ -39,7 +45,6 @@ public class OptimisticLockerInterceptor implements Interceptor {
                         c.andEqualTo(versionField.getName(), originalVersionVal);
                     }
                 }
-
                 return invocation.proceed();
             } else {
                 return invocation.proceed();

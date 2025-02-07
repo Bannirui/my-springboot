@@ -1,7 +1,25 @@
 package com.github.pagehelper.page;
 
+import com.github.pagehelper.PageException;
+import com.github.pagehelper.dialect.AbstractHelperDialect;
+import com.github.pagehelper.dialect.helper.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.mapping.MappedStatement;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class PageAutoDialect {
-    private static Map<String, Class<?>> dialectAliasMap = new HashMap();
+    private static Map<String, Class<?>> dialectAliasMap = new HashMap<>();
     private boolean autoDialect = true;
     private boolean closeConn = true;
     private Properties properties;
@@ -9,9 +27,6 @@ public class PageAutoDialect {
     private ReentrantLock lock = new ReentrantLock();
     private AbstractHelperDialect delegate;
     private ThreadLocal<AbstractHelperDialect> dialectThreadLocal = new ThreadLocal();
-
-    public PageAutoDialect() {
-    }
 
     public void initDelegateDialect(MappedStatement ms) {
         if (this.delegate == null) {
@@ -21,7 +36,6 @@ public class PageAutoDialect {
                 this.dialectThreadLocal.set(this.getDialect(ms));
             }
         }
-
     }
 
     public AbstractHelperDialect getDelegate() {
@@ -34,16 +48,13 @@ public class PageAutoDialect {
 
     private String fromJdbcUrl(String jdbcUrl) {
         Iterator var2 = dialectAliasMap.keySet().iterator();
-
         String dialect;
         do {
             if (!var2.hasNext()) {
                 return null;
             }
-
             dialect = (String)var2.next();
         } while(jdbcUrl.indexOf(":" + dialect + ":") == -1);
-
         return dialect;
     }
 
@@ -52,7 +63,7 @@ public class PageAutoDialect {
     }
 
     private AbstractHelperDialect initDialect(String dialectClass, Properties properties) {
-        if (StringUtil.isEmpty(dialectClass)) {
+        if (StringUtils.isEmpty(dialectClass)) {
             throw new PageException("使用 PageHelper 分页插件时，必须设置 helper 属性");
         } else {
             AbstractHelperDialect dialect;
@@ -61,12 +72,10 @@ public class PageAutoDialect {
                 if (!AbstractHelperDialect.class.isAssignableFrom(sqlDialectClass)) {
                     throw new PageException("使用 PageHelper 时，方言必须是实现 " + AbstractHelperDialect.class.getCanonicalName() + " 接口的实现类!");
                 }
-
                 dialect = (AbstractHelperDialect)sqlDialectClass.newInstance();
             } catch (Exception var5) {
                 throw new PageException("初始化 helper [" + dialectClass + "]时出错:" + var5.getMessage(), var5);
             }
-
             dialect.setProperties(properties);
             return dialect;
         }
@@ -74,7 +83,6 @@ public class PageAutoDialect {
 
     private String getUrl(DataSource dataSource) {
         String result = null;
-
         try {
             Callable<String> callable = new PageAutoDialect.GetUrlCallable(dataSource);
             FutureTask<String> task = new FutureTask(callable);
@@ -89,31 +97,27 @@ public class PageAutoDialect {
 
     private AbstractHelperDialect getDialect(MappedStatement ms) {
         DataSource dataSource = ms.getConfiguration().getEnvironment().getDataSource();
-        AbstractHelperDialect helperDialect = (AbstractHelperDialect)this.urlDialectMap.get(dataSource);
+        AbstractHelperDialect helperDialect = this.urlDialectMap.get(dataSource);
         if (helperDialect != null) {
             return helperDialect;
         } else {
             AbstractHelperDialect var4;
             try {
                 this.lock.lock();
-                helperDialect = (AbstractHelperDialect)this.urlDialectMap.get(dataSource);
+                helperDialect = this.urlDialectMap.get(dataSource);
                 if (helperDialect == null) {
                     String url = this.getUrl(dataSource);
-                    if (StringUtil.isEmpty(url)) {
+                    if (StringUtils.isEmpty(url)) {
                         throw new PageException("无法自动获取jdbcUrl，请在分页插件中配置dialect参数!");
                     }
-
                     String dialectStr = this.fromJdbcUrl(url);
                     if (dialectStr == null) {
                         throw new PageException("无法自动获取数据库类型，请通过 helperDialect 参数指定!");
                     }
-
                     AbstractHelperDialect dialect = this.initDialect(dialectStr, this.properties);
                     this.urlDialectMap.put(dataSource, dialect);
-                    AbstractHelperDialect var7 = dialect;
-                    return var7;
+                    return dialect;
                 }
-
                 var4 = helperDialect;
             } finally {
                 this.lock.unlock();
@@ -125,23 +129,22 @@ public class PageAutoDialect {
 
     public void setProperties(Properties properties) {
         String closeConn = properties.getProperty("closeConn");
-        if (StringUtil.isNotEmpty(closeConn)) {
+        if (StringUtils.isNotEmpty(closeConn)) {
             this.closeConn = Boolean.parseBoolean(closeConn);
         }
 
         String dialect = properties.getProperty("helperDialect");
         String runtimeDialect = properties.getProperty("autoRuntimeDialect");
-        if (StringUtil.isNotEmpty(runtimeDialect) && runtimeDialect.equalsIgnoreCase("TRUE")) {
+        if (StringUtils.isNotEmpty(runtimeDialect) && runtimeDialect.equalsIgnoreCase("TRUE")) {
             this.autoDialect = false;
             this.properties = properties;
-        } else if (StringUtil.isEmpty(dialect)) {
+        } else if (StringUtils.isEmpty(dialect)) {
             this.autoDialect = true;
             this.properties = properties;
         } else {
             this.autoDialect = false;
             this.delegate = this.initDialect(dialect, properties);
         }
-
     }
 
     static {

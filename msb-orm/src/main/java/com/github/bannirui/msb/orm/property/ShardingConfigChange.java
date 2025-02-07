@@ -1,5 +1,8 @@
 package com.github.bannirui.msb.orm.property;
 
+import java.util.List;
+import java.util.Map;
+
 public class ShardingConfigChange {
     private Map<Integer, MasterDsProperties> changedDataSources;
     private Integer defaultDSIndex;

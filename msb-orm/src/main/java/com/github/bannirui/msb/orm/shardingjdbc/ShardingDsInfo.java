@@ -1,5 +1,10 @@
 package com.github.bannirui.msb.orm.shardingjdbc;
 
+import com.github.bannirui.msb.orm.configuration.MasterSlaveRuleConfiguration;
+
+import javax.sql.DataSource;
+import java.util.Map;
+
 public class ShardingDsInfo {
     private Map<String, DataSource> dataSourceMap;
     private MasterSlaveRuleConfiguration masterSlaveRuleConfig;

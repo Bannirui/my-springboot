@@ -1,5 +1,7 @@
 package com.github.bannirui.msb.orm.squence;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class SequenceRange {
     private final long min;
     private final long max;

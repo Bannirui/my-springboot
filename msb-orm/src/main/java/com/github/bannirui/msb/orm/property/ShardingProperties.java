@@ -1,5 +1,7 @@
 package com.github.bannirui.msb.orm.property;
 
+import java.util.List;
+
 public class ShardingProperties {
     private Integer defaultDSIndex;
     private String defaultDataSource;

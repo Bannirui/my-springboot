@@ -1,5 +1,13 @@
 package com.github.bannirui.msb.orm.squence;
 
+import com.github.bannirui.msb.ex.FrameworkException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class CycleSequence extends AbstractSequence {
     private static final Logger logger = LoggerFactory.getLogger(CycleSequence.class);
     private Long today = null;

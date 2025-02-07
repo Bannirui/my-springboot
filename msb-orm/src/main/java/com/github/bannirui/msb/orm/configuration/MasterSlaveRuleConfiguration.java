@@ -1,5 +1,10 @@
 package com.github.bannirui.msb.orm.configuration;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
+import java.util.Collection;
+
 public class MasterSlaveRuleConfiguration {
     private final String name;
     private final String masterDataSourceName;

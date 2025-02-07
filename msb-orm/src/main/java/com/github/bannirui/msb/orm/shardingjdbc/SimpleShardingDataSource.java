@@ -1,5 +1,25 @@
 package com.github.bannirui.msb.orm.shardingjdbc;
 
+import com.github.bannirui.msb.ex.FrameworkException;
+import com.github.bannirui.msb.orm.configuration.MasterSlaveRuleConfiguration;
+import com.github.bannirui.msb.orm.property.TableConfig;
+import com.github.bannirui.msb.orm.squence.AbstractLifecycle;
+import com.github.bannirui.msb.orm.util.ShardingJdbcUtil;
+import org.apache.shardingsphere.core.rule.ShardingRule;
+import org.apache.shardingsphere.core.rule.TableRule;
+import org.apache.shardingsphere.shardingjdbc.api.ShardingDataSourceFactory;
+import org.apache.shardingsphere.shardingjdbc.jdbc.core.datasource.ShardingDataSource;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
+
+import javax.sql.DataSource;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.*;
+import java.util.logging.Logger;
+
 public class SimpleShardingDataSource extends AbstractLifecycle implements DynamicShardingDataSource, DataSource {
     private Map<String, DataSource> dataSourceMap;
     private String defaultDataSource;
@@ -8,18 +28,13 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
     private volatile DataSource dataSource;
     private boolean useOptimizedTableRule;
 
-    public SimpleShardingDataSource() {
-    }
-
     public void doInit() {
         DataSourceRule dataSourceRule = new DataSourceRule(this.dataSourceMap, this.defaultDataSource);
         if (this.tableConfigs == null) {
-            this.tableConfigs = new ArrayList();
+            this.tableConfigs = new ArrayList<>();
         }
-
-        List<TableRule> tableRuleList = new ArrayList(this.tableConfigs.size());
+        List<TableRule> tableRuleList = new ArrayList<>(this.tableConfigs.size());
         Iterator var3 = this.tableConfigs.iterator();
-
         while(var3.hasNext()) {
             TableConfig config = (TableConfig)var3.next();
             IShardingAlgorithm simpleShardingAlgorithm = null;
@@ -32,8 +47,8 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
                     try {
                         multiKeysShardingAlgorithmClass = ClassUtils.forName(config.getAlgorithm(), MutiKeysShardingAlgorithm.class.getClassLoader());
                         multiKeysShardingAlgorithm = (MutiKeysShardingAlgorithm)multiKeysShardingAlgorithmClass.newInstance();
-                    } catch (Exception var11) {
-                        throw FrameworkException.getInstance(var11, "加载ComplexKeysShardingAlgorithmClass异常{0}", new Object[]{config.getAlgorithm()});
+                    } catch (Exception e) {
+                        throw FrameworkException.getInstance(e, "加载ComplexKeysShardingAlgorithmClass异常{0}", new Object[]{config.getAlgorithm()});
                     }
                 } else {
                     try {
@@ -50,11 +65,9 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
             if (this.useOptimizedTableRule) {
                 tableRuleBuilder.useOptimize(true);
             }
-
             TableRule tableRule = tableRuleBuilder.build();
             tableRuleList.add(tableRule);
         }
-
         ShardingRule shardingRule = ShardingRule.builder().dataSourceRule(dataSourceRule).tableRules(tableRuleList).build();
         this.dataSource = ShardingDataSourceFactory.createDataSource(shardingRule);
     }

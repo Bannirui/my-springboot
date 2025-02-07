@@ -1,17 +1,25 @@
 package com.github.bannirui.msb.orm.configuration;
 
 import com.github.bannirui.msb.orm.property.MasterDsProperties;
+import com.github.bannirui.msb.orm.util.DBPasswordDecoder;
 import com.github.bannirui.msb.orm.util.DataSourceHelp;
 import com.github.bannirui.msb.orm.util.MyBatisConfigLoadUtil;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import com.github.bannirui.msb.orm.util.ResourceHelp;
+import com.github.bannirui.msb.plugin.Interceptor;
+import com.github.bannirui.msb.plugin.PluginDecorator;
+import com.github.pagehelper.PageInterceptor;
+import com.zaxxer.hikari.HikariConfig;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.Configuration;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -19,6 +27,9 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.*;
 
 public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, Ordered {
     private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
@@ -131,7 +142,7 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
             propertyValues.add("configuration", configuration);
         }
         propertyValues.add("dataSource", new RuntimeBeanReference(dataSourceName));
-        List<Interceptor> mybatisInterceptors = new ArrayList();
+        List<Interceptor> mybatisInterceptors = new ArrayList<>();
         PageInterceptor pageInterceptor = new PageInterceptor();
         Properties properties = new Properties();
         properties.setProperty("autoRuntimeDialect", "true");
