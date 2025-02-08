@@ -27,30 +27,33 @@ public class CycleSequence extends AbstractSequence {
         return Long.parseLong(sdf.format(new Date()));
     }
 
+    @Override
     public long nextValue(int type) {
         Long oldday = this.today;
-        Long value = this.nextValue();
+        long value = this.nextValue();
         if (!oldday.equals(this.today)) {
             oldday = this.today;
             value = this.nextValue();
             if (!oldday.equals(this.today)) {
-                throw FrameworkException.getInstance("Sequence切换重试发生异常,原Sequence[{}],新Sequence[{}]", new Object[]{oldday, this.today});
+                throw FrameworkException.getInstance("Sequence切换重试发生异常,原Sequence[{}],新Sequence[{}]", oldday, this.today);
             }
         }
-
-        value = this.today * 1000000000000L + value * 1000L + (long)(type * 10);
+        value = this.today * 1000000000000L + value * 1000L + (long)(type * 10L);
         return CycleSequence.Luhn.gen(value);
     }
 
+    @Override
     String getSequenceName() {
         this.today = this.getToDay();
         return this.name + this.today;
     }
 
+    @Override
     protected boolean isInitRange() {
         return super.getCurrentRange() == null || this.getToDay() > this.today;
     }
 
+    @Override
     SequenceDao getSequenceDao() {
         DefaultSequenceDao dao = new DefaultSequenceDao(this.dataSource);
         dao.setMinValue(this.minValue);
@@ -59,24 +62,18 @@ public class CycleSequence extends AbstractSequence {
     }
 
     static class Luhn {
-        Luhn() {
-        }
-
         public static Long gen(Long number) {
             String sortNumber = sort(number);
-            Integer sum = 0;
-
+            int sum = 0;
             for(int i = 0; i < sortNumber.length() - 1; ++i) {
-                Integer e = Integer.valueOf(String.valueOf(sortNumber.charAt(i)));
+                int e = Integer.parseInt(String.valueOf(sortNumber.charAt(i)));
                 if (i != sortNumber.length() - 1 && i % 2 == 1) {
                     e = e << 1;
                     e = e > 9 ? e - 9 : e;
                 }
-
                 sum = sum + e;
             }
-
-            return number + (long)(sum * 9 % 10);
+            return number + (sum * 9L % 10);
         }
 
         private static String sort(Long number) {
@@ -97,17 +94,14 @@ public class CycleSequence extends AbstractSequence {
         public static boolean check(Long number) {
             String sortNumber = sort(number);
             Integer sum = 0;
-
             for(int i = 0; i < sortNumber.length(); ++i) {
                 Integer e = Integer.valueOf(String.valueOf(sortNumber.charAt(i)));
                 if (i != sortNumber.length() - 1 && i % 2 == 1) {
                     e = e << 1;
                     e = e > 9 ? e - 9 : e;
                 }
-
                 sum = sum + e;
             }
-
             return sum % 10 == 0;
         }
     }

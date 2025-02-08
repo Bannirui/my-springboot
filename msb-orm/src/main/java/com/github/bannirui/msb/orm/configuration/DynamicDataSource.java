@@ -92,7 +92,6 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
             this.dataSource.close();
             this.dataSource = null;
         }
-
     }
 
     @Override
@@ -119,8 +118,8 @@ public class DynamicDataSource extends AbstractDataSource implements DisposableB
     public PrintWriter getLogWriter() {
         try {
             return this.determineTargetDataSource().getLogWriter();
-        } catch (SQLException var2) {
-            var2.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
             return super.getLogWriter();
         }
     }

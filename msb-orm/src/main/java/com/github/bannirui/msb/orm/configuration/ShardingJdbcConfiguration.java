@@ -4,14 +4,23 @@ import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.orm.property.MasterDsProperties;
 import com.github.bannirui.msb.orm.property.ShardingProperties;
 import com.github.bannirui.msb.orm.shardingjdbc.ShardingDsInfo;
+import com.github.bannirui.msb.orm.shardingjdbc.SimpleShardingDataSource;
 import com.github.bannirui.msb.orm.util.MyBatisConfigLoadUtil;
 import com.github.bannirui.msb.orm.util.ResourceHelp;
 import com.github.bannirui.msb.orm.util.ShardingJdbcUtil;
 import com.github.bannirui.msb.plugin.Interceptor;
+import com.github.bannirui.msb.plugin.PluginConfigManager;
 import com.github.bannirui.msb.plugin.PluginDecorator;
 import com.github.pagehelper.PageInterceptor;
 import com.zaxxer.hikari.HikariConfig;
 import io.micrometer.common.util.StringUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import javax.sql.DataSource;
 import org.apache.ibatis.session.Configuration;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
@@ -34,15 +43,13 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.sql.DataSource;
-import java.util.*;
-
 public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
-    private static Logger LOGGER = LoggerFactory.getLogger(ShardingJdbcConfiguration.class);
+    private static Logger logger = LoggerFactory.getLogger(ShardingJdbcConfiguration.class);
     protected ConfigurableEnvironment env;
 
+    @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanFactory) throws BeansException {
-        ShardingProperties shardingProperties = this.initConfig("msb.sharding", "msb.sharding.datasources[%s].slave.hikari");
+        ShardingProperties shardingProperties = this.initConfig("sharding", "sharding.datasources[%s].slave.hikari");
         ShardingJdbcUtil.initShardingFusing(shardingProperties);
         String dataSourceName = "shardingDataSource";
         String sessionFactoryName = "shardingSessionFactory";
@@ -70,7 +77,7 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
         GenericBeanDefinition mapperScannerBeanDefinition = new GenericBeanDefinition();
         mapperScannerBeanDefinition.setBeanClass(MapperScannerConfigurer.class);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
-        Map hashMap = MyBatisConfigLoadUtil.loadConfig(this.env, "msb.sharding.mapper", HashMap.class);
+        Map<String, Object> hashMap = MyBatisConfigLoadUtil.loadConfig(this.env, "sharding.mapper", HashMap.class);
         propertyValues.addPropertyValue("sqlSessionFactory", new RuntimeBeanReference(sqlSessionFactoryName));
         propertyValues.addPropertyValues(hashMap);
         mapperScannerBeanDefinition.setPropertyValues(propertyValues);
@@ -81,11 +88,11 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
         GenericBeanDefinition sqlsessionBeanDefinition = new GenericBeanDefinition();
         sqlsessionBeanDefinition.setBeanClass(SqlSessionFactoryBean.class);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
-        Map<String, Object> sqlSessionConfigMap = MyBatisConfigLoadUtil.loadConfig(this.env, "msb.sharding.sqlsession", HashMap.class);
+        Map<String, Object> sqlSessionConfigMap = MyBatisConfigLoadUtil.loadConfig(this.env, "sharding.sqlsession", HashMap.class);
         Object mapperLocations = sqlSessionConfigMap.get("mapperLocations");
         if (StringUtils.isNotBlank((String) mapperLocations)) {
             Resource[] resources = ResourceHelp.resolveMapperLocations((String)mapperLocations);
-            sqlSessionConfigMap.put("mapperLocations", resources);
+            sqlSessionConfigMap.put(MyBatisConfiguration.mapper_locations, resources);
         }
         propertyValues.addPropertyValues(sqlSessionConfigMap);
         sqlsessionBeanDefinition.setPropertyValues(propertyValues);
@@ -102,11 +109,11 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
         Properties properties = new Properties();
         properties.setProperty("autoRuntimeDialect", "true");
         pageInterceptor.setProperties(properties);
-        PluginDecorator<Class> pageInterceptorPluginDecorator = new PluginDecorator(pageInterceptor.getClass(), -1);
+        PluginDecorator<Class<?>> pageInterceptorPluginDecorator = new PluginDecorator(pageInterceptor.getClass(), -1);
         pageInterceptorPluginDecorator.setInstance(pageInterceptor);
-        List<PluginDecorator<Class>> mybatisFilters = PluginConfigManager.getOrderedPluginClasses(Interceptor.class.getName(), true);
+        List<PluginDecorator<Class<?>>> mybatisFilters = PluginConfigManager.getOrderedPluginClasses(Interceptor.class.getName(), true);
         PluginConfigManager.insertIntoOrderedList(mybatisFilters, true, pageInterceptorPluginDecorator);
-        for (PluginDecorator<Class> pd : mybatisFilters) {
+        for (PluginDecorator<Class<?>> pd : mybatisFilters) {
             try {
                 Interceptor mybatisInterceptor;
                 if (pd.getInstance() != null) {
@@ -117,7 +124,7 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
                 }
                 mybatisInterceptors.add(mybatisInterceptor);
             } catch (InstantiationException | IllegalAccessException e) {
-                LOGGER.error("load mybatis plugin error: ", e);
+                logger.error("load mybatis plugin error: ", e);
             }
         }
         propertyValues.add("plugins", mybatisInterceptors);
@@ -128,14 +135,13 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
         BeanDefinitionBuilder dataSourceDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleShardingDataSource.class);
         Map<String, DataSource> dataSourceMap = new HashMap<>();
         Map<String, MasterSlaveRuleConfiguration> masterSlaveRuleConfigs = new HashMap<>();
-        ShardingDsInfo shardingDsInfo;
-        for(Iterator var7 = shardingProperties.getDataSources().iterator(); var7.hasNext(); dataSourceMap.putAll(shardingDsInfo.getDataSourceMap())) {
-            MasterDsProperties config = (MasterDsProperties)var7.next();
-            shardingDsInfo = ShardingJdbcUtil.createShardingDataSource(config);
+        shardingProperties.getDataSources().forEach(config -> {
+            ShardingDsInfo shardingDsInfo = ShardingJdbcUtil.createShardingDataSource(config);
             if (shardingDsInfo.hasSlave()) {
                 masterSlaveRuleConfigs.put(config.getName(), shardingDsInfo.getMasterSlaveRuleConfig());
             }
-        }
+            dataSourceMap.putAll(shardingDsInfo.getDataSourceMap());
+        });
         dataSourceDefinitionBuilder.addPropertyValue("dataSourceMap", dataSourceMap);
         dataSourceDefinitionBuilder.addPropertyValue("defaultDataSource", shardingProperties.getDefaultDataSource());
         dataSourceDefinitionBuilder.addPropertyValue("tableConfigs", shardingProperties.getTableConfigs());
@@ -159,9 +165,7 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
     protected ShardingProperties initConfig(String shardingPrefix, String dataSourceSlavePrefix) {
         ShardingProperties shardingProperties = Binder.get(this.env).bind(shardingPrefix, ShardingProperties.class).orElseThrow(() -> FrameworkException.getInstance("No sharding config value bound, prefix equals " + shardingPrefix, new Object[0]));
         List<MasterDsProperties> dsProperties = shardingProperties.getDataSources();
-        int size = dsProperties.size();
-        int i;
-        for(i = 0; i < size; ++i) {
+        for(int i = 0, sz=dsProperties.size(); i < sz; ++i) {
             if (Objects.nonNull(dsProperties.get(i).getSlave())) {
                 HikariConfig master = dsProperties.get(i).getHikari();
                 HikariConfig slave = new HikariConfig();
@@ -172,7 +176,7 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
             }
             dsProperties.get(i).setName(ShardingJdbcUtil.generationCurrentDataBaseName((long)i));
         }
-        i = shardingProperties.getDefaultDSIndex() != null ? shardingProperties.getDefaultDSIndex() : 0;
+        int i = shardingProperties.getDefaultDSIndex() != null ? shardingProperties.getDefaultDSIndex() : 0;
         shardingProperties.setDefaultDataSource(ShardingJdbcUtil.generationCurrentDataBaseName((long)i));
         return shardingProperties;
     }

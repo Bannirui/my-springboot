@@ -82,6 +82,9 @@ A framework based on SpringBoot, focusing on different section
 - 接入MQ
   - [doc](./doc/集成MQ.md)
   - [code](./msb-samples/sample-06)
+- 接入mybatis
+  - [doc](./doc/集成mybatis.md)
+  - [code](./msb-samples/sample-07)
 
 ### 4 附件配置
 

@@ -1,11 +1,17 @@
 package com.github.bannirui.msb.orm.squence;
 
 import com.github.bannirui.msb.ex.FrameworkException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.MessageFormat;
+import javax.sql.DataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.sql.DataSource;
-import java.sql.*;
 
 public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao {
     private static final Logger logger = LoggerFactory.getLogger(DefaultSequenceDao.class);
@@ -36,11 +42,11 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
         this.dataSource = dataSource;
     }
 
+    @Override
     public void adjust(String name) throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-
         try {
             conn = this.dataSource.getConnection();
             stmt = conn.prepareStatement(this.getSelectSql());
@@ -50,17 +56,15 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
                 logger.info("数据库中未配置该sequence！请往数据库中插入sequence记录，或者启动adjust开关");
                 this.adjustInsert(name);
             }
-        } catch (SQLException var9) {
-            if (var9 == null || var9.getMessage() == null || var9.getMessage().indexOf("ORA-00001") < 0 && var9.getMessage().indexOf("Duplicate entry") < 0) {
-                logger.error("初值校验和自适应过程中出错.", var9);
-                throw var9;
+        } catch (SQLException e) {
+            if (e.getMessage() == null || e.getMessage().indexOf("ORA-00001") < 0 && e.getMessage().indexOf("Duplicate entry") < 0) {
+                logger.error("初值校验和自适应过程中出错.", e);
+                throw e;
             }
-
             logger.warn("数据库中插入sequence记录重复,sequenceName{}", name);
         } finally {
             closeDbResource(rs, stmt, conn);
         }
-
     }
 
     protected static void closeDbResource(ResultSet rs, Statement stmt, Connection conn) {
@@ -73,8 +77,7 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
         long newValue = (long)this.innerStep;
         Connection conn = null;
         PreparedStatement stmt = null;
-        Object rs = null;
-
+        ResultSet rs = null;
         try {
             conn = this.dataSource.getConnection();
             stmt = conn.prepareStatement(this.getInsertSql());
@@ -83,15 +86,14 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
             stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new RuntimeException("faild to auto adjust init value at  " + name + " update affectedRow =0");
+                throw new RuntimeException("failed to auto adjust init value at  " + name + " update affectedRow =0");
             }
-
-            logger.info("Sequence   name:" + name + "插入初值:" + name + "value:" + newValue);
+            logger.info("Sequence name:{} 插入初值:{} value:{}", name, name, newValue);
         } catch (SQLException var11) {
             logger.error("由于SQLException,插入初值自适应失败！Sequence，sequence Name：" + name + "   value:" + newValue, var11);
             throw FrameworkException.getInstance(var11, "由于SQLException,插入初值自适应失败！dbGroupIndex，sequence Name：" + name + "   value:" + newValue, new Object[0]);
         } finally {
-            closeDbResource((ResultSet)rs, stmt, conn);
+            closeDbResource(rs, stmt, conn);
         }
     }
 
@@ -104,85 +106,76 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
         return buffer.toString();
     }
 
+    @Override
     public SequenceRange nextRange(String name) {
         if (name == null) {
             throw new IllegalArgumentException("序列名称不能为空");
-        } else {
-            Connection conn = null;
-            PreparedStatement stmt = null;
-            ResultSet rs = null;
-
-            for(int i = 0; i < this.retryTimes + 1; ++i) {
-                String sql = this.getSelectSql();
-
-                long oldValue;
-                long newValue;
-                try {
-                    conn = this.dataSource.getConnection();
-                    stmt = conn.prepareStatement(sql);
-                    stmt.setString(1, name);
-                    rs = stmt.executeQuery();
-                    if (!rs.next()) {
-                        this.adjustInsert(name);
-                        continue;
-                    }
-
-                    oldValue = rs.getLong(1);
-                    StringBuilder message;
-                    if (oldValue < this.minValue) {
-                        message = new StringBuilder();
-                        message.append("Sequence value cannot be less than zero, value = ").append(oldValue);
-                        message.append(", please check table ").append(this.getTableName());
-                        throw new RuntimeException(message.toString());
-                    }
-
-                    if (oldValue > this.maxValue) {
-                        message = new StringBuilder();
-                        message.append("Sequence value overflow, value = ").append(oldValue);
-                        message.append(", please check table ").append(this.getTableName());
-                        throw new RuntimeException(message.toString());
-                    }
-
-                    newValue = oldValue + (long)this.getStep();
-                } catch (Exception var25) {
-                    logger.warn("获取 sequence 失败 sql{}", sql, var25);
-                    continue;
-                } finally {
-                    closeResultSet(rs);
-                    rs = null;
-                    closeStatement(stmt);
-                    stmt = null;
-                    closeConnection(conn);
-                    conn = null;
-                }
-
-                try {
-                    conn = this.dataSource.getConnection();
-                    stmt = conn.prepareStatement(this.getUpdateSql());
-                    stmt.setLong(1, newValue);
-                    stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-                    stmt.setString(3, name);
-                    stmt.setLong(4, oldValue);
-                    int affectedRows = stmt.executeUpdate();
-                    if (affectedRows != 0) {
-                        SequenceRange sequenceRange = new SequenceRange(oldValue + 1L, newValue);
-                        SequenceRange var13 = sequenceRange;
-                        return var13;
-                    }
-                } catch (Exception var23) {
-                    logger.warn("获取 sequence 失败 sql{}", sql, var23);
-                } finally {
-                    closeResultSet(rs);
-                    rs = null;
-                    closeStatement(stmt);
-                    stmt = null;
-                    closeConnection(conn);
-                    conn = null;
-                }
-            }
-
-            throw FrameworkException.getInstance("Retried too many times, retryTimes = " + this.retryTimes, new Object[0]);
         }
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        for(int i = 0; i < this.retryTimes + 1; ++i) {
+            String sql = this.getSelectSql();
+            long oldValue;
+            long newValue;
+            try {
+                conn = this.dataSource.getConnection();
+                stmt = conn.prepareStatement(sql);
+                stmt.setString(1, name);
+                rs = stmt.executeQuery();
+                if (!rs.next()) {
+                    this.adjustInsert(name);
+                    continue;
+                }
+                oldValue = rs.getLong(1);
+                StringBuilder message;
+                if (oldValue < this.minValue) {
+                    message = new StringBuilder();
+                    message.append("Sequence value cannot be less than zero, value = ").append(oldValue);
+                    message.append(", please check table ").append(this.getTableName());
+                    throw new RuntimeException(message.toString());
+                }
+                if (oldValue > this.maxValue) {
+                    message = new StringBuilder();
+                    message.append("Sequence value overflow, value = ").append(oldValue);
+                    message.append(", please check table ").append(this.getTableName());
+                    throw new RuntimeException(message.toString());
+                }
+                newValue = oldValue + (long)this.getStep();
+            } catch (Exception e) {
+                logger.warn("获取 sequence 失败 sql{}", sql, e);
+                continue;
+            } finally {
+                closeResultSet(rs);
+                rs = null;
+                closeStatement(stmt);
+                stmt = null;
+                closeConnection(conn);
+                conn = null;
+            }
+            try {
+                conn = this.dataSource.getConnection();
+                stmt = conn.prepareStatement(this.getUpdateSql());
+                stmt.setLong(1, newValue);
+                stmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+                stmt.setString(3, name);
+                stmt.setLong(4, oldValue);
+                int affectedRows = stmt.executeUpdate();
+                if (affectedRows != 0) {
+                    return new SequenceRange(oldValue + 1L, newValue);
+                }
+            } catch (Exception var23) {
+                logger.warn("获取 sequence 失败 sql{}", sql, var23);
+            } finally {
+                closeResultSet(rs);
+                rs = null;
+                closeStatement(stmt);
+                stmt = null;
+                closeConnection(conn);
+                conn = null;
+            }
+        }
+        throw FrameworkException.getInstance("Retried too many times, retryTimes = " + this.retryTimes, new Object[0]);
     }
 
     private String getSelectSql() {
@@ -197,7 +190,6 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
                 }
             }
         }
-
         return this.selectSql;
     }
 
@@ -215,7 +207,6 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
                 }
             }
         }
-
         return this.updateSql;
     }
 
@@ -229,7 +220,6 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
                 logger.debug("Unexpected exception on closing JDBC ResultSet", var3);
             }
         }
-
     }
 
     private static void closeStatement(Statement stmt) {
@@ -242,20 +232,18 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
                 logger.debug("Unexpected exception on closing JDBC Statement", var3);
             }
         }
-
     }
 
     private static void closeConnection(Connection conn) {
         if (conn != null) {
             try {
                 conn.close();
-            } catch (SQLException var2) {
-                logger.debug("Could not close JDBC Connection", var2);
-            } catch (Throwable var3) {
-                logger.debug("Unexpected exception on closing JDBC Connection", var3);
+            } catch (SQLException e) {
+                logger.debug("Could not close JDBC Connection", e);
+            } catch (Throwable e) {
+                logger.debug("Unexpected exception on closing JDBC Connection", e);
             }
         }
-
     }
 
     public DataSource getDataSource() {
@@ -266,6 +254,7 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
         this.dataSource = dataSource;
     }
 
+    @Override
     public int getRetryTimes() {
         return this.retryTimes;
     }
@@ -273,11 +262,11 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
     public void setRetryTimes(int retryTimes) {
         if (retryTimes < 0) {
             throw new IllegalArgumentException("Property retryTimes cannot be less than zero, retryTimes = " + retryTimes);
-        } else {
-            this.retryTimes = retryTimes;
         }
+        this.retryTimes = retryTimes;
     }
 
+    @Override
     public int getStep() {
         return this.step;
     }
@@ -326,11 +315,10 @@ public class DefaultSequenceDao extends AbstractLifecycle implements SequenceDao
     }
 
     public String getConfigStr() {
-        if (StringUtil.isEmpty(this.configStr)) {
+        if (StringUtils.isEmpty(this.configStr)) {
             String format = "[type:simple] [step:{0}] [retryTimes:{1}] [tableInfo:{2}({3},{4},{5})]";
             this.configStr = MessageFormat.format(format, String.valueOf(this.step), String.valueOf(this.retryTimes), this.tableName, this.nameColumnName, this.valueColumnName, this.gmtModifiedColumnName);
         }
-
         return this.configStr;
     }
 

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +43,9 @@ import org.springframework.util.ObjectUtils;
  */
 public class MsbEnvironmentMgr {
 
+    public static final Pattern MYBATIS_CONFIGS_PREFIX_REGULAR;
+    public static final Pattern SHARDING_PREFIX_REGULAR;
+    public static final Pattern SHARDING_TABLE_PREFIX_REGULAR;
     private static final Logger logger = LoggerFactory.getLogger(MsbEnvironmentMgr.class);
     private static final String env_key = "env";
     private static final String net_env_key = "netEnv";
@@ -59,6 +63,9 @@ public class MsbEnvironmentMgr {
     private static Properties properties;
 
     static {
+        MYBATIS_CONFIGS_PREFIX_REGULAR = Pattern.compile("^mybatis\\.configs\\[(\\d+)\\]\\.datasource\\..*\\S");
+        SHARDING_PREFIX_REGULAR = Pattern.compile("^sharding\\.datasources\\[(\\d+)\\]\\..*\\S");
+        SHARDING_TABLE_PREFIX_REGULAR = Pattern.compile("^sharding\\.tableConfigs\\[(\\d+)\\]\\..*\\S");
         MSB_FILE_PATH = USER_HOME_PATH + "/.msb/" + getEnv() + "-msb.json";
         apolloMap = new HashMap<>();
         init();

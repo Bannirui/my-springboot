@@ -58,6 +58,7 @@ public class SequenceRange {
         this.over = over;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("max: ").append(this.max).append(", min: ").append(this.min).append(", value: ").append(this.value);

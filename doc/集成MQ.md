@@ -10,7 +10,7 @@
 </parent>
 ```
 
-### 3 配置文件
+### 2 配置文件
 
 classpath:META-INF/app.properties
 
@@ -18,14 +18,14 @@ classpath:META-INF/app.properties
 app.id=SampleApp
 ```
 
-### 4 msb Apollo配置
+### 3 msb Apollo配置
 
 ```properties
 # mq server, split by comma, zk addr
 mms.nameServerAddress = 127.0.0.1:2181
 ```
 
-### 5 业务Apollo配置
+### 4 业务Apollo配置
 
 ```properties
 # the option for console log, true enable and false disable, the default is enabling
@@ -36,7 +36,7 @@ logging.level.root = info
 
 ```
 
-### 6 启动类注解
+### 5 启动类注解
 
 - @EnableMsbFramework
 - @EnableMsbConfig
@@ -120,12 +120,12 @@ public class App06 implements ApplicationRunner {
 }
 ```
 
-### 7 运行参数
+### 6 运行参数
 ```shell
 -Denv=dev -Dconsole.log=true -Dapollo.configService=http://127.0.0.1:8081/ -Dapollo.autoUpdateInjectedSpringProperties=true -DCAT_HOME=/Users/dingrui/MyDev/code/java/cat/docker
 ```
 
-### 8 运行结果
+### 7 运行结果
 
 ![](../img/1738248371.png)
 ![](../img/1738248465.png)

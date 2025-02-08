@@ -19,7 +19,7 @@ classpath:META-INF/app.properties
 app.id=SampleApp
 ```
 
-### 5 启动类注解
+### 3 启动类注解
 
 - @EnableMsbFramework
 - @EnableMsbConfig
@@ -55,6 +55,6 @@ public class App04 implements ApplicationRunner {
 
 ![](./../img/1731813833.png)
 
-### 6 运行结果
+### 5 运行结果
 
 ![](./../img/1731813882.png)

@@ -2,6 +2,7 @@ package com.github.bannirui.msb.orm.util;
 
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.util.RSAUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class DBPasswordDecoder {
     private DBPasswordDecoder() {
@@ -10,7 +11,7 @@ public class DBPasswordDecoder {
 
     public static String decode(String password) {
         String privateKey = MsbEnvironmentMgr.getProperty("db.password.privateKey");
-        if (privateKey != null) {
+        if(StringUtils.isNotBlank(privateKey)) {
             String temp = RSAUtils.RSADecode(password, privateKey);
             if (temp != null) {
                 return temp;

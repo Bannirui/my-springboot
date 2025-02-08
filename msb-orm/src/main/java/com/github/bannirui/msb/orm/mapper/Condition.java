@@ -19,20 +19,14 @@ public class Condition<T> extends Weekend<T> {
     }
 
     public Condition<T> selectProperties(Fn<T, Object>... fns) {
-        Fn[] var2 = fns;
-        int var3 = fns.length;
-        for(int var4 = 0; var4 < var3; ++var4) {
-            Fn fn = var2[var4];
+        for (Fn<T, Object> fn : fns) {
             this.selectProperties(Reflections.fnToFieldName(fn));
         }
         return this;
     }
 
     public Condition<T> excludeProperties(Fn<T, Object>... fns) {
-        Fn[] var2 = fns;
-        int var3 = fns.length;
-        for(int var4 = 0; var4 < var3; ++var4) {
-            Fn fn = var2[var4];
+        for (Fn<T, Object> fn : fns) {
             this.excludeProperties(Reflections.fnToFieldName(fn));
         }
         return this;

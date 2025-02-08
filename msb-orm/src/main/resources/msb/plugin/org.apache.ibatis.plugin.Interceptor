@@ -1,1 +1,1 @@
-Mybatis.OptimisticLocker.OptimisticLockerMybatisPlugin=com.zto.titans.orm.plugins.OptimisticLockerInterceptor
+Mybatis.OptimisticLocker.OptimisticLockerMybatisPlugin=com.github.bannirui.msb.orm.plugin.OptimisticLockerInterceptor

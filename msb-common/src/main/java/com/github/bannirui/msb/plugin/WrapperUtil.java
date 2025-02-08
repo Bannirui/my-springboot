@@ -40,7 +40,7 @@ public class WrapperUtil {
 
     private static <T> T wrapperObj(Class clz, Class[] argTypes, Object[] args, String typePrefix) throws Exception {
         List<PluginDecorator<Class<?>>> wrapperDecorators =
-            PluginConfigManger.getOrderedPluginClasses("com.github.bannirui.msb.common.plugin.Wrapper", typePrefix, true);
+            PluginConfigManager.getOrderedPluginClasses("com.github.bannirui.msb.common.plugin.Wrapper", typePrefix, true);
         if (Objects.isNull(wrapperDecorators) || wrapperDecorators.isEmpty()) {
             return (T) args[args.length - 1];
         }

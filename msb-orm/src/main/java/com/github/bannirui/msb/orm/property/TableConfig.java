@@ -8,9 +8,6 @@ public class TableConfig {
     private String format;
     private String algorithm;
 
-    public TableConfig() {
-    }
-
     public String getAlgorithm() {
         return this.algorithm;
     }

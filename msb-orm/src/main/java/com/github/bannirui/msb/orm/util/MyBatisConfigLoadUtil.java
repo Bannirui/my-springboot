@@ -13,15 +13,24 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 public class MyBatisConfigLoadUtil {
+    /**
+     * 加载单数据源配置
+     * <ul>
+     *     <li>数据源名称 mybatis.config.datasource.name</li>
+     *     <li>mybatis.config.datasource.hikari.jdbcUrl</li>
+     *     <li>mybatis.config.datasource.hikari.username</li>
+     *     <li>mybatis.config.datasource.hikari.password</li>
+     *     <li>mybatis.config.datasource.hikari.driverClassName</li>
+     * </ul>
+     */
     public static <T> T loadSingleConfig(Environment env, Class<T> target) {
         PropertyBinder propertyBinder = new PropertyBinder((ConfigurableEnvironment) env);
-        BindResult<String> configName = propertyBinder.bind("titans.mybatis.config.datasource.name", String.class);
+        BindResult<String> configName = propertyBinder.bind("mybatis.config.datasource.name", String.class);
         if (Objects.isNull(configName)) {
             return null;
-        } else {
-            BindResult<T> bindResult = Binder.get(env).bind("titans.mybatis.config.datasource", target);
-            return bindResult.orElse( null);
         }
+        BindResult<T> bindResult = Binder.get(env).bind("mybatis.config.datasource", target);
+        return bindResult.orElse( null);
     }
 
     public static <T> T loadConfigByIndex(Environment env, int index, Class<T> target) {

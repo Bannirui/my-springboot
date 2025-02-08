@@ -1,24 +1,31 @@
 package com.github.bannirui.msb.orm.shardingjdbc;
 
+import com.dangdang.ddframe.rdb.sharding.api.ShardingDataSourceFactory;
+import com.dangdang.ddframe.rdb.sharding.api.rule.DataSourceRule;
+import com.dangdang.ddframe.rdb.sharding.api.rule.ShardingRule;
+import com.dangdang.ddframe.rdb.sharding.api.rule.TableRule;
+import com.dangdang.ddframe.rdb.sharding.api.strategy.database.DatabaseShardingStrategy;
+import com.dangdang.ddframe.rdb.sharding.api.strategy.table.TableShardingStrategy;
+import com.dangdang.ddframe.rdb.sharding.jdbc.ShardingDataSource;
 import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.orm.configuration.MasterSlaveRuleConfiguration;
 import com.github.bannirui.msb.orm.property.TableConfig;
 import com.github.bannirui.msb.orm.squence.AbstractLifecycle;
+import com.github.bannirui.msb.orm.util.DataSourceHelp;
 import com.github.bannirui.msb.orm.util.ShardingJdbcUtil;
-import org.apache.shardingsphere.core.rule.ShardingRule;
-import org.apache.shardingsphere.core.rule.TableRule;
-import org.apache.shardingsphere.shardingjdbc.api.ShardingDataSourceFactory;
-import org.apache.shardingsphere.shardingjdbc.jdbc.core.datasource.ShardingDataSource;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-
-import javax.sql.DataSource;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import javax.sql.DataSource;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 
 public class SimpleShardingDataSource extends AbstractLifecycle implements DynamicShardingDataSource, DataSource {
     private Map<String, DataSource> dataSourceMap;
@@ -28,15 +35,14 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
     private volatile DataSource dataSource;
     private boolean useOptimizedTableRule;
 
+    @Override
     public void doInit() {
         DataSourceRule dataSourceRule = new DataSourceRule(this.dataSourceMap, this.defaultDataSource);
         if (this.tableConfigs == null) {
             this.tableConfigs = new ArrayList<>();
         }
         List<TableRule> tableRuleList = new ArrayList<>(this.tableConfigs.size());
-        Iterator var3 = this.tableConfigs.iterator();
-        while(var3.hasNext()) {
-            TableConfig config = (TableConfig)var3.next();
+        for (TableConfig config : this.tableConfigs) {
             IShardingAlgorithm simpleShardingAlgorithm = null;
             MutiKeysShardingAlgorithm multiKeysShardingAlgorithm = null;
             if (config.getAlgorithm() == null) {
@@ -48,22 +54,26 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
                         multiKeysShardingAlgorithmClass = ClassUtils.forName(config.getAlgorithm(), MutiKeysShardingAlgorithm.class.getClassLoader());
                         multiKeysShardingAlgorithm = (MutiKeysShardingAlgorithm)multiKeysShardingAlgorithmClass.newInstance();
                     } catch (Exception e) {
-                        throw FrameworkException.getInstance(e, "加载ComplexKeysShardingAlgorithmClass异常{0}", new Object[]{config.getAlgorithm()});
+                        throw FrameworkException.getInstance(e, "加载ComplexKeysShardingAlgorithmClass异常{0}", config.getAlgorithm());
                     }
                 } else {
                     try {
                         multiKeysShardingAlgorithmClass = ClassUtils.forName(config.getAlgorithm(), IShardingAlgorithm.class.getClassLoader());
                         simpleShardingAlgorithm = (IShardingAlgorithm)multiKeysShardingAlgorithmClass.newInstance();
-                    } catch (Exception var10) {
-                        throw FrameworkException.getInstance(var10, "加载ShardingAlgorithmClass异常{0}", new Object[]{config.getAlgorithm()});
+                    } catch (Exception e) {
+                        throw FrameworkException.getInstance(e, "加载ShardingAlgorithmClass异常{0}", config.getAlgorithm());
                     }
                 }
             }
-
             List<String> tableNames = ShardingJdbcUtil.getTableNameList(config.getName(), config.getSize(), config.getFormat());
-            TableRuleBuilder tableRuleBuilder = TableRule.builder(config.getName()).actualTables(tableNames).dataSourceRule(dataSourceRule).databaseShardingStrategy(this.getDatabaseShardingStrategy(config, (IShardingAlgorithm)simpleShardingAlgorithm, multiKeysShardingAlgorithm)).tableShardingStrategy(this.getTableShardingStrategy(config, (IShardingAlgorithm)simpleShardingAlgorithm, multiKeysShardingAlgorithm));
+            TableRule.TableRuleBuilder tableRuleBuilder = TableRule.builder(config.getName())
+                .actualTables(tableNames)
+                .dataSourceRule(dataSourceRule)
+                .databaseShardingStrategy(this.getDatabaseShardingStrategy(config, simpleShardingAlgorithm, multiKeysShardingAlgorithm))
+                .tableShardingStrategy(this.getTableShardingStrategy(config, simpleShardingAlgorithm, multiKeysShardingAlgorithm));
             if (this.useOptimizedTableRule) {
-                tableRuleBuilder.useOptimize(true);
+                // TODO: 2025/2/7
+                // tableRuleBuilder.useOptimize(true);
             }
             TableRule tableRule = tableRuleBuilder.build();
             tableRuleList.add(tableRule);
@@ -78,8 +88,8 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
             return new DatabaseShardingStrategy(config.getShardingColumn(), simpleShardingAlgorithm.getDataBaseShardingAlgorithm());
         } else if (complexKeysShardingAlgorithm != null) {
             complexKeysShardingAlgorithm.setTableConfig(config);
-            Collection<String> shardingColunms = CollectionUtils.arrayToList(config.getShardingColumn().split(","));
-            return new DatabaseShardingStrategy(shardingColunms, complexKeysShardingAlgorithm.getMultipleKeysDatabaseShardingAlgorithm());
+            Collection<String> shardingColumns = (Collection<String>) CollectionUtils.arrayToList(config.getShardingColumn().split(","));
+            return new DatabaseShardingStrategy(shardingColumns, complexKeysShardingAlgorithm.getMultipleKeysDatabaseShardingAlgorithm());
         } else {
             throw new FrameworkException("Sharding-JDBC", "加载库分片策略异常");
         }
@@ -91,45 +101,54 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
             return new TableShardingStrategy(config.getShardingColumn(), simpleShardingAlgorithm.getTableShardingAlgorithm());
         } else if (complexKeysShardingAlgorithm != null) {
             complexKeysShardingAlgorithm.setTableConfig(config);
-            Collection<String> shardingColunms = CollectionUtils.arrayToList(config.getShardingColumn().split(","));
-            return new TableShardingStrategy(shardingColunms, complexKeysShardingAlgorithm.getMultipleKeysTableShardingAlgorithm());
+            Collection<String> shardingColumns = (Collection<String>) CollectionUtils.arrayToList(config.getShardingColumn().split(","));
+            return new TableShardingStrategy(shardingColumns, complexKeysShardingAlgorithm.getMultipleKeysTableShardingAlgorithm());
         } else {
             throw new FrameworkException("Sharding-JDBC", "加载表分片策略异常");
         }
     }
 
+    @Override
     public Connection getConnection() throws SQLException {
         return this.dataSource.getConnection();
     }
 
+    @Override
     public Connection getConnection(String username, String password) throws SQLException {
         return this.dataSource.getConnection(username, password);
     }
 
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         return this.dataSource.unwrap(iface);
     }
 
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return this.dataSource.isWrapperFor(iface);
     }
 
+    @Override
     public PrintWriter getLogWriter() throws SQLException {
         return this.dataSource.getLogWriter();
     }
 
+    @Override
     public void setLogWriter(PrintWriter out) throws SQLException {
         this.dataSource.setLogWriter(out);
     }
 
+    @Override
     public void setLoginTimeout(int seconds) throws SQLException {
         this.dataSource.setLoginTimeout(seconds);
     }
 
+    @Override
     public int getLoginTimeout() throws SQLException {
         return this.dataSource.getLoginTimeout();
     }
 
+    @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         return this.dataSource.getParentLogger();
     }
@@ -138,7 +157,6 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
         if (this.dataSource instanceof ShardingDataSource) {
             ((ShardingDataSource)this.dataSource).shutdown();
         }
-
     }
 
     public List<TableConfig> getTableConfigs() {
@@ -149,6 +167,7 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
         this.tableConfigs = tableConfigs;
     }
 
+    @Override
     public Map<String, DataSource> getDataSourceMap() {
         return this.dataSourceMap;
     }
@@ -161,10 +180,12 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
         this.useOptimizedTableRule = useOptimizedTableRule;
     }
 
+    @Override
     public Map<String, MasterSlaveRuleConfiguration> getMasterSlaveRuleConfigs() {
         return this.masterSlaveRuleConfigs;
     }
 
+    @Override
     public void updateDataSource(String defaultDSName, Map<String, DataSource> newDataSourceMap, List<TableConfig> tableConfigs, Map<String, MasterSlaveRuleConfiguration> masterSlaveRuleConfigs) {
         this.setDefaultDataSource(defaultDSName);
         this.setDataSourceMap(newDataSourceMap);
@@ -189,17 +210,18 @@ public class SimpleShardingDataSource extends AbstractLifecycle implements Dynam
         return this.dataSource;
     }
 
+    @Override
     public void destroy() {
         super.destroy();
         DataSourceHelp.shutdown();
     }
 
+    @Override
     public void close() throws IOException {
         try {
             this.destroy();
-        } catch (Exception var2) {
-            var2.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 }

@@ -58,6 +58,8 @@ public abstract class MsbImportSelectorController implements ImportSelector {
         MsbConfigChangeListener("EnableMsbConfig", "MsbConfigChangeListenerSelector"),
         MsbLog("EnableMsbLog", "MsbLogImportSelector"),
         MsbMQ("EnableMsbMQ", "MsbMQImportSelector"),
+        MsbMybatis("EnableMyBatis", "EnableMyBatisImportSelector"),
+        MsbShardingJdbc("EnableShardingJdbc", "EnableShardingJdbcImportSelector"),
         ;
 
         private final String starter;

@@ -22,9 +22,6 @@ public class MsbBannerProcessor implements ApplicationListener<ApplicationEnviro
     private static final Logger logger = LoggerFactory.getLogger(MsbBannerProcessor.class);
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
-    public MsbBannerProcessor() {
-    }
-
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         if (springboot_banner_set.compareAndSet(false, true)) {

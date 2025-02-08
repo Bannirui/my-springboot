@@ -3,6 +3,7 @@ package com.github.bannirui.msb.orm.property;
 import com.zaxxer.hikari.HikariConfig;
 
 public class BaseDsProperties {
+    // mybatis.config.datasource.name配置
     private String name;
     private HikariConfig hikari;
 

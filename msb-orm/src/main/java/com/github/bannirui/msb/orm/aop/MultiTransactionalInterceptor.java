@@ -24,7 +24,7 @@ import java.util.List;
 
 @Aspect
 public class MultiTransactionalInterceptor implements ApplicationContextAware {
-    private Logger log = LoggerFactory.getLogger(MultiTransactionalInterceptor.class);
+    private final Logger log = LoggerFactory.getLogger(MultiTransactionalInterceptor.class);
     private ApplicationContext applicationContext;
 
     @Around("@annotation(multiTransactional)")
@@ -36,7 +36,7 @@ public class MultiTransactionalInterceptor implements ApplicationContextAware {
             try {
                 dataSourceTransactionManager = this.applicationContext.getBean(DataSourceTransactionManager.class);
             } catch (NoUniqueBeanDefinitionException e) {
-                throw new ErrorCodeException(ExceptionEnum.ORM_TRANSACTION_ERROR, new Object[0]);
+                throw new ErrorCodeException(ExceptionEnum.ORM_TRANSACTION_ERROR);
             }
             TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(0);
             TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
@@ -70,7 +70,7 @@ public class MultiTransactionalInterceptor implements ApplicationContextAware {
                     try {
                         dataSourceTransactionManagerList.get(i).rollback(statuses.get(i));
                     } catch (Exception ex) {
-                        this.log.error("反顺序回滚已开启事务异常", ex);
+                        this.log.error("逆序回滚已开启事务异常", ex);
                     }
                 }
                 throw e;
@@ -85,7 +85,7 @@ public class MultiTransactionalInterceptor implements ApplicationContextAware {
                     try {
                         dataSourceTransactionManagerList.get(i).rollback(statuses.get(i));
                     } catch (Exception ex) {
-                        this.log.error("反顺序回滚事务异常", ex);
+                        this.log.error("逆序回滚事务异常", ex);
                     }
                 }
                 throw e;

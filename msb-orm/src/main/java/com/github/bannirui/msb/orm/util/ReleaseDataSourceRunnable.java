@@ -1,11 +1,11 @@
 package com.github.bannirui.msb.orm.util;
 
+import com.dangdang.ddframe.rdb.sharding.jdbc.MasterSlaveDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.HikariPoolMXBean;
 import java.lang.reflect.Field;
 import java.util.List;
 import javax.sql.DataSource;
-import org.apache.shardingsphere.shardingjdbc.jdbc.core.datasource.MasterSlaveDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;

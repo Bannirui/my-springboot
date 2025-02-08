@@ -4,38 +4,36 @@ public class AbstractLifecycle implements Lifecycle {
     protected final Object lock = new Object();
     protected volatile boolean isInited = false;
 
-    public AbstractLifecycle() {
-    }
-
+    @Override
     public void init() {
         synchronized(this.lock) {
             if (!this.isInited()) {
                 try {
                     this.doInit();
                     this.isInited = true;
-                } catch (Exception var6) {
+                } catch (Exception e) {
                     try {
                         this.doDestroy();
-                    } catch (Exception var5) {
+                    } catch (Exception ex) {
                     }
-
-                    throw new RuntimeException(var6);
+                    throw new RuntimeException(e);
                 }
             }
 
         }
     }
 
+    @Override
     public void destroy() {
         synchronized(this.lock) {
             if (this.isInited()) {
                 this.doDestroy();
                 this.isInited = false;
             }
-
         }
     }
 
+    @Override
     public boolean isInited() {
         return this.isInited;
     }

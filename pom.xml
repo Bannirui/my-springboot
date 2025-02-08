@@ -253,11 +253,11 @@
                 <artifactId>HikariCP</artifactId>
                 <version>6.2.1</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/org.apache.shardingsphere/sharding-jdbc-core -->
+            <!-- https://mvnrepository.com/artifact/com.dangdang/sharding-jdbc-core -->
             <dependency>
-                <groupId>org.apache.shardingsphere</groupId>
+                <groupId>com.dangdang</groupId>
                 <artifactId>sharding-jdbc-core</artifactId>
-                <version>4.1.1</version>
+                <version>1.4.1</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc6 -->
             <dependency>
@@ -272,10 +272,11 @@
                 <version>9.2.0</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
+            <!--跟mybatis-spring中依赖的mybatis版本保持一致-->
             <dependency>
                 <groupId>org.mybatis</groupId>
                 <artifactId>mybatis</artifactId>
-                <version>3.5.19</version>
+                <version>3.5.16</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis-spring -->
             <dependency>
@@ -287,13 +288,13 @@
             <dependency>
                 <groupId>tk.mybatis</groupId>
                 <artifactId>mapper</artifactId>
-                <version>5.0.1</version>
+                <version>4.0.4</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/com.github.pagehelper/pagehelper -->
             <dependency>
                 <groupId>com.github.pagehelper</groupId>
                 <artifactId>pagehelper</artifactId>
-                <version>6.1.0</version>
+                <version>5.0.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

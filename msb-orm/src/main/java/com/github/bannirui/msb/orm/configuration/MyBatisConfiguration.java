@@ -5,11 +5,18 @@ import com.github.bannirui.msb.orm.util.DBPasswordDecoder;
 import com.github.bannirui.msb.orm.util.DataSourceHelp;
 import com.github.bannirui.msb.orm.util.MyBatisConfigLoadUtil;
 import com.github.bannirui.msb.orm.util.ResourceHelp;
-import com.github.bannirui.msb.plugin.Interceptor;
+import com.github.bannirui.msb.plugin.PluginConfigManager;
 import com.github.bannirui.msb.plugin.PluginDecorator;
 import com.github.pagehelper.PageInterceptor;
 import com.zaxxer.hikari.HikariConfig;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.Configuration;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
@@ -27,74 +34,94 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.*;
-
 public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, Ordered {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MyBatisConfiguration.class);
-    public static final int ORDER = 50;
-    private static final String MAPPER_LOCATIONS = "mapperLocations";
+    private static final Logger logger = LoggerFactory.getLogger(MyBatisConfiguration.class);
+    private static final int order = 50;
+    public static final String mapper_locations = "mapperLocations";
     protected ConfigurableEnvironment env;
 
+    @Override
     public void setEnvironment(Environment environment) {
         this.env = (ConfigurableEnvironment)environment;
     }
 
+    @Override
     public int getOrder() {
-        return 50;
+        return MyBatisConfiguration.order;
     }
 
+    /**
+     * 注册Mybatis依赖的BeanDefinition
+     * <ul>
+     *     <li>DataSource</li>
+     *     <li>SessionFactory</li>
+     *     <li>MapperScanner</li>
+     *     <li>TransactionManager</li>
+     *     <li>TransactionTemplate</li>
+     * </ul>
+     */
+    @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanFactory) throws BeansException {
-        if (this.env.getProperty("titans.mybatis.config.datasource.name") != null) {
+        // 单数据源
+        if (Objects.nonNull(this.env.getProperty("mybatis.config.datasource.name"))) {
             MasterDsProperties dsConfig = MyBatisConfigLoadUtil.loadSingleConfig(this.env, MasterDsProperties.class);
             String dataSourceBeanName = DataSourceHelp.generateDataSourceBeanName(dsConfig.getName());
-            if (dataSourceBeanName == null) {
-                LOGGER.error("dataSource name must not be null!");
-                return;
-            }
             this.registerSingleDataSourceBeanDefinition(dataSourceBeanName, dsConfig, beanFactory);
-            this.registerBean(dsConfig, -1, beanFactory, dataSourceBeanName);
+            this.registerBeanDefinition(dsConfig, -1, beanFactory, dataSourceBeanName);
         }
-        if (this.env.getProperty(String.format("titans.mybatis.configs[%s].datasource.name", 0)) != null) {
+        // 多数据源
+        if (this.env.getProperty(String.format("msb.mybatis.configs[%s].datasource.name", 0)) != null) {
             List<MasterDsProperties> dsConfigs = MyBatisConfigLoadUtil.loadMultipleConfig(this.env, MasterDsProperties.class);
-            for(int i = 0; i < dsConfigs.size(); ++i) {
+            for(int i = 0, sz=dsConfigs.size(); i < sz; ++i) {
                 MasterDsProperties dsConfig = dsConfigs.get(i);
                 String dataSourceBeanName = DataSourceHelp.generateDataSourceBeanName(dsConfig.getName());
-                if (dataSourceBeanName == null) {
-                    LOGGER.error("dataSource name must not be null!");
-                    return;
-                }
                 this.registerMultiDataSourceBeanDefinition(dataSourceBeanName, dsConfig, beanFactory, i);
-                this.registerBean(dsConfig, i, beanFactory, dataSourceBeanName);
+                this.registerBeanDefinition(dsConfig, i, beanFactory, dataSourceBeanName);
             }
         }
     }
 
-    private void registerBean(MasterDsProperties dsConfig, int myBatisConfigIndex, BeanDefinitionRegistry beanFactory, String refDataSourceName) {
+    /**
+     * 注册BeanDefinition
+     * <ul>
+     *     <li>SessionFactory</li>
+     *     <li>MapperScanner</li>
+     *     <li>TransactionManager</li>
+     *     <li>TransactionTemplate</li>
+     * </ul>
+     * @param myBatisConfigIndex 负数标识只有一个数据源 非负数标识数据源索引(0-based)
+     */
+    private void registerBeanDefinition(MasterDsProperties dsConfig, int myBatisConfigIndex, BeanDefinitionRegistry beanFactory, String refDataSourceName) {
         String sessionFactoryName = dsConfig.getName() + "SessionFactory";
-        String mapperScannerConfigurerName = dsConfig.getName() + "MapperScannerConfigurer";
+        String mapperScannerConfigureName = dsConfig.getName() + "MapperScannerConfigure";
         String transactionManagerName = dsConfig.getName() + "TransactionManager";
         String transactionTemplateName = dsConfig.getName() + "TransactionTemplate";
-        HashMap sqlSessionConfigMap;
-        HashMap mapperConfigMap;
+        Map<String, Object> sqlSessionConfigMap;
+        Map<String, Object> mapperConfigMap;
         Configuration configuration;
         if (myBatisConfigIndex < 0) {
-            sqlSessionConfigMap = MyBatisConfigLoadUtil.loadConfig(this.env, "titans.mybatis.config.sqlsession", HashMap.class);
-            mapperConfigMap = MyBatisConfigLoadUtil.loadConfig(this.env, "titans.mybatis.config.mapper", HashMap.class);
-            configuration = MyBatisConfigLoadUtil.loadConfig(this.env, "titans.mybatis.config.settings", Configuration.class);
+            sqlSessionConfigMap = MyBatisConfigLoadUtil.loadConfig(this.env, "mybatis.config.sqlsession", HashMap.class);
+            mapperConfigMap = MyBatisConfigLoadUtil.loadConfig(this.env, "mybatis.config.mapper", HashMap.class);
+            configuration = MyBatisConfigLoadUtil.loadConfig(this.env, "mybatis.config.settings", Configuration.class);
         } else {
-            sqlSessionConfigMap = MyBatisConfigLoadUtil.loadConfigs(this.env, "titans.mybatis.configs[%s].sqlsession", myBatisConfigIndex, HashMap.class);
-            mapperConfigMap = MyBatisConfigLoadUtil.loadConfigs(this.env, "titans.mybatis.configs[%s].mapper", myBatisConfigIndex, HashMap.class);
-            configuration = MyBatisConfigLoadUtil.loadConfigs(this.env, "titans.mybatis.configs[%s].settings", myBatisConfigIndex, Configuration.class);
+            sqlSessionConfigMap = MyBatisConfigLoadUtil.loadConfigs(this.env, "mybatis.configs[%s].sqlsession", myBatisConfigIndex, HashMap.class);
+            mapperConfigMap = MyBatisConfigLoadUtil.loadConfigs(this.env, "mybatis.configs[%s].mapper", myBatisConfigIndex, HashMap.class);
+            configuration = MyBatisConfigLoadUtil.loadConfigs(this.env, "mybatis.configs[%s].settings", myBatisConfigIndex, Configuration.class);
         }
         this.convertMybatisConfig(sqlSessionConfigMap);
         this.registerSessionFactoryDefinitionBuilder(sessionFactoryName, beanFactory, sqlSessionConfigMap, configuration, refDataSourceName);
-        this.registerMapperScannerDefinitionBuilder(mapperScannerConfigurerName, beanFactory, dsConfig, mapperConfigMap, sessionFactoryName);
+        this.registerMapperScannerDefinitionBuilder(mapperScannerConfigureName, beanFactory, dsConfig, mapperConfigMap, sessionFactoryName);
         this.registerTransactionManagerDefinitionBuilder(transactionManagerName, beanFactory, refDataSourceName);
         this.registerTransactionTemplateDefinitionBuilder(transactionTemplateName, beanFactory, transactionManagerName);
     }
 
+    /**
+     * 注册数据源
+     * @param dataSourceName beanName
+     */
     protected void registerSingleDataSourceBeanDefinition(String dataSourceName, MasterDsProperties dsConfig, BeanDefinitionRegistry beanFactory) {
         HikariConfig hikariConfig = dsConfig.getHikari();
         hikariConfig.setPassword(DBPasswordDecoder.decode(hikariConfig.getPassword()));
@@ -113,7 +140,7 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
         beanFactory.registerBeanDefinition(transactionManagerName, transactionManagerDefinitionBuilder.getRawBeanDefinition());
     }
 
-    private void registerMapperScannerDefinitionBuilder(String mapperScannerConfigurerName, BeanDefinitionRegistry beanFactory, MasterDsProperties dsConfig, HashMap mapperConfigMap, String sqlSessionFactoryName) {
+    private void registerMapperScannerDefinitionBuilder(String mapperScannerConfigurerName, BeanDefinitionRegistry beanFactory, MasterDsProperties dsConfig, Map<String, Object> mapperConfigMap, String sqlSessionFactoryName) {
         GenericBeanDefinition mapperScannerBeanDefinition = new GenericBeanDefinition();
         mapperScannerBeanDefinition.setBeanClass(MapperScannerConfigurer.class);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
@@ -128,7 +155,10 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
         beanFactory.registerBeanDefinition(mapperScannerConfigurerName, mapperScannerBeanDefinition);
     }
 
-    private void registerSessionFactoryDefinitionBuilder(String sessionFactoryName, BeanDefinitionRegistry beanFactory, HashMap sqlSessionConfigMap, Configuration configuration, String dataSourceName) {
+    /**
+     * 注册SqlSessionFactory
+     */
+    private void registerSessionFactoryDefinitionBuilder(String sessionFactoryName, BeanDefinitionRegistry beanFactory, Map<String, Object> sqlSessionConfigMap, Configuration configuration, String dataSourceName) {
         GenericBeanDefinition sqlsessionBeanDefinition = new GenericBeanDefinition();
         sqlsessionBeanDefinition.setBeanClass(SqlSessionFactoryBean.class);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
@@ -147,13 +177,12 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
         Properties properties = new Properties();
         properties.setProperty("autoRuntimeDialect", "true");
         pageInterceptor.setProperties(properties);
-        PluginDecorator<Class> pageInterceptorPluginDecorator = new PluginDecorator(pageInterceptor.getClass(), -1);
+        PluginDecorator<Class<?>> pageInterceptorPluginDecorator = new PluginDecorator(pageInterceptor.getClass(), -1);
         pageInterceptorPluginDecorator.setInstance(pageInterceptor);
-        List<PluginDecorator<Class>> mybatisFilters = PluginConfigManager.getOrderedPluginClasses(Interceptor.class.getName(), true);
+        // classpath:msb/plugin/org.apache.ibatis.plugin.Interceptor
+        List<PluginDecorator<Class<?>>> mybatisFilters = PluginConfigManager.getOrderedPluginClasses(Interceptor.class.getName(), true);
         PluginConfigManager.insertIntoOrderedList(mybatisFilters, true, pageInterceptorPluginDecorator);
-        Iterator var14 = mybatisFilters.iterator();
-        while(var14.hasNext()) {
-            PluginDecorator pd = (PluginDecorator)var14.next();
+        for (PluginDecorator<Class<?>> pd : mybatisFilters) {
             try {
                 Interceptor mybatisInterceptor;
                 if (pd.getInstance() != null) {
@@ -164,7 +193,7 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
                 }
                 mybatisInterceptors.add(mybatisInterceptor);
             } catch (InstantiationException | IllegalAccessException var18) {
-                LOGGER.error("load mybatis plugin error: ", var18);
+                logger.error("load mybatis plugin error: ", var18);
             }
         }
         propertyValues.add("plugins", mybatisInterceptors);
@@ -177,13 +206,14 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
         beanFactory.registerBeanDefinition(transactionTemplateName, transactionTemplateDefinitionBuilder.getRawBeanDefinition());
     }
 
-    private void convertMybatisConfig(HashMap sqlSessionConfigMap) {
-        String mapperLocations = (String)sqlSessionConfigMap.get("mapperLocations");
+    private void convertMybatisConfig(Map<String, Object> sqlSessionConfigMap) {
+        String mapperLocations = (String)sqlSessionConfigMap.get(MyBatisConfiguration.mapper_locations);
         if (StringUtils.isNotBlank(mapperLocations)) {
-            sqlSessionConfigMap.put("mapperLocations", ResourceHelp.resolveMapperLocations(mapperLocations));
+            sqlSessionConfigMap.put(MyBatisConfiguration.mapper_locations, ResourceHelp.resolveMapperLocations(mapperLocations));
         }
     }
 
+    @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
     }
 }

@@ -15,10 +15,12 @@ public class GroupSequence extends AbstractSequence {
         this.dataSource = dataSource;
     }
 
+    @Override
     String getSequenceName() {
         return this.name;
     }
 
+    @Override
     SequenceDao getSequenceDao() {
         return new DefaultSequenceDao(this.dataSource);
     }

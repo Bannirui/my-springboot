@@ -21,8 +21,8 @@ import org.springframework.core.env.Environment;
 import java.util.*;
 
 public class DataSourceChangeEventListener implements ApplicationListener<DynamicConfigChangeSpringEvent>, ApplicationContextAware, EnvironmentAware {
-    private static Logger log = LoggerFactory.getLogger(DataSourceChangeEventListener.class);
-    @Value("${msb.datasource.dynamic.forceCloseWaitSeconds:300}")
+    private static final Logger log = LoggerFactory.getLogger(DataSourceChangeEventListener.class);
+    @Value("${datasource.dynamic.forceCloseWaitSeconds:300}")
     private int forceCloseWaitSeconds = 300;
     private ApplicationContext context;
     private Environment env;
@@ -39,7 +39,7 @@ public class DataSourceChangeEventListener implements ApplicationListener<Dynami
 
     @Override
     public synchronized void onApplicationEvent(DynamicConfigChangeSpringEvent configChangeEvent) {
-        Boolean enable = this.env.getProperty("msb.datasource.dynamic.change.enabled", Boolean.class, false);
+        Boolean enable = this.env.getProperty("datasource.dynamic.change.enabled", Boolean.class, false);
         if(!enable) return;
         List<MasterDsProperties> properties = this.resolveConfigForMyBatis(configChangeEvent);
         properties.forEach(newConfig -> {
@@ -58,26 +58,17 @@ public class DataSourceChangeEventListener implements ApplicationListener<Dynami
         ConfigChange configChange = changeEvent.getConfigChange();
         Set<String> changedKeys = configChange.getChangedConfigKeys();
         List<MasterDsProperties> properties = new ArrayList<>();
-        String PREFIX = "msb.mybatis.config.datasource.";
+        String PREFIX = "mybatis.config.datasource.";
         boolean matches = changedKeys.stream().anyMatch((keyx) -> keyx.startsWith(PREFIX) || keyx.startsWith("mybatis.config."));
         if (matches) {
-            if (StringUtils.isNotBlank(this.env.getProperty("msb.mybatis.config.datasource.name"))) {
+            if (StringUtils.isNotBlank(this.env.getProperty("mybatis.config.datasource.name"))) {
                 MasterDsProperties dsProperties = MyBatisConfigLoadUtil.loadSingleConfig(this.env, MasterDsProperties.class);
                 properties.add(dsProperties);
-            } else {
-                log.error("warn:未找到数据源Spring Bean名称,数据源无法更新,确认msb.mybatis.config.datasource.name是否配置");
             }
         }
         Set<Integer> updateConfigs = new HashSet<>();
-        Iterator var8 = changedKeys.iterator();
-        while(true) {
-            String key;
-            do {
-                if (!var8.hasNext()) {
-                    return properties;
-                }
-                key = (String)var8.next();
-            } while(!MsbEnvironmentMgr.MYBATIS_CONFIGS_PREFIX_REGULAR.matcher(key).matches() && !MsbEnvironmentMgr.MYBATIS_OLD_CONFIGS_PREFIX_REGULAR.matcher(key).matches());
+        for (String key : changedKeys) {
+            if (!MsbEnvironmentMgr.MYBATIS_CONFIGS_PREFIX_REGULAR.matcher(key).matches()) continue;
             Integer index = Integer.valueOf(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
             if (updateConfigs.add(index)) {
                 String nameKey = String.format("msb.mybatis.configs[%s].datasource.name", index);
@@ -86,9 +77,10 @@ public class DataSourceChangeEventListener implements ApplicationListener<Dynami
                     MasterDsProperties dsProperties = MyBatisConfigLoadUtil.loadConfigByIndex(this.env, index, MasterDsProperties.class);
                     properties.add(dsProperties);
                 } else {
-                    log.error("warn:未找到数据源Spring Bean名称,数据源无法更新,确认{}是否配置", nameKey);
+                    log.error("未找到数据源名称 数据源无法更新 确认{}是否配置", nameKey);
                 }
             }
         }
+        return properties;
     }
 }

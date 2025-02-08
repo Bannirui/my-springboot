@@ -19,7 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
-public class PluginConfigManger {
+public class PluginConfigManager {
 
     // cglib动态代理拦截器
     private static final String dynamic_proxy_interceptor = "classpath*:META-INF/msb/plugin/*";

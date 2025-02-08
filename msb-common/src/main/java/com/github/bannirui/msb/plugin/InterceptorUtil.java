@@ -42,7 +42,7 @@ public class InterceptorUtil {
      */
     private static Interceptor getInterceptor(String typePrefix) throws Exception {
         // 拿到的拦截器集合是order升序 优先级降序 下面要把拦截器实例化出来逐级放到MethodInterceptor中 最终放到Enhancer的callback中 放置的顺序就是优先级的逆序
-        List<PluginDecorator<Class<?>>> interceptorDecorators = PluginConfigManger.getOrderedPluginClasses("com.github.bannirui.msb.common.plugin.Interceptor", typePrefix, true);
+        List<PluginDecorator<Class<?>>> interceptorDecorators = PluginConfigManager.getOrderedPluginClasses("com.github.bannirui.msb.common.plugin.Interceptor", typePrefix, true);
         Interceptor interceptor = new Interceptor(null);
         if(CollectionUtils.isEmpty(interceptorDecorators)) {
             return interceptor;

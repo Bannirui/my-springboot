@@ -1,14 +1,21 @@
 package com.github.bannirui.msb.util;
 
-import javax.crypto.Cipher;
 import java.io.ByteArrayOutputStream;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import javax.crypto.Cipher;
 
 public class RSAUtils {
     public static final String KEY_ALGORITHM = "RSA";
@@ -17,9 +24,6 @@ public class RSAUtils {
     private static final String PRIVATE_KEY = "RSAPrivateKey";
     private static final int MAX_ENCRYPT_BLOCK = 117;
     private static final int MAX_DECRYPT_BLOCK = 128;
-
-    public RSAUtils() {
-    }
 
     public static Map<String, Object> genKeyPair() throws Exception {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
@@ -65,7 +69,6 @@ public class RSAUtils {
         int inputLen = encryptedData.length;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int offSet = 0;
-
         for(int i = 0; inputLen - offSet > 0; offSet = i * 128) {
             byte[] cache;
             if (inputLen - offSet > 128) {
@@ -77,7 +80,6 @@ public class RSAUtils {
             out.write(cache, 0, cache.length);
             ++i;
         }
-
         byte[] decryptedData = out.toByteArray();
         out.close();
         return decryptedData;
@@ -93,7 +95,6 @@ public class RSAUtils {
         int inputLen = encryptedData.length;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int offSet = 0;
-
         for(int i = 0; inputLen - offSet > 0; offSet = i * 128) {
             byte[] cache;
             if (inputLen - offSet > 128) {
@@ -101,11 +102,9 @@ public class RSAUtils {
             } else {
                 cache = cipher.doFinal(encryptedData, offSet, inputLen - offSet);
             }
-
             out.write(cache, 0, cache.length);
             ++i;
         }
-
         byte[] decryptedData = out.toByteArray();
         out.close();
         return decryptedData;
@@ -121,7 +120,6 @@ public class RSAUtils {
         int inputLen = data.length;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int offSet = 0;
-
         for(int i = 0; inputLen - offSet > 0; offSet = i * 117) {
             byte[] cache;
             if (inputLen - offSet > 117) {
@@ -129,11 +127,9 @@ public class RSAUtils {
             } else {
                 cache = cipher.doFinal(data, offSet, inputLen - offSet);
             }
-
             out.write(cache, 0, cache.length);
             ++i;
         }
-
         byte[] encryptedData = out.toByteArray();
         out.close();
         return encryptedData;
@@ -149,7 +145,6 @@ public class RSAUtils {
         int inputLen = data.length;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int offSet = 0;
-
         for(int i = 0; inputLen - offSet > 0; offSet = i * 117) {
             byte[] cache;
             if (inputLen - offSet > 117) {
@@ -157,11 +152,9 @@ public class RSAUtils {
             } else {
                 cache = cipher.doFinal(data, offSet, inputLen - offSet);
             }
-
             out.write(cache, 0, cache.length);
             ++i;
         }
-
         byte[] encryptedData = out.toByteArray();
         out.close();
         return encryptedData;
@@ -179,28 +172,26 @@ public class RSAUtils {
 
     public static String RSAEncode(String text, String publicKeyStr) {
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyStr));
-
         try {
             KeyFactory factory = KeyFactory.getInstance("RSA");
             PublicKey key = factory.generatePublic(x509EncodedKeySpec);
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(1, key);
             return Base64.getEncoder().encodeToString(cipher.doFinal(text.getBytes("UTF-8")));
-        } catch (Exception var6) {
+        } catch (Exception e) {
             return null;
         }
     }
 
     public static String RSADecode(String text, String privateKeyStr) {
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyStr));
-
         try {
             KeyFactory factory = KeyFactory.getInstance("RSA");
             PrivateKey key = factory.generatePrivate(pkcs8EncodedKeySpec);
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(2, key);
             return new String(cipher.doFinal(Base64.getDecoder().decode(text)));
-        } catch (Exception var6) {
+        } catch (Exception e) {
             return null;
         }
     }

@@ -1,6 +1,7 @@
 package com.github.bannirui.msb.orm.util;
 
 import com.github.bannirui.msb.util.ResourceReleaseThreadFactory;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,6 @@ public class DataSourceHelp {
     }
 
     public static String generateDataSourceBeanName(String dataSourceName) {
-        return dataSourceName == null ? null : dataSourceName + "DataSource";
+        return Objects.isNull(dataSourceName) ? null : dataSourceName + "DataSource";
     }
 }

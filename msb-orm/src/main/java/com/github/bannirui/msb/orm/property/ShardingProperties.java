@@ -12,9 +12,6 @@ public class ShardingProperties {
     private String exceptionBlacks;
     private boolean useOptimizedTableRule;
 
-    public ShardingProperties() {
-    }
-
     public Integer getDefaultDSIndex() {
         return this.defaultDSIndex;
     }

@@ -20,20 +20,18 @@ public abstract class AbstractSequence implements Sequence {
         String sequenceName = this.getSequenceName();
         synchronized(this) {
             int i = 0;
-
             while(i < this.sequenceDao.getRetryTimes()) {
                 try {
                     this.sequenceDao.adjust(sequenceName);
                     ex = null;
                     break;
-                } catch (Exception var7) {
-                    ex = var7;
-                    logger.warn("Sequence第" + (i + 1) + "次初始化失败, name:" + sequenceName, var7);
+                } catch (Exception e) {
+                    ex = e;
+                    logger.warn("Sequence第" + (i + 1) + "次初始化失败, name:" + sequenceName, e);
                     ++i;
                 }
             }
         }
-
         if (ex != null) {
             logger.error("Sequence初始化失败，切重试" + this.sequenceDao.getRetryTimes() + "次后，仍然失败! name:" + sequenceName, ex);
             throw new RuntimeException(ex);
@@ -44,10 +42,10 @@ public abstract class AbstractSequence implements Sequence {
 
     abstract SequenceDao getSequenceDao();
 
+    @Override
     public long nextValue() {
         if (this.isInitRange()) {
             this.lock.lock();
-
             try {
                 if (this.isInitRange()) {
                     this.setCurrentRange(this.sequenceDao.nextRange(this.getSequenceName()));
@@ -56,26 +54,22 @@ public abstract class AbstractSequence implements Sequence {
                 this.lock.unlock();
             }
         }
-
         long value = this.getSequenceRange().getAndIncrement();
         if (value == -1L) {
             this.lock.lock();
-
             try {
                 do {
                     if (this.getSequenceRange().isOver()) {
                         this.setCurrentRange(this.sequenceDao.nextRange(this.getSequenceName()));
                     }
-
                     value = this.getSequenceRange().getAndIncrement();
                 } while(value == -1L);
             } finally {
                 this.lock.unlock();
             }
         }
-
         if (value < 0L) {
-            throw FrameworkException.getInstance("Sequence value overflow, name = {} value = {}", new Object[]{this.getSequenceName(), value});
+            throw FrameworkException.getInstance("Sequence value overflow, name = {} value = {}", this.getSequenceName(), value);
         } else {
             return value;
         }
@@ -89,10 +83,12 @@ public abstract class AbstractSequence implements Sequence {
         return this.currentRange;
     }
 
+    @Override
     public long nextValue(int type) {
         throw new RuntimeException("未实现nextValue(int size) 方法");
     }
 
+    @Override
     public boolean exhaustValue() {
         throw new RuntimeException("未实现exhaustValue()方法");
     }

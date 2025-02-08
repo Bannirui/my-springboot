@@ -11,7 +11,7 @@
 </parent>
 ```
 
-### 3 配置文件
+### 2 配置文件
 
 classpath:META-INF/app.properties
 
@@ -19,7 +19,7 @@ classpath:META-INF/app.properties
 app.id=SampleApp
 ```
 
-### 5 启动类注解
+### 3 启动类注解
 
 - @EnableMsbFramework
 - @EnableMsbLog
@@ -48,6 +48,6 @@ public class App04 implements ApplicationRunner {
 
 ![](./../img/1731813343.png)
 
-### 6 运行结果
+### 5 运行结果
 
 ![](./../img/1731813343.png)

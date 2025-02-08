@@ -1,10 +1,14 @@
 package com.github.bannirui.msb.orm.util;
 
 import com.github.bannirui.msb.ex.FrameworkException;
-import com.github.pagehelper.dialect.helper.*;
-
+import com.github.pagehelper.dialect.helper.Db2Dialect;
+import com.github.pagehelper.dialect.helper.HsqldbDialect;
+import com.github.pagehelper.dialect.helper.InformixDialect;
+import com.github.pagehelper.dialect.helper.MySqlDialect;
+import com.github.pagehelper.dialect.helper.OracleDialect;
+import com.github.pagehelper.dialect.helper.SqlServer2012Dialect;
+import com.github.pagehelper.dialect.helper.SqlServerDialect;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class PageHelperDialectUtil {
@@ -12,27 +16,21 @@ public class PageHelperDialectUtil {
 
     public static String getDialectClassName(String jdbcUrl) {
         String dbType = fromJdbcUrl(jdbcUrl);
-        Class<?> dialectClass = (Class)dialectAliasMap.get(dbType);
+        Class<?> dialectClass = dialectAliasMap.get(dbType);
         if (dialectClass != null) {
             return dialectClass.getName();
         } else {
-            throw FrameworkException.getInstance("根据数据库连接信息{0}获取数据库方言信息出错", new Object[]{dbType});
+            throw FrameworkException.getInstance("根据数据库连接信息{0}获取数据库方言信息出错", dbType);
         }
     }
 
     private static String fromJdbcUrl(String jdbcUrl) {
-        Iterator var1 = dialectAliasMap.keySet().iterator();
-
-        String dialect;
-        do {
-            if (!var1.hasNext()) {
-                return null;
+        for (String dialect : dialectAliasMap.keySet()) {
+            if (jdbcUrl.contains(":" + dialect + ":")) {
+                return dialect;
             }
-
-            dialect = (String)var1.next();
-        } while(jdbcUrl.indexOf(":" + dialect + ":") == -1);
-
-        return dialect;
+        }
+        return null;
     }
 
     static {

@@ -10,9 +10,6 @@ public class FusingConfig {
     private int minRequestAmount = 5;
     private boolean enable = true;
 
-    public FusingConfig() {
-    }
-
     public int getGrade() {
         return this.grade;
     }

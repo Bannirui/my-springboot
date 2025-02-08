@@ -15,10 +15,12 @@ import java.util.stream.Stream;
 public class SpringBootVFS extends VFS {
     private final ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver(this.getClass().getClassLoader());
 
+    @Override
     public boolean isValid() {
         return true;
     }
 
+    @Override
     protected List<String> list(URL url, String path) throws IOException {
         String urlString = url.toString();
         String baseUrlString = urlString.endsWith("/") ? urlString : urlString.concat("/");
@@ -29,8 +31,8 @@ public class SpringBootVFS extends VFS {
     private static String preserveSubpackageName(final String baseUrlString, final Resource resource, final String rootPath) {
         try {
             return rootPath + (rootPath.endsWith("/") ? "" : "/") + resource.getURL().toString().substring(baseUrlString.length());
-        } catch (IOException var4) {
-            throw new UncheckedIOException(var4);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }
