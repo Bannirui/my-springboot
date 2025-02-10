@@ -1,5 +1,6 @@
 package com.github.bannirui.msb.orm.configuration;
 
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.github.bannirui.msb.orm.property.MasterDsProperties;
 import com.github.bannirui.msb.orm.util.DBPasswordDecoder;
 import com.github.bannirui.msb.orm.util.DataSourceHelp;
@@ -12,7 +13,6 @@ import com.zaxxer.hikari.HikariConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.Configuration;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +33,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 
-/**
- * @see MyBatisPlusConfiguration
- */
-@Deprecated
-public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, Ordered {
-    private static final Logger logger = LoggerFactory.getLogger(MyBatisConfiguration.class);
+public class MyBatisPlusConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware, Ordered {
+    private static final Logger logger = LoggerFactory.getLogger(MyBatisPlusConfiguration.class);
     private static final int order = 50;
     public static final String mapper_locations = "mapperLocations";
     protected ConfigurableEnvironment env;
@@ -50,11 +46,11 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
 
     @Override
     public int getOrder() {
-        return MyBatisConfiguration.order;
+        return MyBatisPlusConfiguration.order;
     }
 
     /**
-     * 注册Mybatis依赖的BeanDefinition
+     * 注册Mybatis-plus依赖的BeanDefinition
      * <ul>
      *     <li>DataSource</li>
      *     <li>SessionFactory</li>
@@ -160,11 +156,11 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
      */
     private void registerSessionFactoryDefinitionBuilder(String sessionFactoryName, BeanDefinitionRegistry beanFactory, Map<String, Object> sqlSessionConfigMap, Configuration configuration, String dataSourceName) {
         GenericBeanDefinition sqlsessionBeanDefinition = new GenericBeanDefinition();
-        sqlsessionBeanDefinition.setBeanClass(SqlSessionFactoryBean.class);
+        sqlsessionBeanDefinition.setBeanClass(MybatisSqlSessionFactoryBean.class);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
+        sqlsessionBeanDefinition.setPropertyValues(propertyValues);
         propertyValues.addPropertyValue("vfs", SpringBootVFS.class);
         propertyValues.addPropertyValues(sqlSessionConfigMap);
-        sqlsessionBeanDefinition.setPropertyValues(propertyValues);
         Object configLocation = sqlSessionConfigMap.get("configLocation");
         if (Objects.nonNull(configLocation)) {
             propertyValues.addPropertyValue("configLocation", ResourceHelp.resolveMapperLocations(configLocation.toString())[0]);
@@ -207,9 +203,9 @@ public class MyBatisConfiguration implements BeanDefinitionRegistryPostProcessor
     }
 
     private void convertMybatisConfig(Map<String, Object> sqlSessionConfigMap) {
-        String mapperLocations = (String)sqlSessionConfigMap.get(MyBatisConfiguration.mapper_locations);
+        String mapperLocations = (String)sqlSessionConfigMap.get(MyBatisPlusConfiguration.mapper_locations);
         if (StringUtils.isNotBlank(mapperLocations)) {
-            sqlSessionConfigMap.put(MyBatisConfiguration.mapper_locations, ResourceHelp.resolveMapperLocations(mapperLocations));
+            sqlSessionConfigMap.put(MyBatisPlusConfiguration.mapper_locations, ResourceHelp.resolveMapperLocations(mapperLocations));
         }
     }
 

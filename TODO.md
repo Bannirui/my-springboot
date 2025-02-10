@@ -19,11 +19,12 @@ TODO
   - [ ] Kafka消费者监听器
   - [ ] Kafka生产者发送
   - [ ] 抽象消息服务屏蔽MQ中间件
-- [ ] ORM
+- [X] ORM
   - [X] 整合mybatis
-  - [ ] 整合Mybatis-Plus
+  - [X] 整合Mybatis-Plus
   - [X] 多数据源
   - [X] 分库分表
+- [ ] PRC
 - [ ] web场景
 - [ ] sso独立出来
     - [ ] 将sso的实现看作黑盒
@@ -32,5 +33,4 @@ TODO
     - [ ] 这个场景要从众多的http client中挑选一个轻量级的 并且高性能的
 - [ ] es场景
 - [ ] HBase场景
-- [ ] PRC
 - [ ] 心跳健康

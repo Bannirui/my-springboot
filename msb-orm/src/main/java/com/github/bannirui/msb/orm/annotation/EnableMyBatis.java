@@ -7,7 +7,9 @@ import java.lang.annotation.*;
 
 /**
  * 启用mybatis
+ * @see EnableMyBatisPlus mybatis-plus完全兼容mybatis
  */
+@Deprecated
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

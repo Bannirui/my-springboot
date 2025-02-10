@@ -271,12 +271,11 @@
                 <artifactId>mysql-connector-j</artifactId>
                 <version>9.2.0</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
-            <!--跟mybatis-spring中依赖的mybatis版本保持一致-->
+            <!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus -->
             <dependency>
-                <groupId>org.mybatis</groupId>
-                <artifactId>mybatis</artifactId>
-                <version>3.5.16</version>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus</artifactId>
+                <version>3.5.10.1</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis-spring -->
             <dependency>
