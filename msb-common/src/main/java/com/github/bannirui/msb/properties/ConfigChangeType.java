@@ -4,7 +4,4 @@ public enum ConfigChangeType {
     ADD,
     DELETE,
     UPDATE;
-
-    private ConfigChangeType() {
-    }
 }

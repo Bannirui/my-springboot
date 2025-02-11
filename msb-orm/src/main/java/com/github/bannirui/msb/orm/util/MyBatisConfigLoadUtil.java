@@ -34,11 +34,11 @@ public class MyBatisConfigLoadUtil {
     }
 
     public static <T> T loadConfigByIndex(Environment env, int index, Class<T> target) {
-        String configName = env.getProperty(String.format("titans.mybatis.configs[%s].datasource.name", index));
+        String configName = env.getProperty(String.format("mybatis.configs[%s].datasource.name", index));
         if (StringUtils.isEmpty(configName)) {
             return null;
         } else {
-            BindResult<T> bindResult = Binder.get(env).bind(String.format("titans.mybatis.configs[%s].datasource", index), target);
+            BindResult<T> bindResult = Binder.get(env).bind(String.format("mybatis.configs[%s].datasource", index), target);
             return bindResult.orElse(null);
         }
     }
@@ -48,7 +48,7 @@ public class MyBatisConfigLoadUtil {
         List<T> configs = new ArrayList<>();
         int index = 0;
         while(true) {
-            String configName = env.getProperty(String.format("titans.mybatis.configs[%s].datasource.name", index));
+            String configName = env.getProperty(String.format("mybatis.configs[%s].datasource.name", index));
             if (StringUtils.isEmpty(configName)) {
                 return configs;
             }

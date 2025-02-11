@@ -50,11 +50,11 @@ public class ShardingJdbcUtil {
     }
 
     public static MasterDsProperties loadShardingDbConfig(Environment env, int index) {
-        return Binder.get(env).bind(String.format("titans.sharding.datasources[%s]", index), MasterDsProperties.class).orElse(new MasterDsProperties());
+        return Binder.get(env).bind(String.format("sharding.datasources[%s]", index), MasterDsProperties.class).orElse(new MasterDsProperties());
     }
 
     public static List<TableConfig> loadShardingTableConfig(Environment env) {
-        return Binder.get(env).bind("titans.sharding.table-configs", Bindable.listOf(TableConfig.class)).orElse(new ArrayList<>());
+        return Binder.get(env).bind("sharding.table-configs", Bindable.listOf(TableConfig.class)).orElse(new ArrayList<>());
     }
 
     public static List<HikariDataSource> createDataSources(MasterDsProperties config) {

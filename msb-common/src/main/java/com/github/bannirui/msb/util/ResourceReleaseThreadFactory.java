@@ -11,7 +11,7 @@ public class ResourceReleaseThreadFactory implements ThreadFactory {
 
     public ResourceReleaseThreadFactory() {
         this.group = Thread.currentThread().getThreadGroup();
-        this.namePrefix = "titans-res-release-" + poolNumber.getAndIncrement() + "-thread-";
+        this.namePrefix = "msb-res-release-" + poolNumber.getAndIncrement() + "-thread-";
     }
 
     public Thread newThread(Runnable r) {
