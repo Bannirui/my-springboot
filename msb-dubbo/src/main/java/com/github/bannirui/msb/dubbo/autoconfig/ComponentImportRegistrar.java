@@ -3,7 +3,7 @@ package com.github.bannirui.msb.dubbo.autoconfig;
 import com.github.bannirui.msb.dubbo.DubboAutoConfiguration;
 import com.github.bannirui.msb.dubbo.DubboConfigDefaultCustomizer;
 import com.github.bannirui.msb.dubbo.DubboRegistryBeanRegistrar;
-import com.github.bannirui.msb.dubbo.annotation.EnableDubbo;
+import com.github.bannirui.msb.dubbo.annotation.EnableMsbDubbo;
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.spring.util.AnnotatedBeanDefinitionRegistryUtils;
@@ -24,7 +24,7 @@ public class ComponentImportRegistrar implements ImportBeanDefinitionRegistrar, 
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        AnnotationAttributes attributes = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(EnableDubbo.class.getName()));
+        AnnotationAttributes attributes = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(EnableMsbDubbo.class.getName()));
         this.registerDubboConfigDefaultCustomizer(attributes, registry);
         boolean multipleConfig = attributes.getBoolean("multipleConfig");
         String isMultiple = MsbEnvironmentMgr.getProperty(this.environment, "dubbo.multiple");

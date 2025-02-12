@@ -1,9 +1,9 @@
 package com.github.bannirui.msb.dubbo;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Collection;
+import com.github.bannirui.msb.dubbo.envent.DubboFieldRefScanedEvent;
+import com.github.bannirui.msb.dubbo.envent.DubboMethodRefScanedEvent;
+import com.github.bannirui.msb.listener.spring.ComponentScanEvent;
+import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.spring.beans.factory.annotation.ReferenceAnnotationBeanPostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +12,25 @@ import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.InjectionMetadata;
 import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
-public class ZptResolveReferenceAnnotationProcessor implements MergedBeanDefinitionPostProcessor, Ordered, ApplicationContextAware, InitializingBean {
-    private static final Logger log = LoggerFactory.getLogger(ReferenceAnnotationBeanPostProcessor.class);
+import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.util.Collection;
+
+public class ResolveReferenceAnnotationProcessor implements MergedBeanDefinitionPostProcessor, Ordered, ApplicationContextAware, InitializingBean {
+    private static final Logger log = LoggerFactory.getLogger(ResolveReferenceAnnotationProcessor.class);
+    /**
+     * 负责解析{@link org.apache.dubbo.config.annotation.DubboReference}注解标识的类注入到容器
+     */
     private ReferenceAnnotationBeanPostProcessor referenceProcessor;
     private Method findInjectionMetadata;
     private Method getInjectedObject;
@@ -40,42 +52,37 @@ public class ZptResolveReferenceAnnotationProcessor implements MergedBeanDefinit
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        InjectionMetadata injectionMetadata = this.reflectFindInjectionMetadata(beanName, bean.getClass(), (PropertyValues)null);
+        InjectionMetadata injectionMetadata = this.reflectFindInjectionMetadata(beanName, bean.getClass(), null);
         Collection<InjectionMetadata.InjectedElement> injectedElements = this.reflectFieldValue(injectionMetadata, "checkedElements");
         if (injectedElements == null) {
             injectedElements = this.reflectFieldValue(injectionMetadata, "injectedElements");
         }
-
-        Iterator var5 = injectedElements.iterator();
-
-        while(var5.hasNext()) {
-            InjectedElement injectedElement = (InjectedElement)var5.next();
+        for (InjectionMetadata.InjectedElement injectedElement : injectedElements) {
             Member member = injectedElement.getMember();
-            if (member instanceof Field) {
-                Field field = (Field)member;
-                Reference reference = (Reference)AnnotationUtils.getAnnotation(field, Reference.class);
+            if (member instanceof Field field) {
+                Reference reference = AnnotationUtils.getAnnotation(field, Reference.class);
                 Object injectedObject = this.reflectGetInjectedObject(reference, bean, beanName, field.getType(), injectedElement);
-                log.debug("Field......{}, {}, {}", new Object[]{field, reference, injectedObject.toString()});
-                this.applicationContext.publishEvent(ComponentScanedEvent.build(this.applicationContext, new DubboFieldRefScanedEvent(field, reference, injectedObject)));
-            } else if (member instanceof Method) {
-                Method method = (Method)member;
+                log.debug("Field......{}, {}, {}", field, reference, injectedObject.toString());
+                this.applicationContext.publishEvent(ComponentScanEvent.build(this.applicationContext, new DubboFieldRefScanedEvent(field, reference, injectedObject)));
+            } else if (member instanceof Method method) {
                 Field pdField = ReflectionUtils.findField(injectedElement.getClass(), "pd");
                 ReflectionUtils.makeAccessible(pdField);
                 PropertyDescriptor pd = (PropertyDescriptor)ReflectionUtils.getField(pdField, injectedElement);
-                Reference reference = (Reference)AnnotationUtils.findAnnotation(method, Reference.class);
+                Reference reference = AnnotationUtils.findAnnotation(method, Reference.class);
                 Object injectedObject = this.reflectGetInjectedObject(reference, bean, beanName, pd.getPropertyType(), injectedElement);
-                log.debug("Method......{}, {}, {}", new Object[]{method, reference, injectedObject.toString()});
-                this.applicationContext.publishEvent(ComponentScanedEvent.build(this.applicationContext, new DubboMethodRefScanedEvent(method, reference, injectedObject)));
+                log.debug("Method......{}, {}, {}", method, reference, injectedObject.toString());
+                this.applicationContext.publishEvent(ComponentScanEvent.build(this.applicationContext, new DubboMethodRefScanedEvent(method, reference, injectedObject)));
             }
         }
-
         return bean;
     }
 
+    @Override
     public int getOrder() {
         return 0;
     }
 
+    @Override
     public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
     }
 
@@ -83,8 +90,8 @@ public class ZptResolveReferenceAnnotationProcessor implements MergedBeanDefinit
         return (InjectionMetadata)ReflectionUtils.invokeMethod(this.findInjectionMetadata, this.referenceProcessor, new Object[]{beanName, clazz, pvs});
     }
 
-    private Object reflectGetInjectedObject(Annotation annotation, Object bean, String beanName, Class<?> injectedType, InjectedElement injectedElement) {
-        return ReflectionUtils.invokeMethod(this.getInjectedObject, this.referenceProcessor, new Object[]{annotation, bean, beanName, injectedType, injectedElement});
+    private Object reflectGetInjectedObject(Annotation annotation, Object bean, String beanName, Class<?> injectedType, InjectionMetadata.InjectedElement injectedElement) {
+        return ReflectionUtils.invokeMethod(this.getInjectedObject, this.referenceProcessor, annotation, bean, beanName, injectedType, injectedElement);
     }
 
     private Collection<InjectionMetadata.InjectedElement> reflectFieldValue(InjectionMetadata injectionMetadata, String fieldName) {

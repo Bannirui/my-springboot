@@ -1,25 +1,14 @@
 package com.github.bannirui.msb.dubbo;
 
-import com.alibaba.com.caucho.hessian.io.Hessian2Input;
 import com.github.bannirui.msb.dubbo.config.DubboProperties;
 import com.github.bannirui.msb.enums.ExceptionEnum;
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.ex.ErrorCodeException;
 import com.github.bannirui.msb.plugin.PluginConfigManager;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.extension.ExtensionLoader;
-import org.apache.dubbo.config.AbstractConfig;
-import org.apache.dubbo.config.ApplicationConfig;
-import org.apache.dubbo.config.ConsumerConfig;
-import org.apache.dubbo.config.ProtocolConfig;
-import org.apache.dubbo.config.ProviderConfig;
-import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.config.*;
 import org.apache.dubbo.config.spring.context.config.DubboConfigBeanCustomizer;
 import org.apache.dubbo.rpc.Filter;
 import org.slf4j.Logger;
@@ -30,6 +19,9 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, InitializingBean, PriorityOrdered, EnvironmentAware {
     private static final Logger logger = LoggerFactory.getLogger(DubboConfigDefaultCustomizer.class);
@@ -59,60 +51,6 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         String tag = this.env.getProperty("dubbo.consumer.tag");
         DubboProperties.consumerTag = StringUtils.isNotBlank(tag) ? tag : this.dubboProperties.getTag();
         DubboProperties.consumerTagforce = this.dubboProperties.getTagforce();
-        Map<String, String> deserializeWhites = this.dubboProperties.getDeserializeWhites();
-        if (deserializeWhites != null) {
-            Set<String> collect = deserializeWhites.entrySet().stream().filter((entry) -> !"false".equals(entry.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
-            if (CollectionUtils.isNotEmpty(collect)) {
-                try {
-                    if (Hessian2Input.WHITE_LIST == null) {
-                        Hessian2Input.WHITE_LIST = new HashSet();
-                    }
-                    Hessian2Input.WHITE_LIST.addAll(collect);
-                } catch (NoSuchFieldError e) {
-                    DubboConfigDefaultCustomizer.logger.warn("dubbo Hessian2 反序列化白名单未设置");
-                }
-            }
-        }
-
-        Map<String, String> packageWhites = this.dubboProperties.getDeserializePackageWhites();
-        if (packageWhites != null) {
-            Set<String> collect = packageWhites.entrySet().stream().filter((entry) -> !"false".equals(entry.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
-            if(CollectionUtils.isNotEmpty(collect)) {
-                try {
-                    if (Hessian2Input.PACKAGE_WHITE_LIST == null) {
-                        Hessian2Input.PACKAGE_WHITE_LIST = new HashSet();
-                    }
-                    Hessian2Input.PACKAGE_WHITE_LIST.addAll(collect);
-                } catch (NoSuchFieldError e) {
-                    DubboConfigDefaultCustomizer.logger.warn("dubbo Hessian2 反序列化白名单未设置");
-                }
-            }
-        }
-        Map<String, String> deserializeBlacks = this.dubboProperties.getDeserializeBlacks();
-        if (deserializeBlacks != null) {
-            Set<String> collect = deserializeBlacks.entrySet().stream().filter((entry) -> !"false".equals(entry.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
-            if(CollectionUtils.isNotEmpty(collect)) {
-                try {
-                    Hessian2Input.BLACK_LIST.addAll(collect);
-                } catch (NoSuchFieldError e) {
-                    DubboConfigDefaultCustomizer.logger.warn("dubbo Hessian2 反序列化黑名单未设置");
-                }
-            }
-        }
-        Map<String, String> packageBlacks = this.dubboProperties.getDeserializePackageBlacks();
-        if (packageBlacks != null) {
-            Set<String> collect = packageBlacks.entrySet().stream().filter((entry) -> !"false".equals(entry.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
-            if(CollectionUtils.isNotEmpty(collect)) {
-                try {
-                    if (Hessian2Input.PACKAGE_BLACK_LIST == null) {
-                        Hessian2Input.PACKAGE_BLACK_LIST = new HashSet();
-                    }
-                    Hessian2Input.PACKAGE_BLACK_LIST.addAll(collect);
-                } catch (NoSuchFieldError e) {
-                    DubboConfigDefaultCustomizer.logger.warn("dubbo Hessian2 反序列化黑名单未设置");
-                }
-            }
-        }
     }
 
     @Override
@@ -263,7 +201,7 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
                     ExtensionLoader.getExtensionLoader(Filter.class).addExtension(filterBeanName, filter.getClass());
                 }
             } catch (Exception e) {
-                throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, new Object[]{"Dubbo插件", cla});
+                throw new ErrorCodeException(e, ExceptionEnum.INITIALIZATION_EXCEPTION, "Dubbo插件", cla);
             }
         }
     }

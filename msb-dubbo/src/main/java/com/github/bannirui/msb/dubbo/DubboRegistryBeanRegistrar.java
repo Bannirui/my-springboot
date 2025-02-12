@@ -1,11 +1,9 @@
 package com.github.bannirui.msb.dubbo;
 
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.config.spring.context.annotation.ConfigurationBeanBindingPostProcessor;
 import org.apache.dubbo.config.spring.util.PropertySourcesUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +17,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.Assert;
+
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class DubboRegistryBeanRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
     private static final Logger log = LoggerFactory.getLogger(DubboRegistryBeanRegistrar.class);
@@ -65,7 +67,7 @@ public class DubboRegistryBeanRegistrar implements ImportBeanDefinitionRegistrar
     }
 
     private void registerDubboConfigBindingBeanPostProcessor(String prefix, String beanName, BeanDefinitionRegistry registry) {
-        Class<?> processorClass = DubboConfigBindingBeanPostProcessor.class;
+        Class<?> processorClass = ConfigurationBeanBindingPostProcessor.class;
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(processorClass);
         String actualPrefix = PropertySourcesUtils.normalizePrefix(prefix) + beanName;
         builder.addConstructorArgValue(actualPrefix).addConstructorArgValue(beanName);
