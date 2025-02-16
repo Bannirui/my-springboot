@@ -23,6 +23,9 @@ import org.springframework.core.env.Environment;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 用配置文件内容更新dubbo组件的配置
+ */
 public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, InitializingBean, PriorityOrdered, EnvironmentAware {
     private static final Logger logger = LoggerFactory.getLogger(DubboConfigDefaultCustomizer.class);
     private ConfigurableEnvironment env;
@@ -44,6 +47,9 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         this.env = (ConfigurableEnvironment)environment;
     }
 
+    /**
+     * 缓存配置文件中dubbo前缀的配置
+     */
     @Override
     public void afterPropertiesSet() throws Exception {
         this.initFilter();
@@ -58,6 +64,10 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         return 0;
     }
 
+    /**
+     * 根据配置文件定义更新dubbo配置
+     * @param beanName        the name of {@link AbstractConfig Dubbo Config Bean}
+     */
     public void customize(String beanName, AbstractConfig dubboConfig) {
         if (dubboConfig instanceof ApplicationConfig cfg) {
             this.applicationConfig(cfg);
@@ -103,6 +113,12 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         }
     }
 
+    /**
+     * dubbo.registries
+     * 根据配置文件补充dubbo注册中心配置
+     * @param beanName dubbo注册中心名字 比如zookeeper
+     * @param registryConfig dubbo注册中心配置
+     */
     private void registryConfig(String beanName, RegistryConfig registryConfig) {
         if (registryConfig.getProtocol() == null && this.dubboProperties.getRegistryProtocol() != null) {
             registryConfig.setProtocol(this.dubboProperties.getRegistryProtocol());
@@ -112,7 +128,7 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
             registryConfig.setProtocol(this.dubboProperties.getRegistries().get(beanName).getProtocol());
         } else {
             if (!StringUtils.isNotEmpty(this.dubboProperties.getRegistryAddress())) {
-                throw new IllegalArgumentException("illegal registry config" + registryConfig.toString());
+                throw new IllegalArgumentException("illegal registry config" + registryConfig);
             }
             registryConfig.setAddress(this.dubboProperties.getRegistryAddress());
         }
@@ -124,6 +140,9 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         }
     }
 
+    /**
+     * 服务生产者配置
+     */
     private void providerConfig(ProviderConfig providerConfig) {
         if (providerConfig.getTimeout() == null) {
             providerConfig.setTimeout(this.dubboProperties.getTimeout());
@@ -137,7 +156,7 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         if (StringUtils.isEmpty(providerConfig.getTag()) && StringUtils.isNotBlank(this.dubboProperties.getTag())) {
             providerConfig.setTag(this.dubboProperties.getTag());
         }
-        String msbFilter = StringUtils.join(",", this.getProviderFilter());
+        String msbFilter = StringUtils.join(this.getProviderFilter(), ",");
         String filter = this.appendFiltersStr(providerConfig.getFilter(), msbFilter);
         if (StringUtils.isNotBlank(filter)) {
             providerConfig.setFilter(filter);

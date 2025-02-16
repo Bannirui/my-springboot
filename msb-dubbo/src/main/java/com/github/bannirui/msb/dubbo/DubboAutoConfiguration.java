@@ -4,6 +4,7 @@ import com.github.bannirui.msb.dubbo.binder.RelaxedDubboConfigBinder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.dubbo.config.AbstractConfig;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
@@ -40,6 +41,12 @@ public class DubboAutoConfiguration implements InitializingBean, ApplicationCont
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        /**
+         * 找到所有类型{@link DubboConfigBeanCustomizer}的Bean
+         * <ul>
+         *     <li>{@link DubboConfigDefaultCustomizer}</li>
+         * </ul>
+         */
         Map<String, DubboConfigBeanCustomizer> dubboConfigBeanCustomizerMap = BeanFactoryUtils.beansOfTypeIncludingAncestors(this.applicationContext, DubboConfigBeanCustomizer.class);
         this.configBeanCustomizers = new ArrayList<>(dubboConfigBeanCustomizerMap.values());
         if (this.configBeanCustomizers.stream().noneMatch(NamePropertyDefaultValueDubboConfigBeanCustomizer.class::isInstance)) {
@@ -49,12 +56,10 @@ public class DubboAutoConfiguration implements InitializingBean, ApplicationCont
     }
 
     private void invokerCustomizers(String beanName, AbstractConfig config) {
-        if (this.configBeanCustomizers != null && this.configBeanCustomizers.size() > 0) {
-            for (DubboConfigBeanCustomizer configBeanCustomizer : this.configBeanCustomizers) {
-                configBeanCustomizer.customize(beanName, config);
-            }
+        if(CollectionUtils.isEmpty(this.configBeanCustomizers)) return;
+        for (DubboConfigBeanCustomizer configBeanCustomizer : this.configBeanCustomizers) {
+            configBeanCustomizer.customize(beanName, config);
         }
-
     }
 
     @Bean

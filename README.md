@@ -88,6 +88,5 @@ A framework based on SpringBoot, focusing on different section
 
 ### 4 附件配置
 
-- [框架配置Resource](./doc/msb-resource.properties)
-- [框架配置Apollo](./doc/msb-apollo.properties)
-- [应用配置](./doc/app-apollo.properties)
+- [框架配置](./doc/msb.properties)
+- [应用配置](./doc/app.properties)

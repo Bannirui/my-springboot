@@ -26,9 +26,12 @@ public class ComponentImportRegistrar implements ImportBeanDefinitionRegistrar, 
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
         AnnotationAttributes attributes = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(EnableMsbDubbo.class.getName()));
         this.registerDubboConfigDefaultCustomizer(attributes, registry);
+        /**
+         * {@link EnableMsbDubbo#multipleConfig()}默认值true
+         */
         boolean multipleConfig = attributes.getBoolean("multipleConfig");
         String isMultiple = MsbEnvironmentMgr.getProperty(this.environment, "dubbo.multiple");
-        if (multipleConfig && (isMultiple == null || isMultiple != null && "true".equals(isMultiple))) {
+        if (multipleConfig && (isMultiple == null || "true".equals(isMultiple))) {
             DubboRegistryBeanRegistrar registryBeanRegistrar = new DubboRegistryBeanRegistrar();
             registryBeanRegistrar.setEnvironment(this.environment);
             registryBeanRegistrar.registerBeanDefinitions(importingClassMetadata, registry);

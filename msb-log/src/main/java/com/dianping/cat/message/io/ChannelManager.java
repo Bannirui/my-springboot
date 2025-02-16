@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.logging.Logger;
@@ -48,13 +47,7 @@ public class ChannelManager implements Threads.Task {
         this.m_queue = queue;
         this.m_configManager = configManager;
         this.m_idfactory = idFactory;
-        EventLoopGroup group = new NioEventLoopGroup(1, new ThreadFactory() {
-            public Thread newThread(Runnable r) {
-                Thread t = new Thread(r);
-                t.setDaemon(true);
-                return t;
-            }
-        });
+        EventLoopGroup group = new NioEventLoopGroup(1);
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group).channel(NioSocketChannel.class);
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
@@ -384,12 +377,9 @@ public class ChannelManager implements Threads.Task {
     }
 
     public class ClientMessageHandler extends SimpleChannelInboundHandler<Object> {
-        public ClientMessageHandler() {
-        }
-
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ChannelManager.this.m_logger.info("receiver msg from server:" + msg);
+        protected void messageReceived(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+            ChannelManager.this.m_logger.info("receiver msg from server: " + o);
         }
     }
 }

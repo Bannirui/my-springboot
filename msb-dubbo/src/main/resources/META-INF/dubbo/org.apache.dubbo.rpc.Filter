@@ -1,0 +1,3 @@
+application.name.penetrate.filter=com.github.bannirui.msb.dubbo.filter.ConsumerPenetrateFilter
+msb_AuthConsumerFilter=com.github.bannirui.msb.dubbo.filter.ConsumerSignFilter
+msb_AuthProviderFilter=com.github.bannirui.msb.dubbo.filter.ProviderAuthFilter

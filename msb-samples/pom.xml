@@ -22,5 +22,16 @@
         <module>sample-06</module>
         <module>sample-07</module>
         <module>sample-08</module>
+        <module>proto</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>proto</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
