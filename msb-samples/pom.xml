@@ -23,6 +23,7 @@
         <module>sample-07</module>
         <module>sample-08</module>
         <module>proto</module>
+        <module>sample-09</module>
     </modules>
 
     <dependencyManagement>

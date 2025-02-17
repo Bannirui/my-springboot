@@ -47,4 +47,26 @@ public class App08 implements ApplicationRunner {
 ![](./../img/1739768997.png)
 
 #### 3.2 服务消费者
-todo
+```java
+@EnableMsbFramework
+@EnableMsbDubbo
+public class App09 implements ApplicationRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(App09.class);
+    @DubboReference
+    Echo echo;
+
+    public static void main(String[] args) {
+        SpringApplication.run(App09.class, args);
+    }
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        String ret = this.echo.echo("hi, this is invoker for dubbo reference");
+        logger.info("spring app启动成功");
+        logger.info(ret);
+    }
+}
+```
+
+![](./../img/1739775369.png)

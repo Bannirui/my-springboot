@@ -4,6 +4,7 @@ import com.github.bannirui.msb.dubbo.config.DubboProperties;
 import com.github.bannirui.msb.enums.ExceptionEnum;
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
 import com.github.bannirui.msb.ex.ErrorCodeException;
+import com.github.bannirui.msb.plugin.Interceptor;
 import com.github.bannirui.msb.plugin.PluginConfigManager;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,9 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
     private DubboProperties dubboProperties;
     private String dubboProtocol;
     private Integer dubboPort;
+    /**
+     * classpath*:META-INF/msb/plugin/org.apache.dubbo.rpc.Filter文件中配置的拦截器的key
+     */
     private Set<String> filterList;
 
     public void setDubboPort(Integer dubboPort) {
@@ -170,7 +174,7 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         if (consumerConfig.getRetries() == null) {
             consumerConfig.setRetries(this.dubboProperties.getRetries());
         }
-        String msbFilter = StringUtils.join(",", this.getConsumerFilter());
+        String msbFilter = StringUtils.join(this.getConsumerFilter(), ",");
         String filter = this.appendFiltersStr(consumerConfig.getFilter(), msbFilter);
         if (StringUtils.isNotBlank(filter)) {
             consumerConfig.setFilter(filter);
@@ -186,31 +190,54 @@ public class DubboConfigDefaultCustomizer implements DubboConfigBeanCustomizer, 
         return filteClassName.substring(filteClassName.lastIndexOf(".") + 1);
     }
 
+    /**
+     * classpath*:META-INF/msb/plugin/org.apache.dubbo.rpc.Filter文件中配置的dubbo服务提供方拦截器
+     * @return dubbo服务提供方拦截器实现全限定路径名
+     */
     private Set<String> getProviderFilter() {
         Set<String> filter = new HashSet<>();
-        String fileName = Filter.class.getName();
         for (String str : this.filterList) {
             if(!str.contains(".all.") && !str.contains(".provider.")) continue;
-            String cla = PluginConfigManager.getProperty(fileName, str);
+            String cla = PluginConfigManager.getProperty(Filter.class.getName(), str);
             filter.add(this.buildFilterBeanName(cla));
         }
         return filter;
     }
 
+    /**
+     * classpath*:META-INF/msb/plugin/org.apache.dubbo.rpc.Filter文件中配置的dubbo服务消费方拦截器
+     * @return dubbo服务消费方拦截器实现全限定路径名
+     */
     private Set<String> getConsumerFilter() {
-        Set<String> filter = new HashSet();
-        String fileName = Filter.class.getName();
+        Set<String> filter = new HashSet<>();
         for (String str : this.filterList) {
             if (!str.contains(".all.") && !str.contains(".consumer.")) continue;
-            String cla = PluginConfigManager.getProperty(fileName, str);
+            String cla = PluginConfigManager.getProperty(Filter.class.getName(), str);
             filter.add(this.buildFilterBeanName(cla));
         }
         return filter;
     }
 
+    /**
+     * 将classpath*:META-INF/msb/plugin/org.apache.dubbo.rpc.Filter文件中配置的拦截器的key缓存到{@link DubboConfigDefaultCustomizer#filterList}
+     */
     private void initFilter() {
+        /**
+         * msb拦截器
+         * 自定义{@link Interceptor}实现并用注解{@link com.github.bannirui.msb.annotation.MsbPlugin}标识 放在classpath:resources/META-INF/msb/plugin下的文件中
+         * <ul>
+         *     <li>文件名是{@link Interceptor}的全限定路径名</li>
+         *     <li>文件内容键值对
+         *       <ul>
+         *           <li>key 给拦截器命名</li>
+         *           <li>val 自定义拦截器实现的全限定路径名</li>
+         *       </ul>
+         *     </li>
+         * </ul>
+         */
         Set<String> filterName = PluginConfigManager.getPropertyKeySet(Filter.class.getName());
         this.filterList = (filterName != null ? filterName : new HashSet<>());
+        // classpath*:META-INF/msb/plugin下org.apache.dubbo.rpc.Filter文件中配置的拦截器
         Set<String> classSet = PluginConfigManager.getPropertyValueSet(Filter.class.getName());
         for (String cla : classSet) {
             try {

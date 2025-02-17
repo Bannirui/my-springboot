@@ -87,7 +87,8 @@ A framework based on SpringBoot, focusing on different section
   - [code](./msb-samples/sample-07)
 - 接入dubbo
   - [doc](./doc/集成dubbo.md)
-  - [code](./msb-samples/sample-08)
+  - [code dubbo服务提供方](./msb-samples/sample-08)
+  - [code dubbo服务消费方](./msb-samples/sample-09)
 
 ### 4 附件配置
 

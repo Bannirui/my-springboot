@@ -4,20 +4,12 @@ import com.github.bannirui.msb.annotation.MsbPlugin;
 import com.github.bannirui.msb.enums.ExceptionEnum;
 import com.github.bannirui.msb.ex.ErrorCodeException;
 import com.github.bannirui.msb.ex.FrameworkException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+
+import java.util.*;
 
 public class PluginConfigManager {
 
@@ -25,6 +17,7 @@ public class PluginConfigManager {
     private static final String dynamic_proxy_interceptor = "classpath*:META-INF/msb/plugin/*";
     /**
      * 缓存拦截器
+     * 拦截器配置在classpath*:/META-INF/msb/plugin/路径下
      * <ul>
      *     <li>key 配置文件名</li>
      *     <li>val 拦截器信息<ul>
@@ -50,6 +43,10 @@ public class PluginConfigManager {
         }
     }
 
+    /**
+     * @param fileName classpath*:META-INF/msb/plugin路径下文件名
+     * @return msb拦截器实现的全限定名
+     */
     public static Set<String> getPropertyValueSet(String fileName) {
         Set<String> setStr = new HashSet<>();
         Properties property = getProperty(fileName);
@@ -71,6 +68,12 @@ public class PluginConfigManager {
         return CACHE_INTERCEPTOR_BY_FILENAME.get(fileName);
     }
 
+    /**
+     * classpath*:META-INF/msb/plugin/${fileName}
+     * @param fileName 配置文件名
+     * @param key 配置文件中配置项键名
+     * @return 配置文件中配置项值 拦截器实现的全限定路径名
+     */
     public static String getProperty(String fileName, String key) {
         Properties properties = getProperty(fileName);
         if (Objects.isNull(properties)) {
