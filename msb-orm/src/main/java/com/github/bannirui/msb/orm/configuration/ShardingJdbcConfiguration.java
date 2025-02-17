@@ -14,13 +14,6 @@ import com.github.bannirui.msb.plugin.PluginDecorator;
 import com.github.pagehelper.PageInterceptor;
 import com.zaxxer.hikari.HikariConfig;
 import io.micrometer.common.util.StringUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import javax.sql.DataSource;
 import org.apache.ibatis.session.Configuration;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
@@ -42,6 +35,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.sql.DataSource;
+import java.util.*;
 
 public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
     private static Logger logger = LoggerFactory.getLogger(ShardingJdbcConfiguration.class);
@@ -92,7 +88,7 @@ public class ShardingJdbcConfiguration implements BeanDefinitionRegistryPostProc
         Object mapperLocations = sqlSessionConfigMap.get("mapperLocations");
         if (StringUtils.isNotBlank((String) mapperLocations)) {
             Resource[] resources = ResourceHelp.resolveMapperLocations((String)mapperLocations);
-            sqlSessionConfigMap.put(MyBatisConfiguration.mapper_locations, resources);
+            sqlSessionConfigMap.put(MyBatisPlusConfiguration.mapper_locations, resources);
         }
         propertyValues.addPropertyValues(sqlSessionConfigMap);
         sqlsessionBeanDefinition.setPropertyValues(propertyValues);
