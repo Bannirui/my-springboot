@@ -7,26 +7,21 @@ import com.dianping.cat.message.spi.MessageQueue;
 import com.site.helper.JsonBuilder;
 import com.site.helper.Splitters;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.unidal.helper.Files;
 import org.unidal.helper.Threads;
 import org.unidal.helper.Urls;
 import org.unidal.tuple.Pair;
+
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ChannelManager implements Threads.Task {
     private ClientConfigManager m_configManager;
@@ -265,7 +260,6 @@ public class ChannelManager implements Threads.Task {
         } catch (Throwable var7) {
             this.m_logger.error(var7.getMessage(), var7);
         }
-
     }
 
     private Pair<Boolean, String> routerConfigChanged() {
@@ -377,8 +371,9 @@ public class ChannelManager implements Threads.Task {
     }
 
     public class ClientMessageHandler extends SimpleChannelInboundHandler<Object> {
+
         @Override
-        protected void messageReceived(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+        protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
             ChannelManager.this.m_logger.info("receiver msg from server: " + o);
         }
     }

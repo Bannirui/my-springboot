@@ -85,6 +85,9 @@ A framework based on SpringBoot, focusing on different section
 - 接入mybatis
   - [doc](./doc/集成mybatis.md)
   - [code](./msb-samples/sample-07)
+- 接入dubbo
+  - [doc](./doc/集成dubbo.md)
+  - [code](./msb-samples/sample-08)
 
 ### 4 附件配置
 
