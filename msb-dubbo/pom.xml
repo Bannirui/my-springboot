@@ -39,5 +39,10 @@
             <artifactId>protobuf-java</artifactId>
             <version>3.21.1</version>
         </dependency>
+        <!--引用web防止项目不是web而停止触发dubbo停机-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
     </dependencies>
 </project>
