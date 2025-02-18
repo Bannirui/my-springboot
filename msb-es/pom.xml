@@ -6,15 +6,20 @@
     <parent>
         <groupId>com.github.bannirui</groupId>
         <artifactId>my-springboot</artifactId>
-        <version>3.2.4</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>msb-es</artifactId>
+    <packaging>jar</packaging>
 
-    <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>msb-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-elasticsearch</artifactId>
+        </dependency>
+    </dependencies>
 </project>
