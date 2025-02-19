@@ -60,6 +60,7 @@ public abstract class MsbImportSelectorController implements ImportSelector {
         MsbShardingJdbc("EnableShardingJdbc", "EnableShardingJdbcImportSelector"),
         MsbDubbo("EnableDubbo", "ComponentImportSelector"),
         MsbHbase("EnableHbase","EnableHbaseImportSelector"),
+        MsbEs("EnableEs", "EnableEsImportSelector"),
         ;
 
         private final String starter;
