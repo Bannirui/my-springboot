@@ -21,6 +21,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>msb-dubbo</artifactId>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
 </project>

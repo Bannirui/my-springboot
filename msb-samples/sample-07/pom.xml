@@ -17,6 +17,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>msb-orm</artifactId>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
 

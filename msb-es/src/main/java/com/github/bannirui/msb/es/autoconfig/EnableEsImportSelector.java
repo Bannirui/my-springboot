@@ -9,7 +9,9 @@ public class EnableEsImportSelector extends MsbImportSelectorController {
 
     @Override
     protected String[] mySelectorImports(AnnotationMetadata metadata) {
-        return new String[] {ElasticsearchRestClientConfiguration.class.getName(),
-            ElasticsearchRestTemplateConfiguration.class.getName()};
+        return new String[] {
+                ElasticsearchRestClientConfiguration.class.getName(),
+                ElasticsearchRestTemplateConfiguration.class.getName()
+        };
     }
 }

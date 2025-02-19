@@ -1,14 +1,18 @@
 package com.github.bannirui.msb.es.client;
 
 import com.github.bannirui.msb.es.property.EsProperties;
-import java.io.IOException;
-import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.support.HttpHeaders;
+
+import java.io.IOException;
+import java.time.Duration;
 
 public class EsClientFactory {
     private static Logger logger = LoggerFactory.getLogger(EsClientFactory.class);
@@ -45,7 +49,6 @@ public class EsClientFactory {
             proxy = new HttpHost(proxyHostAndPorts[0], Integer.parseInt(proxyHostAndPorts[1]));
         }
         this.restHighLevelClient = RestClients.create(clientConfiguration, this.esProperties.getMaxConnectPerRoute(), this.esProperties.getMaxConnectTotal(), proxy, this.esProperties.getConnectionKeepAliveStrategyClass()).rest();
-        RestClient
         this.restClientBuilder = RestClients.getRestClientBuilder();
         this.restClient = this.restHighLevelClient.getLowLevelClient();
         logger.info("create restHighLevelClient successful!");

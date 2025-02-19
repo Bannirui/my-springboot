@@ -1,6 +1,22 @@
 package com.github.bannirui.msb.es.client;
 
 import com.github.bannirui.msb.plugin.InterceptorUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.*;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HttpContext;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.data.elasticsearch.client.ClientConfiguration;
+import org.springframework.data.elasticsearch.support.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.Assert;
+
+import javax.net.ssl.SSLContext;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -9,24 +25,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.net.ssl.SSLContext;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.support.HttpHeaders;
-import org.springframework.util.Assert;
 
 public class RestClients {
     private static final String LOG_ID_ATTRIBUTE = RestClients.class.getName() + ".LOG_ID";
@@ -93,30 +91,32 @@ public class RestClients {
         private HttpLoggingInterceptor() {
         }
 
-        public void process(HttpRequest request, HttpContext context) throws IOException {
-            String logId = (String)context.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
+        @Override
+        public void process(HttpRequest httpRequest, HttpContext httpContext) throws HttpException, IOException {
+            String logId = (String)httpContext.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
             if (logId == null) {
                 logId = ClientLogger.newLogId();
-                context.setAttribute(RestClients.LOG_ID_ATTRIBUTE, logId);
+                httpContext.setAttribute(RestClients.LOG_ID_ATTRIBUTE, logId);
             }
-            if (request instanceof HttpEntityEnclosingRequest entityRequest && entityRequest.getEntity() != null) {
+            if (httpContext instanceof HttpEntityEnclosingRequest entityRequest && entityRequest.getEntity() != null) {
                 HttpEntity entity = entityRequest.getEntity();
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                 entity.writeTo(buffer);
                 if (!entity.isRepeatable()) {
                     entityRequest.setEntity(new ByteArrayEntity(buffer.toByteArray()));
                 }
-                ClientLogger.logRequest(logId, request.getRequestLine().getMethod(), request.getRequestLine().getUri(), "", () -> {
+                ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "", () -> {
                     return new String(buffer.toByteArray());
                 });
             } else {
-                ClientLogger.logRequest(logId, request.getRequestLine().getMethod(), request.getRequestLine().getUri(), "");
+                ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "");
             }
         }
 
-        public void process(HttpResponse response, HttpContext context) {
-            String logId = (String)context.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
-            ClientLogger.logRawResponse(logId, HttpStatus.resolve(response.getStatusLine().getStatusCode()));
+        @Override
+        public void process(HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
+            String logId = (String)httpContext.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
+            ClientLogger.logRawResponse(logId, HttpStatus.resolve(httpResponse.getStatusLine().getStatusCode()));
         }
     }
 

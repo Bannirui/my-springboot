@@ -25,6 +25,9 @@
     </developers>
 
     <modules>
+        <module>msb-bom</module>
+        <module>msb-samples</module>
+
         <!--basic utility-->
         <module>msb-common</module>
         <!--apollo remote config-->
@@ -37,13 +40,12 @@
         <module>msb-orm</module>
         <!--rpc-->
         <module>msb-dubbo</module>
+        <module>msb-hbase</module>
+        <module>msb-es</module>
+
         <module>msb-web</module>
         <module>msb-http</module>
         <module>msb-sso</module>
-        <module>msb-bom</module>
-        <module>msb-samples</module>
-        <module>msb-hbase</module>
-        <module>msb-es</module>
     </modules>
 
     <properties>
@@ -72,38 +74,6 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>msb-log</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>msb-mq</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>msb-orm</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>msb-dubbo</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>msb-web</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>msb-sso</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>msb-http</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

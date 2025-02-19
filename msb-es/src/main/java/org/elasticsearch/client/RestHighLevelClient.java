@@ -1,6 +1,7 @@
 package org.elasticsearch.client;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 public class RestHighLevelClient implements Closeable {
     private final RestClient client;
