@@ -4,39 +4,29 @@ import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.hbase.metadata.HBaseEntityMetadata;
 import com.github.bannirui.msb.hbase.util.Bytes;
 import com.stumbleupon.async.Deferred;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hbase.async.BinaryComparator;
-import org.hbase.async.CompareFilter;
-import org.hbase.async.Config;
-import org.hbase.async.DeleteRequest;
-import org.hbase.async.FilterList;
-import org.hbase.async.GetRequest;
-import org.hbase.async.GetResultOrException;
-import org.hbase.async.HBaseClient;
-import org.hbase.async.KeyValue;
-import org.hbase.async.PutRequest;
-import org.hbase.async.QualifierFilter;
-import org.hbase.async.ScanFilter;
 import org.hbase.async.Scanner;
-import org.hbase.async.TimestampsFilter;
+import org.hbase.async.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * 封装{@link HBaseClient}的api
+ */
 public class HBaseTemplate implements DisposableBean {
-    private Logger logger = LoggerFactory.getLogger(HBaseTemplate.class);
+    private static final Logger logger = LoggerFactory.getLogger(HBaseTemplate.class);
     private HbaseAnnotationParse hbaseAnnotationParse;
     private HBaseClient client;
 
+    /**
+     * 创建代理对象时指定这个构造方法.
+     */
     public HBaseTemplate(Config config, HbaseAnnotationParse hbaseAnnotationParse) {
         this.client = new HBaseClient(config);
         this.hbaseAnnotationParse = hbaseAnnotationParse;
@@ -50,16 +40,25 @@ public class HBaseTemplate implements DisposableBean {
         return this.client;
     }
 
+    /**
+     * 异步
+     */
     public <T> HBaseTemplate.HbaseAsyncResponse put(T t) {
         List<Deferred<Object>> deferreds = this.putObjAsync(this.hbaseAnnotationParse.parsePutRequestEntity(t));
         return new HbaseAsyncResponse(deferreds);
     }
 
+    /**
+     * 同步
+     */
     public <T> void putSync(T t) {
         List<Deferred<Object>> putDeferreds = this.putObjAsync(this.hbaseAnnotationParse.parsePutRequestEntity(t));
         (new HbaseAsyncResponse(putDeferreds)).join();
     }
 
+    /**
+     * 批量异步
+     */
     public <T> HBaseTemplate.HbaseAsyncResponse put(List<T> t) {
         List<Deferred<Object>> deferreds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(t)) {
@@ -92,9 +91,7 @@ public class HBaseTemplate implements DisposableBean {
                     i++;
                 }
                 String family = familyGroupInfo.getKey();
-                PutRequest putRequest =
-                    new PutRequest(hbasePutEntity.getTableName(), hbasePutEntity.getKey(), Bytes.toBytes(family), qualifiers, values,
-                        hbasePutEntity.getVersion());
+                PutRequest putRequest = new PutRequest(hbasePutEntity.getTableName(), hbasePutEntity.getKey(), Bytes.toBytes(family), qualifiers, values, hbasePutEntity.getVersion());
                 Deferred<Object> deferred = this.client.put(putRequest);
                 results.add(deferred);
             }

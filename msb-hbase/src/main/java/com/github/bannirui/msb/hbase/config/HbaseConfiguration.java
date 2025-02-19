@@ -3,22 +3,33 @@ package com.github.bannirui.msb.hbase.config;
 import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.plugin.InterceptorUtil;
 import com.github.bannirui.msb.register.AbstractBeanRegistrar;
-import java.util.Arrays;
-import java.util.Properties;
+import io.leopard.javahost.JavaHost;
 import org.apache.commons.lang3.StringUtils;
 import org.hbase.async.Config;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
+import java.util.Arrays;
+import java.util.Properties;
+
 public class HbaseConfiguration extends AbstractBeanRegistrar {
 
+    /**
+     * 缓存hbase配置 从msb配置文件中读取出来进行缓存
+     * <ul>
+     *     <li>key host</li>
+     *     <li>val ip</li>
+     * </ul>
+     */
     private static final Properties props = new Properties();
 
     @Override
     public void registerBeans() {
+        // 缓存hbase host配置
         this.initHbaseHost();
     }
 
+    @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
         try {
             HBaseTemplate proxyObj = InterceptorUtil.getProxyObj(HBaseTemplate.class, new Class[] {Config.class, HbaseAnnotationParse.class}, new Object[] {this.getConfig(), new HbaseAnnotationParse()}, "HBase.Command");
@@ -124,20 +135,30 @@ public class HbaseConfiguration extends AbstractBeanRegistrar {
         return config;
     }
 
+    /**
+     * 从msb配置文件中读取hbase host配置缓存起来
+     */
     protected void initHbaseHost() {
-        if (StringUtils.isNotEmpty(this.getProperty("hbase.host"))) {
-            try {
-                String hbaseHost = this.getProperty("hbase.host");
-                String[] hosts = hbaseHost.split(";");
-                Arrays.stream(hosts).forEach((host) -> {
-                    String[] domainNameAndIp = host.split(":");
-                    props.put(domainNameAndIp[0].toLowerCase(), domainNameAndIp[1]);
-                });
-                // TODO: 2025/2/17 jvm虚拟化dns
-                // JavaHost.updateVirtualDns(props);
-            } catch (Exception e) {
-                throw FrameworkException.getInstance("hbase.host虚拟dns映射失败 正确配置按照格式配置 hbase.host=host1:127.0.0.1;host2:127.0.0.1");
-            }
+        /**
+         * msb配置的hbase host 格式为
+         * host:ip
+         * 多个用;分割
+         * host1:ip1;host2:ip2
+         */
+        String hbaseHost = this.getProperty("hbase.host");
+        if(StringUtils.isEmpty(hbaseHost)) {
+            return;
+        }
+        try {
+            String[] hosts = hbaseHost.split(";");
+            Arrays.stream(hosts).forEach((host) -> {
+                String[] domainNameAndIp = host.split(":");
+                props.put(domainNameAndIp[0].toLowerCase(), domainNameAndIp[1]);
+            });
+            // jvm虚拟化dns
+             JavaHost.updateVirtualDns(props);
+        } catch (Exception e) {
+            throw FrameworkException.getInstance("hbase.host虚拟dns映射失败 正确配置按照格式配置 hbase.host=host1:127.0.0.1;host2:127.0.0.1");
         }
     }
 }

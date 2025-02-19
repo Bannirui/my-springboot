@@ -23,7 +23,7 @@ A framework based on SpringBoot, focusing on different section
 
 - [x] 基于SpringBoot
 - [x] 远程配置中心
-- [x] 整合功能 注解式场景启动(@EnableXXX)
+- [x] 整合一站式功能 注解式场景启动(@EnableXXX)
     - [X] @EnableMsbFramework启用框架
     - [X] @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git) [关于Apollo的部署](https://bannirui.github.io/2024/11/19/Docker/%E5%AE%89%E8%A3%85Apollo/))
     - [X] @EnableMsbLog启用日志框架(接入[美团点评的Cat](https://github.com/dianping/cat.git) [关于Cat的部署](https://bannirui.github.io/2024/11/26/Docker/%E5%AE%89%E8%A3%85Cat/))
@@ -33,6 +33,7 @@ A framework based on SpringBoot, focusing on different section
     - [X] @EnableMyBatisPlus启用mybatis-plus
     - [ ] @EnableShardingJdbc启用分库表
     - [X] @EnableMsbDubbo启用dubbo
+    - [X] @EnableHbase启用hbase
 
 ### 2 VM/启动参数
 

@@ -11,42 +11,55 @@ import com.github.bannirui.msb.hbase.metadata.HBaseEntityMetadata;
 import com.github.bannirui.msb.hbase.metadata.HColumnInfo;
 import com.github.bannirui.msb.hbase.util.Bytes;
 import com.github.bannirui.msb.hbase.util.TypeUtil;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hbase.async.DeleteRequest;
 import org.hbase.async.GetRequest;
 import org.hbase.async.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.*;
+
 public class HbaseAnnotationParse {
-    private static final Logger logger = LoggerFactory.getLogger(HbaseAnnotationParse.class);
     private static final Map<Class<? extends HbaseCellDataCodec>, HbaseCellDataCodec> CODEC_INSTANCES_CACHE = new ConcurrentReferenceHashMap<>();
+    /**
+     * 缓存了java实体对应的hbase表信息
+     * <ul>
+     *     <li>key java实体类</li>
+     *     <li>value hbase表信息</li>
+     * </ul>
+     */
     private static final Map<Class<?>, HBaseEntityMetadata> CLAZZMETADATA_CACHE = new ConcurrentReferenceHashMap<>(64);
 
+    /**
+     * java实体映射的hbase表信息 没有缓存的情况下懒加载进行缓存
+     * @param clazz java实体
+     * @return java实体映射的hbase信息
+     */
     public HBaseEntityMetadata getEntityMetadata(Class<?> clazz) {
         HBaseEntityMetadata cachedMetadata = CLAZZMETADATA_CACHE.get(clazz);
-        return cachedMetadata != null ? cachedMetadata :
-            CLAZZMETADATA_CACHE.computeIfAbsent(clazz, (clazz1) -> this.parseEntityMetadata(clazz1, HBaseEntityMetadata.class));
+        return cachedMetadata != null ? cachedMetadata : CLAZZMETADATA_CACHE.computeIfAbsent(clazz, (k) -> this.parseEntityMetadata(k, HBaseEntityMetadata.class));
     }
 
+    /**
+     * 从java实体中解析出hbase信息
+     * @param tableClazz Java实体 是hbase的表
+     * @param metadataClass hbase信息
+     */
     protected HBaseEntityMetadata parseEntityMetadata(Class<?> tableClazz, Class<? extends HBaseEntityMetadata> metadataClass) {
+        // entity用注解标识是hbase实体
         HTable hTable = tableClazz.getAnnotation(HTable.class);
         if (hTable == null) {
             throw FrameworkException.getInstance("Hbase实体注解解析错误 请在类上注解@HTable");
         }
         HBaseEntityMetadata metadata = BeanUtils.instantiateClass(metadataClass);
+        // 缓存hbase的列 key是列簇#列
         HashMap<String, HColumnInfo> hcolumnInfos = new HashMap<>();
+        // hbase实体的成员 rowkey 列 版本号
         ReflectionUtils.doWithFields(tableClazz, (field) -> {
             if (field.getAnnotation(HColumn.class) != null) {
                 HColumn hcolumn = field.getAnnotation(HColumn.class);
@@ -58,16 +71,15 @@ public class HbaseAnnotationParse {
                 }
                 ReflectionUtils.makeAccessible(field);
                 HColumnInfo hColumnInfo = new HColumnInfo(Bytes.toBytes(family), Bytes.toBytes(qualifier), field);
+                // 列缓存起来
                 hcolumnInfos.put(hColumnFieldId, hColumnInfo);
             } else if (field.getAnnotation(HRowKey.class) != null) {
                 if (!this.isHRowKeySupportType(field.getType())) {
-                    throw FrameworkException.getInstance("Hbase实体注解解析错误 @HRowKey: " + field.getName() + "属性的类型必须为String"
-                    );
+                    throw FrameworkException.getInstance("Hbase实体注解解析错误 @HRowKey: " + field.getName() + "属性的类型必须为String");
                 }
                 if (metadata.getRowKeyField() != null) {
                     throw FrameworkException.getInstance("Hbase实体注解解析错误 @HRowKey注解只能有一个");
                 }
-
                 ReflectionUtils.makeAccessible(field);
                 metadata.setRowKeyField(field);
             } else if (field.getAnnotation(HVersion.class) != null) {
@@ -84,9 +96,11 @@ public class HbaseAnnotationParse {
         if (metadata.getRowKeyField() == null) {
             throw FrameworkException.getInstance("Hbase实体注解解析错误 必须有一个@HRowKey属性");
         } else {
+            // hbase实体
             metadata.setTabClass(tableClazz);
-            metadata.setTabName(Bytes.toBytes(hTable.name()));
+            // hbase表名
             metadata.setTableName(hTable.name());
+            // hbase列
             metadata.setHcolumnInfos(hcolumnInfos);
             return metadata;
         }
@@ -111,8 +125,8 @@ public class HbaseAnnotationParse {
             Map<String, List<HbasePutEntity.PutInfo>> columnsValue = this.getColumnsValueGroupByFamily(entity);
             hbasePutEntity.setGroupedPutInfos(columnsValue);
             return hbasePutEntity;
-        } catch (IllegalAccessException var6) {
-            throw FrameworkException.getInstance(var6, "读取Hbase实体属性值时发生异常", new Object[0]);
+        } catch (IllegalAccessException e) {
+            throw FrameworkException.getInstance(e, "读取Hbase实体属性值时发生异常");
         }
     }
 
@@ -159,7 +173,7 @@ public class HbaseAnnotationParse {
         String qualifier = new String(keyValue.qualifier());
         Field field = null;
         if (metadata.getHcolumnInfos() != null) {
-            HColumnInfo hColumnInfo = (HColumnInfo) metadata.getHcolumnInfos().get(this.getHColumnFieldId(family, qualifier));
+            HColumnInfo hColumnInfo = metadata.getHcolumnInfos().get(this.getHColumnFieldId(family, qualifier));
             field = hColumnInfo != null ? hColumnInfo.getField() : null;
         }
         return field;
@@ -183,8 +197,18 @@ public class HbaseAnnotationParse {
         }
     }
 
+    /**
+     * @return key是列簇 value是列簇下列
+     */
     private <T> Map<String, List<HbasePutEntity.PutInfo>> getColumnsValueGroupByFamily(T entity) throws IllegalAccessException {
+        /**
+         * 从被{@link HTable}注解的java实体中解析出hbase表信息
+         */
         HBaseEntityMetadata metadata = this.getEntityMetadata(entity.getClass());
+        /**
+         * key是列簇
+         * value是列簇下的列
+         */
         HashMap<String, List<HbasePutEntity.PutInfo>> columnsValueGroupByFamily = new HashMap<>();
         Collection<HColumnInfo> hcolumnFields = metadata.getHcolumnInfos().values();
         for (HColumnInfo hcolumnInfo : hcolumnFields) {
@@ -202,15 +226,34 @@ public class HbaseAnnotationParse {
         return columnsValueGroupByFamily;
     }
 
+    /**
+     * hbase列名 注解{@link HColumn}打在java实体成员字段上 解析出行hbase的列名
+     * 注解指定了列名就用指定的 没有指定就用java成员名作为hbase列名
+     * @param field {@link HColumn}注解的java实体字段
+     * @param hcolumn 从{@link HColumn}注解解析出hbase列名
+     * @return hbase列名
+     */
     public String determineQualifier(Field field, HColumn hcolumn) {
         String columnName = hcolumn.name();
-        return columnName != null && !columnName.trim().equals("") ? columnName : field.getName();
+        return Objects.nonNull(columnName) && StringUtils.isNotBlank(columnName) ? columnName : field.getName();
     }
 
+    /**
+     * 拼接列簇跟列名
+     * @param family 列簇
+     * @param qualifier 列名
+     * @return ${family}#${qualifier}
+     */
     public String getHColumnFieldId(String family, String qualifier) {
         return family + "#" + qualifier;
     }
 
+    /**
+     * java实体字段序列化
+     * @param field java实体字段
+     * @param value java类型的值
+     * @return 字节数组 跟hbase交互使用
+     */
     private byte[] objectToBytes(Field field, Object value) {
         if (value instanceof Date) {
             Date date = (Date) value;
@@ -245,6 +288,12 @@ public class HbaseAnnotationParse {
         }
     }
 
+    /**
+     * hbase响应反序列化java实体字段
+     * @param field java实体字段
+     * @param bytes hbase响应
+     * @return java类型
+     */
     private Object bytesToObject(Field field, byte[] bytes) {
         if (bytes == null) {
             return null;
@@ -280,34 +329,39 @@ public class HbaseAnnotationParse {
         }
     }
 
+    /**
+     * rowkey
+     */
     private <T> byte[] getRowkeyValue(T entity, HBaseEntityMetadata metadata) throws IllegalAccessException {
         Field rowKeyField = metadata.getRowKeyField();
         Object rowKeyValue = rowKeyField.get(entity);
-        if (rowKeyValue != null && !rowKeyValue.toString().trim().equals("")) {
-            return Bytes.toBytes(rowKeyValue.toString());
-        } else {
-            throw FrameworkException.getInstance("Hbase实体注解解析错误 " + rowKeyField.getName() + "属性的值不能为空", new Object[0]);
+        // rowkey有效性
+        if(Objects.isNull(rowKeyValue) || StringUtils.isBlank(rowKeyField.toString())) {
+            throw FrameworkException.getInstance("Hbase实体注解解析错误 " + rowKeyField.getName() + "属性的值不能为空");
         }
+        return Bytes.toBytes(rowKeyValue.toString());
     }
 
+    /**
+     * hbase版本号
+     */
     private <T> long getVersionValue(T entity, HBaseEntityMetadata metadata) throws IllegalAccessException {
         Field versionField = metadata.getVersionField();
+        /**
+         * 没有在java实体中用注解{@link HVersion}注解标识默认版本号0
+         */
         if (versionField == null) {
             return 0L;
         } else {
             Object v = versionField.get(entity);
-            if (v == null) {
-                return 0L;
-            } else {
-                return (Long) v;
-            }
+            return Objects.isNull(v) ? 0L : (Long) v;
         }
     }
 
     public static boolean isWrapClass(Class<?> clz) {
         try {
             return ((Class<?>) clz.getField("TYPE").get(null)).isPrimitive();
-        } catch (Exception var2) {
+        } catch (Exception e) {
             return false;
         }
     }

@@ -58,8 +58,8 @@ public abstract class MsbImportSelectorController implements ImportSelector {
         MsbMybatis("EnableMyBatis", "EnableMyBatisImportSelector"),
         MsbMybatisPlus("EnableMyBatisPlus", "EnableMyBatisPlusImportSelector"),
         MsbShardingJdbc("EnableShardingJdbc", "EnableShardingJdbcImportSelector"),
-        MsbDubbo("ComponentImportSelector", "EnableDubbo"),
-        MsbHbase("EnableHbaseImportSelector","EnableHbase"),
+        MsbDubbo("EnableDubbo", "ComponentImportSelector"),
+        MsbHbase("EnableHbase","EnableHbaseImportSelector"),
         ;
 
         private final String starter;

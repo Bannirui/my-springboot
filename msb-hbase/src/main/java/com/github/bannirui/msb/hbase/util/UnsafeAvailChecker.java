@@ -1,11 +1,12 @@
 package com.github.bannirui.msb.hbase.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UnsafeAvailChecker {
     private static final String CLASS_NAME = "sun.misc.Unsafe";
@@ -38,7 +39,7 @@ public class UnsafeAvailChecker {
                 Class<?> clazz = Class.forName("java.nio.Bits");
                 Method m = clazz.getDeclaredMethod("unaligned");
                 m.setAccessible(true);
-                unaligned = (Boolean)m.invoke((Object)null);
+                unaligned = (Boolean)m.invoke(null);
             } catch (Exception e) {
                 LOG.warn("java.nio.Bits#unaligned() check failed.Unsafe based read/write of primitive types won't be used", e);
             }
