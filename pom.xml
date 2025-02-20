@@ -324,6 +324,36 @@
                 <artifactId>javahost</artifactId>
                 <version>0.9.12</version>
             </dependency>
+            <!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch -->
+            <dependency>
+                <groupId>org.elasticsearch</groupId>
+                <artifactId>elasticsearch</artifactId>
+                <version>8.17.2</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.elasticsearch.client/elasticsearch-rest-client -->
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>8.17.2</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.elasticsearch.client/elasticsearch-rest-high-level-client -->
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-high-level-client</artifactId>
+                <version>7.17.27</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.elasticsearch.client/transport -->
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>transport</artifactId>
+                <version>7.17.27</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.elasticsearch.plugin/transport-netty4-client -->
+            <dependency>
+                <groupId>org.elasticsearch.plugin</groupId>
+                <artifactId>transport-netty4-client</artifactId>
+                <version>7.17.27</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

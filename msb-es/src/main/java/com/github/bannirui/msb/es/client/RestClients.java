@@ -105,9 +105,7 @@ public class RestClients {
                 if (!entity.isRepeatable()) {
                     entityRequest.setEntity(new ByteArrayEntity(buffer.toByteArray()));
                 }
-                ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "", () -> {
-                    return new String(buffer.toByteArray());
-                });
+                ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "", () -> new String(buffer.toByteArray()));
             } else {
                 ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "");
             }
