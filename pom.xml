@@ -354,6 +354,12 @@
                 <artifactId>transport-netty4-client</artifactId>
                 <version>7.17.27</version>
             </dependency>
+            <!-- https://mvnrepository.com/artifact/co.elastic.clients/elasticsearch-java -->
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>8.17.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

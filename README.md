@@ -34,6 +34,7 @@ A framework based on SpringBoot, focusing on different section
     - [ ] @EnableShardingJdbc启用分库表
     - [X] @EnableMsbDubbo启用dubbo
     - [X] @EnableHbase启用hbase
+    - [X] @EnableEs启用es
 
 ### 2 VM/启动参数
 

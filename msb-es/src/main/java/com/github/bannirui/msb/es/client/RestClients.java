@@ -1,23 +1,6 @@
 package com.github.bannirui.msb.es.client;
 
 import com.github.bannirui.msb.plugin.InterceptorUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.*;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.support.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.util.Assert;
-
-import javax.net.ssl.SSLContext;
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -25,6 +8,19 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.net.ssl.SSLContext;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.message.BasicHeader;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.data.elasticsearch.client.ClientConfiguration;
+import org.springframework.data.elasticsearch.support.HttpHeaders;
+import org.springframework.util.Assert;
 
 public class RestClients {
     private static final String LOG_ID_ATTRIBUTE = RestClients.class.getName() + ".LOG_ID";
@@ -46,11 +42,6 @@ public class RestClients {
         builder.setHttpClientConfigCallback((clientBuilder) -> {
             Optional<SSLContext> sslContext = clientConfiguration.getSslContext();
             sslContext.ifPresent(clientBuilder::setSSLContext);
-            if (ClientLogger.isEnabled()) {
-                RestClients.HttpLoggingInterceptor interceptor = new RestClients.HttpLoggingInterceptor();
-                clientBuilder.addInterceptorLast(interceptor);
-                clientBuilder.addInterceptorLast(interceptor);
-            }
             Duration connectTimeout = clientConfiguration.getConnectTimeout();
             Duration timeout = clientConfiguration.getSocketTimeout();
             RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
@@ -70,7 +61,7 @@ public class RestClients {
                 try {
                     Class<?> aClass = Class.forName(connectionKeepAliveStrategyClass);
                     if (aClass != null && ConnectionKeepAliveStrategy.class.isAssignableFrom(aClass)) {
-                        Object o = aClass.newInstance();
+                        Object o = aClass.getDeclaredConstructor().newInstance();
                         clientBuilder.setKeepAliveStrategy((ConnectionKeepAliveStrategy)o);
                     }
                 } catch (Exception e) {
@@ -85,37 +76,6 @@ public class RestClients {
 
     private static List<String> formattedHosts(List<InetSocketAddress> hosts, boolean useSsl) {
         return hosts.stream().map((it) -> (useSsl ? "https" : "http") + "://" + it).collect(Collectors.toList());
-    }
-
-    private static class HttpLoggingInterceptor implements HttpResponseInterceptor, HttpRequestInterceptor {
-        private HttpLoggingInterceptor() {
-        }
-
-        @Override
-        public void process(HttpRequest httpRequest, HttpContext httpContext) throws HttpException, IOException {
-            String logId = (String)httpContext.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
-            if (logId == null) {
-                logId = ClientLogger.newLogId();
-                httpContext.setAttribute(RestClients.LOG_ID_ATTRIBUTE, logId);
-            }
-            if (httpContext instanceof HttpEntityEnclosingRequest entityRequest && entityRequest.getEntity() != null) {
-                HttpEntity entity = entityRequest.getEntity();
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                entity.writeTo(buffer);
-                if (!entity.isRepeatable()) {
-                    entityRequest.setEntity(new ByteArrayEntity(buffer.toByteArray()));
-                }
-                ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "", () -> new String(buffer.toByteArray()));
-            } else {
-                ClientLogger.logRequest(logId, httpRequest.getRequestLine().getMethod(), httpRequest.getRequestLine().getUri(), "");
-            }
-        }
-
-        @Override
-        public void process(HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-            String logId = (String)httpContext.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
-            ClientLogger.logRawResponse(logId, HttpStatus.resolve(httpResponse.getStatusLine().getStatusCode()));
-        }
     }
 
     @FunctionalInterface

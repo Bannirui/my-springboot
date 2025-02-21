@@ -38,3 +38,4 @@ replay_pid*
 
 *.iml
 **/.flattened-pom.xml
+**pom-xml-flattened
