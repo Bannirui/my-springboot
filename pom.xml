@@ -42,9 +42,9 @@
         <module>msb-dubbo</module>
         <module>msb-hbase</module>
         <module>msb-es</module>
+        <module>msb-http</module>
 
         <module>msb-web</module>
-        <module>msb-http</module>
         <module>msb-sso</module>
     </modules>
 

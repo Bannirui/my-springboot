@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.http.annotation;
 
-import com.github.bannirui.msb.http.autoconfig.MyHttpImportSelectorController;
+import com.github.bannirui.msb.http.autoconfig.HttpImportSelector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,6 +16,6 @@ import org.springframework.context.annotation.Import;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@Import({MyHttpImportSelectorController.class})
-public @interface EnableMyHttp {
+@Import({HttpImportSelector.class})
+public @interface EnableHttp {
 }

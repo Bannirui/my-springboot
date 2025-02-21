@@ -1,0 +1,1 @@
+org.springframework.context.ApplicationListener=com.github.bannirui.msb.http.listener.HttpClientApplicationListener

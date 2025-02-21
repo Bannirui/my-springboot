@@ -30,6 +30,12 @@ public class PropertyBinder {
         this.binder = new Binder(this.getConfigurationPropertySources(), this.getPropertySourcesPlaceholdersResolver());
     }
 
+    /**
+     * 根据配置前缀将配置映射到java对象
+     * @param configPrefix 配置前缀
+     * @param target 配置映射到java实体
+     * @return java对象
+     */
     public <T> BindResult<T> bind(String configPrefix, Class<T> target) {
         return this.bind(configPrefix, Bindable.of(target));
     }

@@ -22,7 +22,7 @@ A framework based on SpringBoot, focusing on different section
 ### 1 特性
 
 - [x] 基于SpringBoot
-- [x] 远程配置中心
+- [x] 远程配置中心接入@Value使用
 - [x] 整合一站式功能 注解式场景启动(@EnableXXX)
     - [X] @EnableMsbFramework启用框架
     - [X] @EnableMsbConfig启用配置中心(接入[携程的Apollo](https://github.com/apolloconfig/apollo.git) [关于Apollo的部署](https://bannirui.github.io/2024/11/19/Docker/%E5%AE%89%E8%A3%85Apollo/))
@@ -35,6 +35,7 @@ A framework based on SpringBoot, focusing on different section
     - [X] @EnableMsbDubbo启用dubbo
     - [X] @EnableHbase启用hbase
     - [X] @EnableEs启用es
+    - [X] @EnableHttp启用http
 
 ### 2 VM/启动参数
 
