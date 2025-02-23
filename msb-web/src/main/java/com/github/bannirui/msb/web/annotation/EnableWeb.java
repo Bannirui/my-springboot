@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.web.annotation;
 
-import com.github.bannirui.msb.web.autoconfig.MyWebImportSelectorController;
+import com.github.bannirui.msb.web.autoconfig.WebImportSelectorController;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,6 +16,9 @@ import org.springframework.context.annotation.Import;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-@Import({MyWebImportSelectorController.class})
-public @interface EnableMyWeb {
+@Import({WebImportSelectorController.class})
+public @interface EnableWeb {
+    String sessionType() default "com.github.bannirui.msb.web.session.MapSessionStorageImpl";
+
+    String sessionStrategy() default "COOKIE";
 }

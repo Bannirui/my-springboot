@@ -63,6 +63,7 @@ public abstract class MsbImportSelectorController implements ImportSelector {
         MsbEs("EnableEs", "EnableEsImportSelector"),
         MsbHttp("EnableHttp", "HttpImportSelector"),
         MsbDfs("EnableDFS", "EnableDfsImportSelector"),
+        MsbWeb("EnableWeb", "WebImportSelectorController"),
         ;
 
         private final String starter;
