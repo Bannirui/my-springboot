@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.github.bannirui.msb.cache.autoconfig.CacheAutoConfiguration,\
+com.github.bannirui.msb.cache.redis.autoconfig.DynamicRedisAutoConfiguration

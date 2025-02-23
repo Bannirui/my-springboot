@@ -36,6 +36,7 @@ A framework based on SpringBoot, focusing on different section
     - [X] @EnableHbase启用hbase
     - [X] @EnableEs启用es
     - [X] @EnableHttp启用http
+    - [X] @CacheConfigOptions配置缓存
 
 ### 2 VM/启动参数
 
