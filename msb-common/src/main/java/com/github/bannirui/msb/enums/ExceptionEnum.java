@@ -20,9 +20,20 @@ public enum ExceptionEnum implements ErrorCode {
     HTTP_ANNOTATION_PARAM_ERROR("SOA_003", "每个注解必须与形参相对应"),
     HTTP_NNOTATION_LACK_ERROR("SOA_004", "目标方法必须标注一个注解(HttpExecute或HttpJsonExecute)"),
     HTTP_ANNOTATION_ERROR("SOA_005", "目标方法只能标注一个注解(HttpExecute或HttpJsonExecute)"),
+    HTTP_REQUEST_ERROR("SOA_006", "HTTP请求错误,errorMessage:{0}"),
     HTTP_REQUEST_CONSTRUCTOR_ERROR("SOA_007", "Http 请求body构造器配置异常 必须为HttpRequestBodyConstructor 的实现类并注册为spring容器管理的bean"),
     HTTP_REQUEST_ENTITY_ERROR("SOA_008", "Http请求实体错误"),
     HTTP_CONSTRUCTOR_CREATE_ERROR("SOA_009", "Http请求构造器创建错误"),
+
+    DFS_SECRET_NOT_FIND("DFS_003", "fastDfs的secret没有在配置中找到"),
+    DFS_APPID_NOT_FIND("DFS_004", "appid没有在配置中找到"),
+    DFS_UPLOAD_FILE_UNREADABLE("DFS_007", "请检查本地文件是否有读取权限或者是否存在"),
+    DFS_UPLOAD_BYTE_UNREADABLE("DFS_008", "byte[]不可读取"),
+    DFS_FILENAME_NOT_NULL("DFS_009", "FileName不能为空"),
+    DFS_FILE_TO_BYTE_ERROR("DFS_010", "{0}File转byte[]失败"),
+    DFS_DELETE_PARAM_NOT_NULL("DFS_011", "accessToken或remoteFileId不能为空"),
+    DFS_SECURITY_TOKEN_NOT_NULL("DFS_012", "securityToken不允许为null,StsResult:{0}"),
+    DFS_FILE_TO_INPUTSTREAM_ERROR("DFS_013", "{0}File转InputStream失败"),
     ;
 
     private final String code;

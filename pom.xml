@@ -43,10 +43,11 @@
         <module>msb-hbase</module>
         <module>msb-es</module>
         <module>msb-http</module>
+        <module>msb-cache</module>
+        <module>msb-dfs</module>
 
         <module>msb-web</module>
         <module>msb-sso</module>
-        <module>msb-cache</module>
     </modules>
 
     <properties>
@@ -75,6 +76,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>msb-log</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-http</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
