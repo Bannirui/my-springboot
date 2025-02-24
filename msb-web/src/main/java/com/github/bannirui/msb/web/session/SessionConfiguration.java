@@ -12,12 +12,20 @@ import org.springframework.core.env.Environment;
 import org.springframework.session.config.annotation.web.http.SpringHttpSessionConfiguration;
 import org.springframework.util.ClassUtils;
 
+import java.util.Objects;
+
 @Configuration
 public class SessionConfiguration extends SpringHttpSessionConfiguration implements EnvironmentAware {
     protected ConfigurableEnvironment env;
-    public static String sessionStorageClass = "com.zto.titans.web.session.MapSessionStorageImpl";
-    public static String sessionType = "COOKIE";
+    /**
+     * session的持久化实现{@link MapSessionStorageImpl}的类
+     */
+    public static String sessionStorageClass = MapSessionStorageImpl.class.getName();
+    /**
+     * session的持久化实现{@link MapSessionStorageImpl}对象
+     */
     private ISessionStorage sessionStorage;
+    public static String sessionType = "COOKIE";
 
     @Override
     public void setEnvironment(Environment environment) {
@@ -32,17 +40,21 @@ public class SessionConfiguration extends SpringHttpSessionConfiguration impleme
 
     @Bean
     public IUserInfoService userInfoService() {
-        ISessionStorage sessionStorage = this.getSessionStorage();
+        this.sessionStorage = this.getSessionStorage();
         return new UserInfoService(this.env, this.sessionStorage);
     }
 
+    /**
+     * {@link MapSessionStorageImpl}实例对象
+     */
     private ISessionStorage getSessionStorage() {
-        if (this.sessionStorage != null) {
+        if (Objects.nonNull(this.sessionStorage)) {
             return this.sessionStorage;
         }
+        // 反射实例化缓存起来
         Class storageClass = null;
         try {
-            storageClass = ClassUtils.forName(sessionStorageClass, this.getClass().getClassLoader());
+            storageClass = ClassUtils.forName(this.sessionStorageClass, this.getClass().getClassLoader());
         } catch (ClassNotFoundException e) {
             throw FrameworkException.getInstance(e, "load sessionStorageClass error:" + sessionStorageClass);
         }

@@ -316,8 +316,8 @@ public class ZfeFilter implements Filter {
         if (this.getSsoLogMethod() != null) {
             try {
                 this.getSsoLogMethod().invoke(this.logger, message);
-            } catch (Exception var3) {
-                this.logger.warn("SSO logSSOMsg throws exception", var3);
+            } catch (Exception e) {
+                this.logger.warn("SSO logSSOMsg throws exception", e);
             }
         }
     }

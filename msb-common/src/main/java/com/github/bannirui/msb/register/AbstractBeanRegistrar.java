@@ -1,7 +1,6 @@
 package com.github.bannirui.msb.register;
 
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
-import java.util.Objects;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -14,6 +13,8 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
+
+import java.util.Objects;
 
 public abstract class AbstractBeanRegistrar implements ApplicationContextAware, BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
@@ -109,7 +110,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
     }
 
     /**
-     * 读取配置优先级 JVM->远程配置中心->本地配置文件
+     * 读取msb配置优先级 JVM->远程配置中心->本地配置文件
      */
     public String getProperty(String key) {
         return MsbEnvironmentMgr.getProperty(key);

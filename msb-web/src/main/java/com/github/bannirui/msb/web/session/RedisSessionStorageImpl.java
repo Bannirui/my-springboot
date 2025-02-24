@@ -1,18 +1,20 @@
 package com.github.bannirui.msb.web.session;
 
 import com.github.bannirui.msb.env.MsbEnvironmentMgr;
+import com.github.bannirui.msb.web.filter.User;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.TimeoutOptions;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
 import io.lettuce.core.resource.ClientResources;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
@@ -23,7 +25,15 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * session缓存的redis实现
+ */
 public class RedisSessionStorageImpl implements ISessionStorage {
     private static Logger log = LoggerFactory.getLogger(RedisSessionStorageImpl.class);
     private final String namespace;
@@ -33,11 +43,13 @@ public class RedisSessionStorageImpl implements ISessionStorage {
     private ClientResources clientResources;
 
     public RedisSessionStorageImpl(ConfigurableEnvironment env) {
-        TitansSessionRedisProperties sessionRedisProperties =
-            Binder.get(env).bind("titans.session.redis", TitansSessionRedisProperties.class).orElse(new TitansSessionRedisProperties());
+        /**
+         * 从msb配置中解析出redis配置
+         */
+        SessionRedisProperties sessionRedisProperties = Binder.get(env).bind(SessionRedisProperties.PREFIX, SessionRedisProperties.class).orElse(new SessionRedisProperties());
         this.namespace = sessionRedisProperties.getNamespace() != null ? sessionRedisProperties.getNamespace() + "_v4" : MsbEnvironmentMgr.getAppName() + "_v4";
-        SessionLettuceClusterProperties lettuceClusterProperties = (SessionLettuceClusterProperties)Binder.get(env).bind("session.redis.lettuce.cluster", SessionLettuceClusterProperties.class).orElse(new SessionLettuceClusterProperties());
-        TitansSessionRedisProperties.Cluster cluster = sessionRedisProperties.getCluster();
+        SessionLettuceClusterProperties lettuceClusterProperties = Binder.get(env).bind("session.redis.lettuce.cluster", SessionLettuceClusterProperties.class).orElse(new SessionLettuceClusterProperties());
+        SessionRedisProperties.Cluster cluster = sessionRedisProperties.getCluster();
         Object clientOptions;
         if (cluster != null) {
             ClusterClientOptions.Builder builder = ClusterClientOptions.builder();
@@ -61,7 +73,7 @@ public class RedisSessionStorageImpl implements ISessionStorage {
             clientOptions = builder.build();
         }
         this.clientResources = ClientResources.builder().ioThreadPoolSize(sessionRedisProperties.getLettuceIoThreadPoolSize()).computationThreadPoolSize(sessionRedisProperties.getLettuceComputationThreadPoolSize()).build();
-        LettuceClientConfiguration.LettuceClientConfigurationBuilder lettuceClientConfigurationBuilder = LettuceClientConfiguration.builder().clientName("redis-httpSession").clientOptions((ClientOptions)clientOptions).clientResources(this.clientResources);
+        LettuceClientConfiguration.LettuceClientConfigurationBuilder lettuceClientConfigurationBuilder = LettuceClientConfiguration.builder().clientName("redis-httpSession").clientOptions((ClientOptions) clientOptions).clientResources(this.clientResources);
         if (sessionRedisProperties.getLettuceShutdownTimeout() != null) {
             lettuceClientConfigurationBuilder.shutdownTimeout(sessionRedisProperties.getLettuceShutdownTimeout());
         }
@@ -83,7 +95,7 @@ public class RedisSessionStorageImpl implements ISessionStorage {
         this.openIdSetOperations = strTemplate.opsForSet();
     }
 
-    private LettuceConnectionFactory newLettuceConnectionFactory(TitansSessionRedisProperties sessionRedisProperties, LettuceClientConfiguration lettuceConfig) {
+    private LettuceConnectionFactory newLettuceConnectionFactory(SessionRedisProperties sessionRedisProperties, LettuceClientConfiguration lettuceConfig) {
         RedisStandaloneConfiguration standaloneConfig = this.getStandaloneConfig(sessionRedisProperties);
         if (standaloneConfig != null) {
             return new LettuceConnectionFactory(standaloneConfig, lettuceConfig);
@@ -103,7 +115,7 @@ public class RedisSessionStorageImpl implements ISessionStorage {
         this.hashOperations.getOperations().delete(this.getSessionId(id));
         String openId = this.getOpenId(id);
         if (openId != null) {
-            this.openIdSetOperations.remove(openId, new Object[]{this.getSessionId(id)});
+            this.openIdSetOperations.remove(openId, this.getSessionId(id));
         }
     }
 
@@ -141,17 +153,13 @@ public class RedisSessionStorageImpl implements ISessionStorage {
 
     private String getOpenId(String sessionId) {
         Map<String, Object> map = this.hashOperations.entries(sessionId);
-        if (map != null) {
-            Iterator var3 = map.entrySet().iterator();
-            while(var3.hasNext()) {
-                Entry<String, Object> entry = (Entry)var3.next();
-                String k = (String)entry.getKey();
-                Object v = entry.getValue();
-                if ("SPRING_SECURITY_CONTEXT".equals(k) && v instanceof SecurityContext && ((SecurityContext)v).getAuthentication() instanceof User) {
-                    User user = (User)((SecurityContext)v).getAuthentication();
-                    String openId = (String)user.getProperties("openid");
-                    return this.formatOpenId(openId);
-                }
+        if(Objects.isNull(map)) return null;
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String k = entry.getKey();
+            Object v = entry.getValue();
+            if ("SPRING_SECURITY_CONTEXT".equals(k) && v instanceof SecurityContext && ((SecurityContext) v).getAuthentication() instanceof User user) {
+                String openId = (String) user.getProperties("openid");
+                return this.formatOpenId(openId);
             }
         }
         return null;
@@ -160,74 +168,46 @@ public class RedisSessionStorageImpl implements ISessionStorage {
     @Override
     public void put(String id, String key, Object value) {
         this.hashOperations.put(this.getSessionId(id), key, value);
-        if ("SPRING_SECURITY_CONTEXT".equals(key) && value instanceof SecurityContext && ((SecurityContext)value).getAuthentication() instanceof User) {
-            Use user = (User)((SecurityContext)value).getAuthentication();
-            String openid = this.formatOpenId((String)user.getProperties("openid"));
+        if ("SPRING_SECURITY_CONTEXT".equals(key) && value instanceof SecurityContext && ((SecurityContext) value).getAuthentication() instanceof User user) {
+            String openid = this.formatOpenId((String) user.getProperties("openid"));
             if (openid != null) {
-                this.openIdSetOperations.add(openid, new String[]{id});
+                this.openIdSetOperations.add(openid, id);
             }
         }
-
     }
 
+    @Override
     public List<User> getUser(String openId) {
         Set<String> sessionIdSet = this.openIdSetOperations.members(this.formatOpenId(openId));
-        if (sessionIdSet != null && sessionIdSet.size() != 0) {
-            List<User> users = new ArrayList();
-            Iterator var4 = sessionIdSet.iterator();
-
-            while(true) {
-                Map map;
-                do {
-                    if (!var4.hasNext()) {
-                        return users;
-                    }
-
-                    String sessionId = (String)var4.next();
-                    map = this.hashOperations.entries(this.getSessionId(sessionId));
-                } while(map == null);
-
-                Iterator var7 = map.entrySet().iterator();
-
-                while(var7.hasNext()) {
-                    Entry<String, Object> entry = (Entry)var7.next();
-                    String k = (String)entry.getKey();
-                    Object v = entry.getValue();
-                    if ("SPRING_SECURITY_CONTEXT".equals(k) && ((SecurityContext)v).getAuthentication() instanceof User) {
-                        User user = (User)((SecurityContext)v).getAuthentication();
-                        users.add(user);
-                    }
-                }
-            }
-        } else {
+        if (CollectionUtils.isEmpty(sessionIdSet)) {
             return null;
         }
+        List<User> users = new ArrayList<>();
+        for (String sessionId : sessionIdSet) {
+            Map<String, Object> map = this.hashOperations.entries(this.getSessionId(sessionId));
+            if (Objects.isNull(map)) continue;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                String k = entry.getKey();
+                Object v = entry.getValue();
+                if ("SPRING_SECURITY_CONTEXT".equals(k) && ((SecurityContext) v).getAuthentication() instanceof User user) {
+                    users.add(user);
+                }
+            }
+        }
+        return users;
     }
 
+    @Override
     public void updateUser(List<User> users) {
-        if (users != null && users.size() != 0) {
-            Iterator var2 = users.iterator();
-
-            User user;
-            Set sessionIdSet;
-            do {
-                if (!var2.hasNext()) {
-                    return;
-                }
-
-                user = (User)var2.next();
-                String openid = user.getOpenid();
-                sessionIdSet = this.openIdSetOperations.members(this.formatOpenId(openid));
-            } while(sessionIdSet == null || sessionIdSet.size() == 0);
-
-            Iterator var6 = sessionIdSet.iterator();
-
-            while(var6.hasNext()) {
-                String sessionId = (String)var6.next();
+        if (CollectionUtils.isEmpty(users)) return;
+        for (User user : users) {
+            String openid = user.getOpenid();
+            Set<String> sessionIdSet = this.openIdSetOperations.members(this.formatOpenId(openid));
+            if (CollectionUtils.isEmpty(sessionIdSet)) continue;
+            for (String sessionId : sessionIdSet) {
                 SecurityContextHolder.getContext().setAuthentication(user);
                 this.hashOperations.put(this.getSessionId(sessionId), "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
             }
-
         }
     }
 
@@ -235,10 +215,12 @@ public class RedisSessionStorageImpl implements ISessionStorage {
         return this.namespace + ":" + openId;
     }
 
+    @Override
     public void remove(String id, String attributeName) {
-        this.hashOperations.delete(this.getSessionId(id), new Object[]{attributeName});
+        this.hashOperations.delete(this.getSessionId(id), attributeName);
     }
 
+    @Override
     public void destroy() {
         this.clientResources.shutdown();
     }
@@ -247,50 +229,42 @@ public class RedisSessionStorageImpl implements ISessionStorage {
         return this.namespace + ":" + id;
     }
 
-    private RedisStandaloneConfiguration getStandaloneConfig(TitansSessionRedisProperties redisProperties) {
-        if (StringUtils.hasText(redisProperties.getHost())) {
-            RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-            config.setHostName(redisProperties.getHost());
-            config.setPort(redisProperties.getPort());
-            config.setPassword(RedisPassword.of(redisProperties.getPassword()));
-            config.setDatabase(redisProperties.getDatabase());
-            return config;
-        } else {
-            return null;
-        }
+    private RedisStandaloneConfiguration getStandaloneConfig(SessionRedisProperties redisProperties) {
+        if (StringUtils.isBlank(redisProperties.getHost())) return null;
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(redisProperties.getHost());
+        config.setPort(redisProperties.getPort());
+        config.setPassword(RedisPassword.of(redisProperties.getPassword()));
+        config.setDatabase(redisProperties.getDatabase());
+        return config;
     }
 
-    private RedisSentinelConfiguration getSentinelConfig(TitansSessionRedisProperties redisProperties) {
+    private RedisSentinelConfiguration getSentinelConfig(SessionRedisProperties redisProperties) {
         if (redisProperties.getSentinel() == null) {
             return null;
-        } else {
-            Sentinel sentinelProperties = redisProperties.getSentinel();
-            Set<String> sentinelHostAndPorts = new HashSet(sentinelProperties.getNodes());
-            RedisSentinelConfiguration config = new RedisSentinelConfiguration(sentinelProperties.getMaster(), sentinelHostAndPorts);
-            if (redisProperties.getPassword() != null) {
-                config.setPassword(RedisPassword.of(redisProperties.getPassword()));
-            }
-
-            config.setDatabase(redisProperties.getDatabase());
-            return config;
         }
+        SessionRedisProperties.Sentinel sentinelProperties = redisProperties.getSentinel();
+        Set<String> sentinelHostAndPorts = new HashSet<>(sentinelProperties.getNodes());
+        RedisSentinelConfiguration config = new RedisSentinelConfiguration(sentinelProperties.getMaster(), sentinelHostAndPorts);
+        if (redisProperties.getPassword() != null) {
+            config.setPassword(RedisPassword.of(redisProperties.getPassword()));
+        }
+        config.setDatabase(redisProperties.getDatabase());
+        return config;
     }
 
-    private RedisClusterConfiguration getClusterConfiguration(TitansSessionRedisProperties redisProperties) {
+    private RedisClusterConfiguration getClusterConfiguration(SessionRedisProperties redisProperties) {
         if (redisProperties.getCluster() == null) {
             return null;
-        } else {
-            Cluster clusterProperties = redisProperties.getCluster();
-            RedisClusterConfiguration config = new RedisClusterConfiguration(clusterProperties.getNodes());
-            if (clusterProperties.getMaxRedirects() != null) {
-                config.setMaxRedirects(clusterProperties.getMaxRedirects());
-            }
-
-            if (redisProperties.getPassword() != null) {
-                config.setPassword(RedisPassword.of(redisProperties.getPassword()));
-            }
-
-            return config;
         }
+        SessionRedisProperties.Cluster clusterProperties = redisProperties.getCluster();
+        RedisClusterConfiguration config = new RedisClusterConfiguration(clusterProperties.getNodes());
+        if (clusterProperties.getMaxRedirects() != null) {
+            config.setMaxRedirects(clusterProperties.getMaxRedirects());
+        }
+        if (redisProperties.getPassword() != null) {
+            config.setPassword(RedisPassword.of(redisProperties.getPassword()));
+        }
+        return config;
     }
 }

@@ -1,16 +1,17 @@
 package com.github.bannirui.msb.web.filter;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Set;
-import javax.servlet.Filter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.Filter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.context.SecurityContextRepository;
 
-public interface TitansSSOFilter extends Filter, AuthenticationEntryPoint {
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Set;
+
+public interface SSOFilter extends Filter, AuthenticationEntryPoint {
     String buildRedirectFrontUrl(HttpServletRequest request, HttpServletResponse response);
 
     void processEntryPoint(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException;

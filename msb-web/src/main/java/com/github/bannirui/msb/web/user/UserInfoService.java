@@ -5,11 +5,6 @@ import com.github.bannirui.msb.util.DigestUtil;
 import com.github.bannirui.msb.web.filter.User;
 import com.github.bannirui.msb.web.session.ISessionStorage;
 import com.github.bannirui.msb.web.util.HttpUtils;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +12,12 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class UserInfoService implements IUserInfoService {
     private Logger logger = LoggerFactory.getLogger(UserInfoService.class);
@@ -60,7 +61,6 @@ public class UserInfoService implements IUserInfoService {
                 }
                 this.sessionStorage.updateUser(existUserList);
                 return true;
-                return false;
             }
         } catch (IOException e) {
             this.logger.error("获取sso用户权限IO异常", e);

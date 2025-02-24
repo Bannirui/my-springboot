@@ -7,24 +7,9 @@ import com.github.bannirui.msb.web.util.HttpUtils;
 import com.github.bannirui.msb.web.util.RequestUtil;
 import com.github.bannirui.msb.web.util.Token;
 import com.github.bannirui.msb.web.util.TokenUtils;
-import com.thoughtworks.xstream.core.util.Base64Encoder;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Base64;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +20,11 @@ import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 
-public class LoginAndLogoutFilter implements TitansSSOFilter {
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.*;
+
+public class LoginAndLogoutFilter implements SSOFilter {
     private final Logger logger = LoggerFactory.getLogger(LoginAndLogoutFilter.class);
     private static final String URL_FORMAT = "%s%s?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s";
     public static final String LOGIN_URL = "/login";
@@ -63,7 +52,7 @@ public class LoginAndLogoutFilter implements TitansSSOFilter {
     private SecurityContextRepository repo;
     private String ssoRedirecturl;
     private String ssoRedirectUrlOrUri;
-    private Set<String> ssoRedirectDomainSets = new HashSet();
+    private Set<String> ssoRedirectDomainSets = new HashSet<>();
     private Method ssoLogMethod = null;
     private Random random = new Random();
 
@@ -181,10 +170,6 @@ public class LoginAndLogoutFilter implements TitansSSOFilter {
     @Override
     public void destroy() {
         EXCLUDE_URI.clear();
-    }
-
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        this.processEntryPoint(request, response, authException);
     }
 
     @Override
@@ -463,5 +448,10 @@ public class LoginAndLogoutFilter implements TitansSSOFilter {
                 logger.warn("SSO logSSOMsg throws exception", e);
             }
         }
+    }
+
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, jakarta.servlet.ServletException {
+        this.processEntryPoint(request, response, authException);
     }
 }

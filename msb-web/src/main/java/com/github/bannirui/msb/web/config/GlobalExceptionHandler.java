@@ -1,11 +1,28 @@
 package com.github.bannirui.msb.web.config;
 
+import com.github.bannirui.msb.entity.Result;
+import com.github.bannirui.msb.ex.BaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.net.UnknownHostException;
+import java.util.List;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    public GlobalExceptionHandler() {
-    }
 
     @ResponseBody
     @ExceptionHandler({Exception.class})
@@ -28,34 +45,13 @@ public class GlobalExceptionHandler {
                 BindException bindException = (BindException)e;
                 BindingResult bindingResult = bindException.getBindingResult();
                 List<ObjectError> list = bindingResult.getAllErrors();
-                Iterator var14 = list.iterator();
-
-                while(var14.hasNext()) {
-                    ObjectError error = (ObjectError)var14.next();
+                for (ObjectError error : list) {
                     strBuilder.append(error.getDefaultMessage() + "\n");
                 }
-
                 result.setStatusCode("PARAM_ERROR");
                 result.setMessage(strBuilder.toString());
                 return result;
             }
-
-            if (e instanceof ConstraintViolationException) {
-                ConstraintViolationException constraintViolationException = (ConstraintViolationException)e;
-                Set<ConstraintViolation<?>> violations = constraintViolationException.getConstraintViolations();
-                StringBuilder strBuilder = new StringBuilder();
-                Iterator var6 = violations.iterator();
-
-                while(var6.hasNext()) {
-                    ConstraintViolation<?> violation = (ConstraintViolation)var6.next();
-                    strBuilder.append(violation.getMessage() + "\n");
-                }
-
-                result.setStatusCode("PARAM_ERROR");
-                result.setMessage(strBuilder.toString());
-                return result;
-            }
-
             if (e instanceof ServletRequestBindingException) {
                 result.setStatusCode("PARAM_ERROR");
                 result.setMessage("请求参数绑定异常" + e.getMessage());
@@ -80,7 +76,6 @@ public class GlobalExceptionHandler {
                 logger.error("未知异常", e);
             }
         }
-
         return result;
     }
 }

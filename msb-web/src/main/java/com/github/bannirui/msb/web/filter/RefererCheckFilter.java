@@ -3,18 +3,14 @@ package com.github.bannirui.msb.web.filter;
 import com.alibaba.fastjson.JSON;
 import com.github.bannirui.msb.entity.Result;
 import com.github.bannirui.msb.util.UrlUtil;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 
 public class RefererCheckFilter implements Filter {
     public static final String REFERER_CHECK_WHITE = "titans.web.referer";

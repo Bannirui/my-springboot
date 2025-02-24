@@ -115,7 +115,7 @@ public class MsbEnvironmentMgr {
     }
 
     /**
-     * 配置优先级
+     * 读取msb配置优先级
      * <ul>
      *     <li>jvm环境变量</li>
      *     <li>远程配置</li>

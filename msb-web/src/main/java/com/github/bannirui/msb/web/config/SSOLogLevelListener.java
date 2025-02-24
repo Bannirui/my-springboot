@@ -1,17 +1,17 @@
 package com.github.bannirui.msb.web.config;
 
-@TitanConfigChangeListener(
+import com.github.bannirui.msb.annotation.EnableMsbConfigChangeListener;
+import org.springframework.context.ApplicationContext;
+
+@EnableMsbConfigChangeListener(
     methods = {"changeSSOLogLevel"}
 )
 public class SSOLogLevelListener {
-    public SSOLogLevelListener() {
-    }
 
     public void changeSSOLogLevel(SSOLogLevelEntity logLevelEntity, ApplicationContext context) {
-        SSOConfig ssoConfig = (SSOConfig)context.getBean(SSOConfig.class);
+        SSOConfig ssoConfig = context.getBean(SSOConfig.class);
         if (ssoConfig != null) {
             ssoConfig.setSsoLogLevelString(logLevelEntity.getLogLevel());
         }
-
     }
 }

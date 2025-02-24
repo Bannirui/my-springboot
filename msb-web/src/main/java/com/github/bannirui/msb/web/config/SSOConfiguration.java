@@ -5,46 +5,79 @@ import com.github.bannirui.msb.plugin.PluginConfigManager;
 import com.github.bannirui.msb.plugin.PluginDecorator;
 import com.github.bannirui.msb.register.AbstractBeanRegistrar;
 import com.github.bannirui.msb.register.BeanDefinition;
-import com.github.bannirui.msb.web.filter.TitansSSOFilter;
+import com.github.bannirui.msb.web.filter.LoginAndLogoutFilter;
+import com.github.bannirui.msb.web.filter.SSOFilter;
 import com.github.bannirui.msb.web.filter.ZfeFilter;
 import com.github.bannirui.msb.web.session.web.TitansCookieSerializer;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import jakarta.servlet.Filter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.session.web.http.CookieSerializer;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
     prePostEnabled = true
 )
 public class SSOConfiguration extends AbstractBeanRegistrar {
-    private static final String END_FILTER_NAME = "com.zto.titans.endpoint.web.EndpointFilter";
-    private static final String SAME_SITE_NONE = "titans.web.sameSiteNone";
+    private static final String END_FILTER_NAME = "com.github.bannirui.msb.endpoint.web.EndpointFilter";
+    private static final String SAME_SITE_NONE = "msb.web.sameSiteNone";
     private static Environment environment;
 
     @Override
     public void registerBeans() {
         this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(PermissionService.class).setBeanName("permissionService"));
         Set<String> ssoFilterSet = PluginConfigManager.getPropertyValueSet("sso.filter");
-        String titansSSOFilterName = null;
+        String ssoFilterName = null;
         if (ssoFilterSet != null && !ssoFilterSet.isEmpty()) {
-            titansSSOFilterName = ssoFilterSet.iterator().next();
+            ssoFilterName = ssoFilterSet.iterator().next();
         }
-        if (StringUtils.isEmpty(titansSSOFilterName)) {
-            titansSSOFilterName = "com.github.bannirui.msb.web.filter.LoginAndLogoutFilter";
+        if (StringUtils.isEmpty(ssoFilterName)) {
+            ssoFilterName = LoginAndLogoutFilter.class.getName();
         }
         try {
-            TitansSSOFilter titansSSOFilter = (TitansSSOFilter)Class.forName(titansSSOFilterName).newInstance();
-            ZfeFilter zfeFilter = (ZfeFilter)Class.forName("com.github.bannirui.msb.web.filter.ZfeFilter").newInstance();
-            this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(SSOConfig.class).addPropertyValue("indexUrl", this.getProperty("sso.indexUrl")).addPropertyValue("ssoUrl", this.getProperty("sso.ssoUrl")).addPropertyValue("url", this.getProperty("sso.url")).addPropertyValue("appId", this.getProperty("sso.appId")).addPropertyValue("secret", this.getProperty("sso.secret")).addPropertyValue("loginResource", this.getProperty("sso.loginResource")).addPropertyValue("tokenResource", this.getProperty("sso.tokenResource")).addPropertyValue("zfeTokenResource", this.getProperty("sso.zfeTokenResource")).addPropertyValue("userResource", this.getProperty("sso.userResource")).addPropertyValue("staticResource", this.getProperty("sso.staticResource")).addPropertyValue("maxInactiveInterval", this.getProperty("sso.maxInactiveInterval")).addPropertyValue("scope", this.getProperty("sso.scope")).addPropertyValue("menuUrl", this.getProperty("sso.menuUrl")).addPropertyValue("ssoRedirectUrl", this.getProperty("sso.redirectUrl")).addPropertyValue("forceHttps", this.getPropertyAsBoolean("sso.forceHttps")).addPropertyValue("corsAllowedOrigins", this.getProperty("sso.cors.allowedOrigins")).addPropertyValue("corsAllowedMethod", this.getProperty("sso.cors.allowedMethod")).addPropertyValue("corsPath", this.getProperty("sso.cors.path")).addPropertyValue("ssoRedirectUrlOrUri", this.getProperty("sso.redirect.urloruri")).addPropertyValue("ssoRedirectDomains", this.getProperty("sso.redirect.domains")).addPropertyValue("permHistoryUrl", this.getProperty("sso.permHistoryUrl")).addPropertyValue("permissionFetchUrl", this.getProperty("sso.permissionFetchUrl")).addPropertyValue("ssoLogLevelString", this.getProperty("sso.logLevel")).addPropertyValue("ssoSessionMaxLife", this.getProperty("sso.sessionMaxLifeTime")).addPropertyValue("enableZfe", this.getPropertyAsBoolean("sso.enableZfe")).addPropertyValue("titansSSOFilter", titansSSOFilter).addPropertyValue("zfeFilter", zfeFilter));
+            SSOFilter ssoFilter = (SSOFilter)Class.forName(ssoFilterName).newInstance();
+            ZfeFilter zfeFilter = (ZfeFilter)Class.forName(ZfeFilter.class.getName()).newInstance();
+            super.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(SSOConfig.class)
+                    .addPropertyValue("indexUrl", super.getProperty("sso.indexUrl"))
+                    .addPropertyValue("ssoUrl", super.getProperty("sso.ssoUrl"))
+                    .addPropertyValue("url", super.getProperty("sso.url"))
+                    .addPropertyValue("appId", super.getProperty("sso.appId"))
+                    .addPropertyValue("secret", super.getProperty("sso.secret"))
+                    .addPropertyValue("loginResource", super.getProperty("sso.loginResource"))
+                    .addPropertyValue("tokenResource", super.getProperty("sso.tokenResource"))
+                    .addPropertyValue("zfeTokenResource", super.getProperty("sso.zfeTokenResource"))
+                    .addPropertyValue("userResource", super.getProperty("sso.userResource"))
+                    .addPropertyValue("staticResource", super.getProperty("sso.staticResource"))
+                    .addPropertyValue("maxInactiveInterval", super.getProperty("sso.maxInactiveInterval"))
+                    .addPropertyValue("scope", super.getProperty("sso.scope"))
+                    .addPropertyValue("menuUrl", super.getProperty("sso.menuUrl"))
+                    .addPropertyValue("ssoRedirectUrl", super.getProperty("sso.redirectUrl"))
+                    .addPropertyValue("forceHttps", super.getPropertyAsBoolean("sso.forceHttps"))
+                    .addPropertyValue("corsAllowedOrigins", super.getProperty("sso.cors.allowedOrigins"))
+                    .addPropertyValue("corsAllowedMethod", super.getProperty("sso.cors.allowedMethod"))
+                    .addPropertyValue("corsPath", super.getProperty("sso.cors.path"))
+                    .addPropertyValue("ssoRedirectUrlOrUri", super.getProperty("sso.redirect.urloruri"))
+                    .addPropertyValue("ssoRedirectDomains", super.getProperty("sso.redirect.domains"))
+                    .addPropertyValue("permHistoryUrl", super.getProperty("sso.permHistoryUrl"))
+                    .addPropertyValue("permissionFetchUrl", super.getProperty("sso.permissionFetchUrl"))
+                    .addPropertyValue("ssoLogLevelString", super.getProperty("sso.logLevel"))
+                    .addPropertyValue("ssoSessionMaxLife", super.getProperty("sso.sessionMaxLifeTime"))
+                    .addPropertyValue("enableZfe", super.getPropertyAsBoolean("sso.enableZfe"))
+                    .addPropertyValue("ssoFilter", ssoFilter)
+                    .addPropertyValue("zfeFilter", zfeFilter));
         } catch (Exception e) {
-            throw FrameworkException.getInstance(e, "TitansSSOFilter 加载失败， 相关处理类为[{0}]!", titansSSOFilterName);
+            throw FrameworkException.getInstance(e, "SSOFilter加载失败 相关处理类为[{0}]!", ssoFilterName);
         }
-        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(GlobalExceptionHandler.class));
+        super.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(GlobalExceptionHandler.class));
         List<PluginDecorator<Class<?>>> filterClasses = PluginConfigManager.getOrderedPluginClasses(Filter.class.getName(), true);
         int i = 0;
         for (PluginDecorator<Class<?>> pd : filterClasses) {
@@ -62,7 +95,7 @@ public class SSOConfiguration extends AbstractBeanRegistrar {
                     this.registerSingleFilterWithOrder(clazz, i++);
                 }
             } catch (Exception e) {
-                throw FrameworkException.getInstance(e, "Web Filter插件加载异常,请检查[{0}]", "javax.servlet.Filter");
+                throw FrameworkException.getInstance(e, "Web Filter插件加载异常 请检查[{0}]", "javax.servlet.Filter");
             }
         }
 
@@ -80,12 +113,20 @@ public class SSOConfiguration extends AbstractBeanRegistrar {
 
     private void registerSingleFilterWithOrder(Class clazz, int order) throws Exception {
         String className = clazz.getName();
-        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(FilterRegistrationBean.class).addPropertyValue("filter", clazz.newInstance()).addPropertyValue("urlPatterns", Lists.newArrayList(new String[]{"/*"})).addPropertyValue("name", className.substring(className.lastIndexOf(".") + 1)).addPropertyValue("order", order).setBeanName(className));
+        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(FilterRegistrationBean.class)
+                .addPropertyValue("filter", clazz.newInstance())
+                .addPropertyValue("urlPatterns", new ArrayList<String>(){{add("/*");}})
+                .addPropertyValue("name", className.substring(className.lastIndexOf(".") + 1))
+                .addPropertyValue("order", order).setBeanName(className));
     }
 
     private void registerSingleFilterWithParameterAndOrder(Class clazz, LinkedHashMap<String, String> initParameters, int order) throws Exception {
         String className = clazz.getName();
-        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(FilterRegistrationBean.class).addPropertyValue("filter", clazz.newInstance()).addPropertyValue("urlPatterns", Lists.newArrayList(new String[]{"/*"})).addPropertyValue("name", className.substring(className.lastIndexOf(".") + 1)).addPropertyValue("initParameters", initParameters).addPropertyValue("order", order).setBeanName(className));
+        this.registerBeanDefinitionIfNotExists(BeanDefinition.newInstance(FilterRegistrationBean.class).addPropertyValue("filter", clazz.newInstance())
+                .addPropertyValue("urlPatterns", new ArrayList<String>(){{add("/*");}})
+                .addPropertyValue("name", className.substring(className.lastIndexOf(".") + 1))
+                .addPropertyValue("initParameters", initParameters)
+                .addPropertyValue("order", order).setBeanName(className));
     }
 
     @Bean

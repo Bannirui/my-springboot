@@ -1,23 +1,27 @@
 package com.github.bannirui.msb.web.session;
 
-import java.time.Duration;
-import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
+import java.util.List;
+
+/**
+ * {@link RedisSessionStorageImpl}实现方式在redis上 就涉及redis的连接信息
+ */
 @ConfigurationProperties(
-    prefix = "titans.session.redis"
+    prefix = "session.redis"
 )
-public class TitansSessionRedisProperties {
-    public static final String PREFIX = "titans.session.redis";
-    public static final String SESSION_TIMEOUT = "titans.session.redis.session-timeout";
+public class SessionRedisProperties {
+    public static final String PREFIX = "session.redis";
+    public static final String SESSION_TIMEOUT = "session.redis.session-timeout";
     private int database = 0;
     private String host;
     private String password;
     private int port = 6379;
     private boolean ssl;
     private Duration sessionTimeout;
-    private TitansSessionRedisProperties.Sentinel sentinel;
-    private TitansSessionRedisProperties.Cluster cluster;
+    private SessionRedisProperties.Sentinel sentinel;
+    private SessionRedisProperties.Cluster cluster;
     private String namespace;
     private Duration lettuceCommandTimeout;
     private Duration lettuceShutdownTimeout;
@@ -73,19 +77,19 @@ public class TitansSessionRedisProperties {
         this.sessionTimeout = sessionTimeout;
     }
 
-    public TitansSessionRedisProperties.Sentinel getSentinel() {
+    public SessionRedisProperties.Sentinel getSentinel() {
         return this.sentinel;
     }
 
-    public void setSentinel(TitansSessionRedisProperties.Sentinel sentinel) {
+    public void setSentinel(SessionRedisProperties.Sentinel sentinel) {
         this.sentinel = sentinel;
     }
 
-    public TitansSessionRedisProperties.Cluster getCluster() {
+    public SessionRedisProperties.Cluster getCluster() {
         return this.cluster;
     }
 
-    public void setCluster(TitansSessionRedisProperties.Cluster cluster) {
+    public void setCluster(SessionRedisProperties.Cluster cluster) {
         this.cluster = cluster;
     }
 

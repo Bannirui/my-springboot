@@ -2,23 +2,12 @@ package com.github.bannirui.msb.web.session;
 
 import com.alibaba.fastjson.JSON;
 import com.github.bannirui.msb.util.DigestUtil;
+import com.github.bannirui.msb.web.entity.UpdateUserResult;
+import com.github.bannirui.msb.web.filter.User;
 import com.github.bannirui.msb.web.util.HttpUtils;
-import java.io.IOException;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.common.utils.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -27,6 +16,15 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.session.Session;
 import org.springframework.session.SessionRepository;
+
+import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SessionRepositoryImpl implements SessionRepository<SessionRepositoryImpl.RedisSession>, DisposableBean {
     private Logger logger = LoggerFactory.getLogger(SessionRepositoryImpl.class);
@@ -47,7 +45,7 @@ public class SessionRepositoryImpl implements SessionRepository<SessionRepositor
         });
         String ssoSessionMaxLife = env.getProperty("sso.sessionMaxLifeTime", "604800");
         if (StringUtils.isNotBlank(ssoSessionMaxLife)) {
-            this.ssoSessionMaxLife = Duration.ofSeconds((long)Integer.parseInt(ssoSessionMaxLife));
+            this.ssoSessionMaxLife = Duration.ofSeconds(Integer.parseInt(ssoSessionMaxLife));
         }
         this.sessionStorage = sessionStorage;
         boolean enablePermissionFetch = env.getProperty("sso.enablePermissionFetch", Boolean.TYPE, true);
@@ -65,7 +63,7 @@ public class SessionRepositoryImpl implements SessionRepository<SessionRepositor
         String appSecret = env.getProperty("sso.secret");
         String permHistoryUrl = env.getProperty("sso.permHistoryUrl");
         String permissionFetchUrl = env.getProperty("sso.permissionFetchUrl");
-        Integer fetchSize = 1000;
+        Integer fetchSize = 1_000;
         Long fetchInterval;
         try {
             fetchInterval = env.getProperty("sso.fetchInterval", Long.class);
@@ -77,32 +75,23 @@ public class SessionRepositoryImpl implements SessionRepository<SessionRepositor
         } catch (Exception e) {
             fetchSize = 1_000;
         }
-        this.scheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("PermissionUpdateScheduler"));
+        this.scheduler = new ScheduledThreadPoolExecutor(1);
+        Integer finalFetchSize = fetchSize;
         this.scheduler.scheduleAtFixedRate(() -> {
             Map<String, Object> params = new HashMap<>();
             params.put("appid", appId);
-            params.put("pagesize", fetchSize);
+            params.put("pagesize", finalFetchSize);
             params.put("from_timestamp", this.fromTimeStamp);
             try {
                 String str = HttpUtils.doGet(permHistoryUrl, params, 1000, 2000);
-                UpdateUserResult result = (UpdateUserResult)JsonUtil.parse(str, UpdateUserResult.class);
+                UpdateUserResult result = JSON.parseObject(str, UpdateUserResult.class);
                 if (result.getTotal() > 0L) {
                     List<Map<String, Object>> users = result.getUsers();
-                    Iterator var10 = users.iterator();
-                    while(true) {
-                        String openId;
-                        List existUserList;
-                        do {
-                            do {
-                                if (!var10.hasNext()) {
-                                    return;
-                                }
-                                Map<String, Object> user = (Map)var10.next();
-                                openId = (String)user.get("openid");
-                                this.fromTimeStamp = (Long)user.get("updated_at");
-                                existUserList = this.sessionStorage.getUser(openId);
-                            } while(existUserList == null);
-                        } while(existUserList.size() == 0);
+                    for (Map<String, Object> user : users) {
+                        String openId = (String)user.get("openid");
+                        this.fromTimeStamp = (Long)user.get("updated_at");
+                        List<User> existUserList = this.sessionStorage.getUser(openId);
+                        if(CollectionUtils.isEmpty(existUserList)) continue;
                         String url = permissionFetchUrl + openId;
                         long timestamp = System.currentTimeMillis();
                         Map<String, String> headerMap = new HashMap<>();
@@ -111,15 +100,13 @@ public class SessionRepositoryImpl implements SessionRepository<SessionRepositor
                         headerMap.put("X-Sign", DigestUtil.digest("openid=" + openId + timestamp, appSecret, "UTF-8"));
                         String permissionStr = HttpUtils.doGet(url, null, "UTF-8", headerMap, 1_000, 2_000);
                         Map<String, Object> permissionMap = (Map) JSON.parseObject(permissionStr, HashMap.class);
-                        Iterator var20 = existUserList.iterator();
-                        while(var20.hasNext()) {
-                            User existUser = (User)var20.next();
+                        for (User existUser : existUserList) {
                             existUser.updatePermissions(permissionMap);
                         }
                         this.sessionStorage.updateUser(existUserList);
                     }
                 } else {
-                    this.fromTimeStamp = System.currentTimeMillis() - 1000L;
+                    this.fromTimeStamp = System.currentTimeMillis() - 1_000L;
                 }
             } catch (IOException e) {
                 this.logger.error("更新权限数据异常", e);
@@ -135,11 +122,9 @@ public class SessionRepositoryImpl implements SessionRepository<SessionRepositor
         if (this.defaultMaxInactiveInterval != null) {
             session.setMaxInactiveInterval(this.defaultMaxInactiveInterval);
         }
-
         if (this.ssoSessionMaxLife != null) {
             session.setMaxLife(this.ssoSessionMaxLife);
         }
-
         return session;
     }
 
@@ -208,7 +193,7 @@ public class SessionRepositoryImpl implements SessionRepository<SessionRepositor
         }
 
         public RedisSession(String sessionId) {
-            this(sessionId, (Map)null);
+            this(sessionId, null);
             SessionRepositoryImpl.this.sessionStorage.save(this.getId(), this.getSessionAttrs());
             SessionRepositoryImpl.this.sessionStorage.ttl(this.getId(), (int)this.maxInactiveInterval.getSeconds());
         }

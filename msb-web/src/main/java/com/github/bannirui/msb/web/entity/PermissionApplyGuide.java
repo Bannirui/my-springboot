@@ -1,5 +1,10 @@
 package com.github.bannirui.msb.web.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.io.Serializable;
+import java.util.List;
+
 public class PermissionApplyGuide implements Serializable {
     private static final long serialVersionUID = -2858385649457114273L;
     private String image;
@@ -11,9 +16,6 @@ public class PermissionApplyGuide implements Serializable {
     )
     private String applyHyperlink;
     private List<Informant> informant;
-
-    public PermissionApplyGuide() {
-    }
 
     public String getImage() {
         return this.image;

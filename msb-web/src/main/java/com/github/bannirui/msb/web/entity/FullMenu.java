@@ -1,5 +1,10 @@
 package com.github.bannirui.msb.web.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.io.Serializable;
+import java.util.List;
+
 public class FullMenu implements Serializable {
     private static final long serialVersionUID = -3516317789336372120L;
     private Boolean display;
@@ -43,9 +48,6 @@ public class FullMenu implements Serializable {
     )
     private String[] accessPermissionArr;
     private List<FullMenu> children;
-
-    public FullMenu() {
-    }
 
     public Boolean getDisplay() {
         return this.display;

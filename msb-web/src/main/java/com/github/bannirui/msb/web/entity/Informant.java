@@ -1,5 +1,9 @@
 package com.github.bannirui.msb.web.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.io.Serializable;
+
 public class Informant implements Serializable {
     private static final long serialVersionUID = -3217506222284354585L;
     private String name;
@@ -9,9 +13,6 @@ public class Informant implements Serializable {
     )
     private String userId;
     private String mobile;
-
-    public Informant() {
-    }
 
     public String getName() {
         return this.name;

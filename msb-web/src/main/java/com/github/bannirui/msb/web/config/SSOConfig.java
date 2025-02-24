@@ -1,143 +1,197 @@
 package com.github.bannirui.msb.web.config;
 
-public class SSOConfig extends WebSecurityConfigurerAdapter {
+import com.alibaba.fastjson.JSONObject;
+import com.github.bannirui.msb.entity.Result;
+import com.github.bannirui.msb.enums.ExceptionEnum;
+import com.github.bannirui.msb.ex.ErrorCodeException;
+import com.github.bannirui.msb.web.filter.SSOFilter;
+import com.github.bannirui.msb.web.filter.ZfeFilter;
+import com.github.bannirui.msb.web.util.RequestUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * 各成员由msb配置文件指定 前缀是sso
+ */
+public class SSOConfig extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
     private static Logger log = LoggerFactory.getLogger(SSOConfig.class);
+
+    // sso.indexUrl
     private String indexUrl;
+    // sso.ssoUrl
     private String ssoUrl;
+    // sso.url
     private String url;
+    // sso.appId
     private String appId;
+    // sso.secret
     private String secret;
+    // sso.loginResource
     private String loginResource;
+    // sso.tokenResource
     private String tokenResource;
+    // sso.zfeTokenResource
     private String zfeTokenResource;
+    // sso.userResource
     private String userResource;
+    // sso.staticResource
     private String staticResource;
+    // sso.maxInactiveInterval
     private Integer maxInactiveInterval;
+    // sso.scope
     private String scope;
+    // sso.menuUrl
     private String menuUrl;
+    // sso.redirectUrl
     private String ssoRedirectUrl;
+    // sso.forceHttps
     private Boolean forceHttps;
+    // sso.cors.allowedOrigins
     private String corsAllowedOrigins;
+    // sso.cors.allowedMethod
     private String corsAllowedMethod;
+    // sso.cors.path
     private String corsPath;
+    // sso.redirect.urloruri
     private String ssoRedirectUrlOrUri;
-    private TitansSSOFilter titansSSOFilter;
+    private SSOFilter SSOFilter;
     private ZfeFilter zfeFilter;
+    // sso.redicret.domains
     private String ssoRedirectDomains;
     private String ssoLogLevelString;
+    // sso.permHistoryUrl
     private String permHistoryUrl;
+    // sso.permissionFetchUrl
     private String permissionFetchUrl;
+    // sso.sessionMaxLifeTime
     private Integer ssoSessionMaxLife;
+    // sso.enableZfe
     private Boolean enableZfe;
 
-    public SSOConfig() {
-    }
-
-    protected void configure(HttpSecurity http) throws Exception {
-        if (this.getTitansSSOFilter() == null) {
-            throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "TitansSSOFilter is empty!"});
-        } else {
-            String[] pathArray;
-            if (this.getCorsAllowedOrigins() != null && this.getCorsAllowedMethod() != null && this.getCorsPath() != null) {
-                CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList(this.getCorsAllowedOrigins().split(",")));
-                configuration.setAllowedMethods(Arrays.asList(this.getCorsAllowedMethod().split(",")));
-                configuration.applyPermitDefaultValues();
-                configuration.setAllowCredentials(true);
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                String[] paths = this.getCorsPath().split(",");
-                pathArray = paths;
-                int var6 = paths.length;
-
-                for(int var7 = 0; var7 < var6; ++var7) {
-                    String path = pathArray[var7];
-                    source.registerCorsConfiguration(path, configuration);
-                }
-
-                http.cors().configurationSource(source);
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        if (this.getSSOFilter() == null) {
+            throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "ssoFilter is empty!");
+        }
+        String[] pathArray;
+        if (this.getCorsAllowedOrigins() != null && this.getCorsAllowedMethod() != null && this.getCorsPath() != null) {
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(this.getCorsAllowedOrigins().split(",")));
+            configuration.setAllowedMethods(Arrays.asList(this.getCorsAllowedMethod().split(",")));
+            configuration.applyPermitDefaultValues();
+            configuration.setAllowCredentials(true);
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            String[] paths = this.getCorsPath().split(",");
+            for (String path : paths) {
+                source.registerCorsConfiguration(path, configuration);
             }
-
-            if (!StringUtil.isEmpty(this.getAppId()) && !StringUtil.isEmpty(this.getSecret())) {
-                if (StringUtil.isEmpty(this.getSsoUrl())) {
-                    throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "ssoUrl=[" + this.getSsoUrl() + "]"});
-                } else {
-                    String logoutRedirectUrl;
-                    if (this.ssoUrl.contains("test")) {
-                        logoutRedirectUrl = "/logout-test.html";
-                    } else {
-                        logoutRedirectUrl = "/logout.html";
-                    }
-
-                    if (StringUtil.isEmpty(this.loginResource)) {
-                        throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "loginResource=[" + this.loginResource + "]"});
-                    } else if (StringUtil.isEmpty(this.getTokenResource())) {
-                        throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "tokenResource=[" + this.getTokenResource() + "]"});
-                    } else if (StringUtil.isEmpty(this.getUserResource())) {
-                        throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "userResource=[" + this.getUserResource() + "]"});
-                    } else if (StringUtil.isEmpty(this.getStaticResource())) {
-                        throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "staticResource=[" + this.getStaticResource() + "]"});
-                    } else if (this.getMaxInactiveInterval() == null) {
-                        throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "maxInactiveInterval=[" + this.getMaxInactiveInterval() + "]"});
-                    } else if (StringUtil.isEmpty(this.getMenuUrl())) {
-                        throw new ErrorCodeException(ExceptionEnum.PARAMETER_EXCEPTION, new Object[]{"SSO", "menuUrl=[" + this.getMenuUrl() + "]"});
-                    } else {
-                        Set<String> ssoRedirectDomainSet = new HashSet();
-                        if (StringUtil.isNotEmpty(this.getSsoRedirectDomains())) {
-                            ssoRedirectDomainSet = new HashSet(Arrays.asList(this.getSsoRedirectDomains().split(";")));
-                        }
-
-                        this.staticResource = "/logout,/login," + logoutRedirectUrl + "," + this.staticResource;
-                        HttpSessionSecurityContextRepository httpSessionSecurityContextRepository = new HttpSessionSecurityContextRepository();
-                        pathArray = this.getStaticResource().split(",");
-                        this.getTitansSSOFilter().setAppId(this.getAppId());
-                        this.getTitansSSOFilter().setSecret(this.getSecret());
-                        this.getTitansSSOFilter().setSsoUrl(this.getSsoUrl());
-                        this.getTitansSSOFilter().setTokenResource(this.getTokenResource());
-                        this.getTitansSSOFilter().setZfeTokenResource(this.getZfeTokenResource());
-                        this.getTitansSSOFilter().setUserResource(this.getUserResource());
-                        this.getTitansSSOFilter().setMaxInactiveInterval(this.getMaxInactiveInterval());
-                        this.getTitansSSOFilter().setLoginResource(this.getLoginResource());
-                        this.getTitansSSOFilter().setScope(this.getScope());
-                        this.getTitansSSOFilter().setIndexUrl(this.urlFormat(this.getIndexUrl()));
-                        this.getTitansSSOFilter().setUrl(this.getUrl());
-                        this.getTitansSSOFilter().setMenuUrl(this.getMenuUrl());
-                        this.getTitansSSOFilter().setSsoRedirecturl(this.getSsoRedirectUrl());
-                        this.getTitansSSOFilter().setSsoRedirectUrlOrUri(this.getSsoRedirectUrlOrUri());
-                        this.getTitansSSOFilter().setSsoRedirectDomainSets(ssoRedirectDomainSet);
-                        this.getTitansSSOFilter().setSsoLogMethod(this.buildSSOLogMethod(this.getSsoLogLevelString()));
-                        this.getTitansSSOFilter().setRepo(httpSessionSecurityContextRepository);
-                        this.getZfeFilter().setAppId(this.getAppId());
-                        this.getZfeFilter().setSecret(this.getSecret());
-                        this.getZfeFilter().setZfeTokenResource(this.getZfeTokenResource());
-                        this.getZfeFilter().setUserResource(this.getUserResource());
-                        this.getZfeFilter().setMaxInactiveInterval(this.getMaxInactiveInterval());
-                        this.getZfeFilter().setScope(this.getScope());
-                        this.getZfeFilter().setUrl(this.getUrl());
-                        this.getZfeFilter().setMenuUrl(this.getMenuUrl());
-                        this.getZfeFilter().setSsoRedirecturl(this.getSsoRedirectUrl());
-                        this.getZfeFilter().setSsoRedirectUrlOrUri(this.getSsoRedirectUrlOrUri());
-                        this.getZfeFilter().setSsoRedirectDomainSets(ssoRedirectDomainSet);
-                        this.getZfeFilter().setSsoLogMethod(this.buildSSOLogMethod(this.getSsoLogLevelString()));
-                        this.getZfeFilter().setRepo(httpSessionSecurityContextRepository);
-                        this.getZfeFilter().setRepo(httpSessionSecurityContextRepository);
-                        this.getZfeFilter().setEnableZfe(this.getEnableZfe());
-                        ((HttpSecurity)((HttpSecurity)((FormLoginConfigurer)((HttpSecurity)((AuthorizedUrl)((AuthorizedUrl)((HttpSecurity)((HttpSecurity)http.headers().frameOptions().disable().and()).csrf().disable()).authorizeRequests().antMatchers(pathArray)).permitAll().anyRequest()).authenticated().and()).formLogin().permitAll()).and()).logout().logoutUrl("/logout").invalidateHttpSession(true).logoutSuccessHandler((request, response, authenticate) -> {
-                            if (!RequestUtil.isRequestAjax(request) && !RequestUtil.isJsonRequest(request)) {
-                                response.sendRedirect(logoutRedirectUrl);
-                            } else {
-                                response.setCharacterEncoding("UTF-8");
-                                response.setHeader("Content-Type", "application/json;charset=UTF-8");
-                                response.getWriter().write(JSONObject.toJSONString(new Result(true, "logout success!", (Object)null, "200")));
-                            }
-
-                        }).permitAll().and()).addFilterBefore(this.getTitansSSOFilter(), BasicAuthenticationFilter.class).addFilterBefore(this.getZfeFilter(), this.getTitansSSOFilter().getClass());
-                        http.exceptionHandling().authenticationEntryPoint(this.getTitansSSOFilter());
-                    }
-                }
+            http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(source));
+        }
+        if (!StringUtils.isEmpty(this.getAppId()) && !StringUtils.isEmpty(this.getSecret())) {
+            if (StringUtils.isEmpty(this.getSsoUrl())) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "ssoUrl=[" + this.getSsoUrl() + "]");
+            }
+            String logoutRedirectUrl;
+            if (this.ssoUrl.contains("test")) {
+                logoutRedirectUrl = "/logout-test.html";
             } else {
-                log.warn("未找到sso appId或者secret WebSecurity将自动放行所有请求");
-                ((AuthorizedUrl)((HttpSecurity)((HttpSecurity)http.headers().frameOptions().disable().and()).csrf().disable()).authorizeRequests().antMatchers(new String[]{"/**"})).permitAll();
+                logoutRedirectUrl = "/logout.html";
             }
+            if (StringUtils.isEmpty(this.loginResource)) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "loginResource=[" + this.loginResource + "]");
+            } else if (StringUtils.isEmpty(this.getTokenResource())) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "tokenResource=[" + this.getTokenResource() + "]");
+            } else if (StringUtils.isEmpty(this.getUserResource())) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "userResource=[" + this.getUserResource() + "]");
+            } else if (StringUtils.isEmpty(this.getStaticResource())) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "staticResource=[" + this.getStaticResource() + "]");
+            } else if (this.getMaxInactiveInterval() == null) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "maxInactiveInterval=[" + this.getMaxInactiveInterval() + "]");
+            } else if (StringUtils.isEmpty(this.getMenuUrl())) {
+                throw new ErrorCodeException(ExceptionEnum.PARAM_EXCEPTION, "SSO", "menuUrl=[" + this.getMenuUrl() + "]");
+            } else {
+                Set<String> ssoRedirectDomainSet = new HashSet<>();
+                if (StringUtils.isNotEmpty(this.getSsoRedirectDomains())) {
+                    ssoRedirectDomainSet = new HashSet<>(Arrays.asList(this.getSsoRedirectDomains().split(";")));
+                }
+                this.staticResource = "/logout,/login," + logoutRedirectUrl + "," + this.staticResource;
+                HttpSessionSecurityContextRepository httpSessionSecurityContextRepository = new HttpSessionSecurityContextRepository();
+                pathArray = this.getStaticResource().split(",");
+                this.getSSOFilter().setAppId(this.getAppId());
+                this.getSSOFilter().setSecret(this.getSecret());
+                this.getSSOFilter().setSsoUrl(this.getSsoUrl());
+                this.getSSOFilter().setTokenResource(this.getTokenResource());
+                this.getSSOFilter().setZfeTokenResource(this.getZfeTokenResource());
+                this.getSSOFilter().setUserResource(this.getUserResource());
+                this.getSSOFilter().setMaxInactiveInterval(this.getMaxInactiveInterval());
+                this.getSSOFilter().setLoginResource(this.getLoginResource());
+                this.getSSOFilter().setScope(this.getScope());
+                this.getSSOFilter().setIndexUrl(this.urlFormat(this.getIndexUrl()));
+                this.getSSOFilter().setUrl(this.getUrl());
+                this.getSSOFilter().setMenuUrl(this.getMenuUrl());
+                this.getSSOFilter().setSsoRedirecturl(this.getSsoRedirectUrl());
+                this.getSSOFilter().setSsoRedirectUrlOrUri(this.getSsoRedirectUrlOrUri());
+                this.getSSOFilter().setSsoRedirectDomainSets(ssoRedirectDomainSet);
+                this.getSSOFilter().setSsoLogMethod(this.buildSSOLogMethod(this.getSsoLogLevelString()));
+                this.getSSOFilter().setRepo(httpSessionSecurityContextRepository);
+                this.getZfeFilter().setAppId(this.getAppId());
+                this.getZfeFilter().setSecret(this.getSecret());
+                this.getZfeFilter().setZfeTokenResource(this.getZfeTokenResource());
+                this.getZfeFilter().setUserResource(this.getUserResource());
+                this.getZfeFilter().setMaxInactiveInterval(this.getMaxInactiveInterval());
+                this.getZfeFilter().setScope(this.getScope());
+                this.getZfeFilter().setUrl(this.getUrl());
+                this.getZfeFilter().setMenuUrl(this.getMenuUrl());
+                this.getZfeFilter().setSsoRedirecturl(this.getSsoRedirectUrl());
+                this.getZfeFilter().setSsoRedirectUrlOrUri(this.getSsoRedirectUrlOrUri());
+                this.getZfeFilter().setSsoRedirectDomainSets(ssoRedirectDomainSet);
+                this.getZfeFilter().setSsoLogMethod(this.buildSSOLogMethod(this.getSsoLogLevelString()));
+                this.getZfeFilter().setRepo(httpSessionSecurityContextRepository);
+                this.getZfeFilter().setRepo(httpSessionSecurityContextRepository);
+                this.getZfeFilter().setEnableZfe(this.getEnableZfe());
+                http
+                        .headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
+                        .cors(AbstractHttpConfigurer::disable)
+                        .authorizeRequests(expressionInterceptUrlRegistry -> expressionInterceptUrlRegistry.requestMatchers(pathArray).permitAll())
+                        .logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer
+                                .logoutUrl("/logout")
+                                .invalidateHttpSession(true)
+                                .logoutSuccessHandler((request, response, authentication) -> {
+                                    if (!RequestUtil.isRequestAjax(request) && !RequestUtil.isJsonRequest(request)) {
+                                        response.sendRedirect(logoutRedirectUrl);
+                                    } else {
+                                        response.setCharacterEncoding("UTF-8");
+                                        response.setHeader("Content-Type", "application/json;charset=UTF-8");
+                                        response.getWriter().write(JSONObject.toJSONString(new Result<>(true, "logout success!", null, "200")));
+                                    }
+                                }))
+                        .addFilterBefore(this.getSSOFilter(), BasicAuthenticationFilter.class)
+                        .addFilterBefore(this.getZfeFilter(), this.getSSOFilter().getClass())
+                        .exceptionHandling(httpSecurityExceptionHandlingConfigurer -> httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(SSOConfig.this.getSSOFilter()));
+            }
+        } else {
+            log.warn("未找到sso appId或者secret WebSecurity将自动放行所有请求");
+            http
+                    .headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeRequests(expressionInterceptUrlRegistry -> expressionInterceptUrlRegistry.requestMatchers("/**").permitAll());
         }
     }
 
@@ -273,12 +327,12 @@ public class SSOConfig extends WebSecurityConfigurerAdapter {
         this.corsPath = corsPath;
     }
 
-    public TitansSSOFilter getTitansSSOFilter() {
-        return this.titansSSOFilter;
+    public SSOFilter getSSOFilter() {
+        return this.SSOFilter;
     }
 
-    public void setTitansSSOFilter(TitansSSOFilter titansSSOFilter) {
-        this.titansSSOFilter = titansSSOFilter;
+    public void setSSOFilter(SSOFilter SSOFilter) {
+        this.SSOFilter = SSOFilter;
     }
 
     public String getSsoRedirectUrlOrUri() {
@@ -304,7 +358,7 @@ public class SSOConfig extends WebSecurityConfigurerAdapter {
     public void setSsoLogLevelString(String ssoLogLevelString) {
         this.ssoLogLevelString = ssoLogLevelString;
         Method method = this.buildSSOLogMethod(this.ssoLogLevelString);
-        this.titansSSOFilter.setSsoLogMethod(method);
+        this.SSOFilter.setSsoLogMethod(method);
         this.zfeFilter.setSsoLogMethod(method);
     }
 
@@ -358,7 +412,7 @@ public class SSOConfig extends WebSecurityConfigurerAdapter {
 
     private Method buildSSOLogMethod(String ssoLogLevelString) {
         Method ssoLogMethod = null;
-        if (StringUtil.isNotEmpty(ssoLogLevelString)) {
+        if (StringUtils.isNotEmpty(ssoLogLevelString)) {
             try {
                 if ("debug".equalsIgnoreCase(ssoLogLevelString)) {
                     ssoLogMethod = Logger.class.getMethod("debug", String.class);
@@ -369,10 +423,9 @@ public class SSOConfig extends WebSecurityConfigurerAdapter {
                 } else if ("error".equalsIgnoreCase(ssoLogLevelString)) {
                     ssoLogMethod = Logger.class.getMethod("error", String.class);
                 }
-            } catch (Exception var4) {
+            } catch (Exception e) {
             }
         }
-
         return ssoLogMethod;
     }
 
@@ -387,9 +440,8 @@ public class SSOConfig extends WebSecurityConfigurerAdapter {
                 sb.append(":");
                 sb.append(u.getPort());
             }
-
             return sb.toString();
-        } catch (MalformedURLException var4) {
+        } catch (MalformedURLException e) {
             return indexUrl;
         }
     }
