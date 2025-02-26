@@ -39,6 +39,7 @@ A framework based on SpringBoot, focusing on different section
     - [X] @CacheConfigOptions配置缓存
     - [X] @EnableDFS启用dfs
     - [X] @EnableWeb启用web
+  - [X] 应用监控
 
 ### 2 VM/启动参数
 

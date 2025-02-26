@@ -1,0 +1,6 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.github.bannirui.msb.endpoint.HealthIndicatorAutoConfig,\
+com.github.bannirui.msb.endpoint.MonitorComponentAutoConfig,\
+com.github.bannirui.msb.endpoint.CatMonitorAutoConfig,\
+com.github.bannirui.msb.endpoint.EndpointAutoConfiguration

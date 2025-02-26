@@ -46,6 +46,7 @@
         <module>msb-cache</module>
         <module>msb-dfs</module>
         <module>msb-web</module>
+        <module>msb-endpoint</module>
 
         <module>msb-sso</module>
     </modules>
@@ -66,13 +67,11 @@
                 <artifactId>msb-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>msb-config</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>msb-log</artifactId>
@@ -81,6 +80,31 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>msb-http</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-cache</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-orm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-mq</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>msb-dubbo</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
