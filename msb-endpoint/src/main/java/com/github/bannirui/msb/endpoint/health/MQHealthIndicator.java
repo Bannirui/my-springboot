@@ -11,18 +11,6 @@ import com.github.bannirui.msb.mq.sdk.producer.KafkaProducerProxy;
 import com.github.bannirui.msb.mq.sdk.producer.MmsProducerProxy;
 import com.github.bannirui.msb.mq.sdk.producer.ProducerFactory;
 import com.github.bannirui.msb.mq.sdk.producer.RocketmqProducerProxy;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.MapUtils;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.internals.Fetcher;
@@ -41,6 +29,14 @@ import org.apache.rocketmq.common.ServiceState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class MQHealthIndicator implements HealthIndicator {
     private static final Logger logger = LoggerFactory.getLogger(MQHealthIndicator.class);
@@ -193,7 +189,6 @@ public class MQHealthIndicator implements HealthIndicator {
 
     private long statisticsRocketMQConsumeLatency(RocketmqConsumerProxy rocketmqConsumerProxy) {
         long msgCount = 0L;
-
         try {
             Field consumerField = this.getField(rocketmqConsumerProxy.getClass(), "consumer");
             DefaultMQPushConsumer defaultMQPushConsumer = (DefaultMQPushConsumer)consumerField.get(rocketmqConsumerProxy);

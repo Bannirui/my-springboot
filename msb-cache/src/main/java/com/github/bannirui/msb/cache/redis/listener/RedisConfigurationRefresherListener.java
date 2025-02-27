@@ -6,11 +6,6 @@ import com.github.bannirui.msb.cache.redis.connection.DynamicJedisConnectionFact
 import com.github.bannirui.msb.cache.redis.connection.DynamicLettuceConnectionFactory;
 import com.github.bannirui.msb.event.DynamicConfigChangeSpringEvent;
 import io.lettuce.core.resource.ClientResources;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -24,16 +19,22 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class RedisConfigurationRefresherListener implements ApplicationListener<DynamicConfigChangeSpringEvent>, EnvironmentAware, ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(RedisConfigurationRefresherListener.class);
-    public static final String ENABLED_DYNAMIC_CONFIG_KEY = "titans.cache.dynamic.redis.enabled";
+    public static final String ENABLED_DYNAMIC_CONFIG_KEY = "msb.cache.dynamic.redis.enabled";
     private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private Environment env;
     private ApplicationContext context;
 
     @Override
     public void onApplicationEvent(DynamicConfigChangeSpringEvent event) {
-        Boolean enabledDynamic = this.env.getProperty("cache.dynamic.redis.enabled", Boolean.class, false);
+        Boolean enabledDynamic = this.env.getProperty(RedisConfigurationRefresherListener.ENABLED_DYNAMIC_CONFIG_KEY, Boolean.class, false);
         if(!Objects.equals(Boolean.TRUE, enabledDynamic)) return;
         logger.info("accept a redis configuration changing event. from {}.", event.getSource());
         Set<String> changedConfigKeys = event.getConfigChange().getChangedConfigKeys();

@@ -1,1 +1,1 @@
-Web.Cat.CatFilter=com.zto.titans.endpoint.web.EndpointFilter
+Web.Cat.CatFilter=com.github.bannirui.msb.endpoint.web.EndpointFilter

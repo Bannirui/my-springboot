@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TitansCookieSerializer implements CookieSerializer {
+public class MsbCookieSerializer implements CookieSerializer {
     private static final Pattern CHROME_80_PATTERN = Pattern.compile("Chrome\\/(([0-9]+)\\.?([\\w]+)?(\\.[\\w]+)?(\\.[\\w]+)?)");
     private static final Integer CHROME_80_VERSION = 80;
     private DefaultCookieSerializer springCookieSerializer = new DefaultCookieSerializer();
     private boolean sameSiteNone = false;
 
-    public TitansCookieSerializer() {
+    public MsbCookieSerializer() {
         this.springCookieSerializer.setSameSite(null);
         this.springCookieSerializer.setUseSecureCookie(false);
     }
@@ -26,11 +26,11 @@ public class TitansCookieSerializer implements CookieSerializer {
     public void writeCookieValue(CookieValue cookieValue) {
         this.springCookieSerializer.writeCookieValue(cookieValue);
         if (this.sameSiteNone) {
-            this.writeTitansCookieValue(cookieValue);
+            this.writeMsbCookieValue(cookieValue);
         }
     }
 
-    private void writeTitansCookieValue(CookieValue cookieValue) {
+    private void writeMsbCookieValue(CookieValue cookieValue) {
         HttpServletRequest request = cookieValue.getRequest();
         HttpServletResponse response = cookieValue.getResponse();
         StringBuilder cookie = new StringBuilder(response.getHeader("Set-Cookie"));

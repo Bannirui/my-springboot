@@ -8,7 +8,7 @@ import com.github.bannirui.msb.register.BeanDefinition;
 import com.github.bannirui.msb.web.filter.LoginAndLogoutFilter;
 import com.github.bannirui.msb.web.filter.SSOFilter;
 import com.github.bannirui.msb.web.filter.ZfeFilter;
-import com.github.bannirui.msb.web.session.web.TitansCookieSerializer;
+import com.github.bannirui.msb.web.session.web.MsbCookieSerializer;
 import jakarta.servlet.Filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -87,7 +87,7 @@ public class SSOConfiguration extends AbstractBeanRegistrar {
                 int order = pd.getOrder();
                 if (filter.equals("com.github.bannirui.msb.endpoint.web.EndpointFilter")) {
                     LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>();
-                    linkedHashMap.put("endpoint.check.key", StringUtils.isEmpty(this.getProperty("endpoint.check.key")) ? "" : this.getProperty("titans.endpoint.check.key"));
+                    linkedHashMap.put("endpoint.check.key", this.getProperty("endpoint.check.key"));
                     this.registerSingleFilterWithParameterAndOrder(clazz, linkedHashMap, i++);
                 } else if (order != 0) {
                     this.registerSingleFilterWithOrder(clazz, order);
@@ -131,8 +131,8 @@ public class SSOConfiguration extends AbstractBeanRegistrar {
 
     @Bean
     public CookieSerializer httpSessionIdResolver() {
-        boolean sameSiteNone = this.getPropertyAsBoolean("titans.web.sameSiteNone", false);
-        TitansCookieSerializer cookieSerializer = new TitansCookieSerializer();
+        boolean sameSiteNone = this.getPropertyAsBoolean(SSOConfiguration.SAME_SITE_NONE, false);
+        MsbCookieSerializer cookieSerializer = new MsbCookieSerializer();
         cookieSerializer.setCookieName("SESSION");
         cookieSerializer.setUseHttpOnlyCookie(false);
         cookieSerializer.setSameSiteNone(sameSiteNone);

@@ -1,10 +1,5 @@
 package com.github.bannirui.msb.endpoint.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import javax.annotation.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -24,12 +19,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
-public class TitansConditionEvaluator {
-    private final TitansConditionEvaluator.ConditionContextImpl context;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
-    public TitansConditionEvaluator(@Nullable BeanDefinitionRegistry registry, @Nullable Environment environment,
-                                    @Nullable ResourceLoader resourceLoader) {
-        this.context = new TitansConditionEvaluator.ConditionContextImpl(registry, environment, resourceLoader);
+public class MsbConditionEvaluator {
+    private final MsbConditionEvaluator.ConditionContextImpl context;
+
+    public MsbConditionEvaluator(@Nullable BeanDefinitionRegistry registry, @Nullable Environment environment,
+                                 @Nullable ResourceLoader resourceLoader) {
+        this.context = new MsbConditionEvaluator.ConditionContextImpl(registry, environment, resourceLoader);
     }
 
     public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata) {

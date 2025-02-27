@@ -19,9 +19,6 @@ public class NettyHttpService {
     private EventLoopGroup worker =
         new NioEventLoopGroup(Math.max(1, NettyRuntime.availableProcessors() / 2), new DefaultThreadFactory("endpoint-worker"));
 
-    public NettyHttpService() {
-    }
-
     public NettyHttpService(int prot) {
         this.prot = prot;
     }

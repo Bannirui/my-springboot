@@ -15,7 +15,7 @@ public class CpuHealthlndicator implements HealthIndicator {
             Method method = OperatingSystemMXBean.class.getMethod("getSystemLoadAverage");
             load = (Double)method.invoke(operatingSystemMXBean);
             operatingSystemMXBean.getSystemLoadAverage();
-        } catch (Throwable var6) {
+        } catch (Throwable e) {
             load = -1.0D;
         }
         int cpu = operatingSystemMXBean.getAvailableProcessors();

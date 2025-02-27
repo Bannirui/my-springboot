@@ -1,9 +1,8 @@
 package com.github.bannirui.msb.endpoint.health;
 
 public class MemoryHealthIndicator implements HealthIndicator {
-    public MemoryHealthIndicator() {
-    }
 
+    @Override
     public Health health() {
         Health health = new Health();
         Runtime runtime = Runtime.getRuntime();
@@ -16,7 +15,6 @@ public class MemoryHealthIndicator implements HealthIndicator {
         } else {
             health.down();
         }
-
         health.withDetail("max", maxMemory / 1024L / 1024L + "M");
         health.withDetail("total", totalMemory / 1024L / 1024L + "M");
         health.withDetail("used", totalMemory / 1024L / 1024L - freeMemory / 1024L / 1024L + "M");

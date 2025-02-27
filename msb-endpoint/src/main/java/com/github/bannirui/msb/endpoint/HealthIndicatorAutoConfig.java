@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @Configuration
 @AutoConfigureAfter({RedisAutoConfiguration.class})
-@AutoConfigureOrder(500)
+@AutoConfigureOrder(HealthIndicatorAutoConfig.ORDER)
 public class HealthIndicatorAutoConfig {
     public static final int ORDER = 500;
 

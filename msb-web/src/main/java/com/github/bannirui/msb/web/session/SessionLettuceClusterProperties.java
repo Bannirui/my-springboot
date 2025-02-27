@@ -1,13 +1,14 @@
 package com.github.bannirui.msb.web.session;
 
-import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
+
 @ConfigurationProperties(
-    prefix = "session.redis.lettuce.cluster"
+    prefix = SessionLettuceClusterProperties.PREFIX
 )
 public class SessionLettuceClusterProperties {
-    public static final String PREFIX = "titans.session.redis.lettuce.cluster";
+    public static final String PREFIX = "msb.session.redis.lettuce.cluster";
     private SessionLettuceClusterProperties.Refresh refresh = new SessionLettuceClusterProperties.Refresh();
     private Duration commandTimeout = Duration.ofSeconds(10L);
 

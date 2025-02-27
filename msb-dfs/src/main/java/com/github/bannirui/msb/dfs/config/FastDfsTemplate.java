@@ -2,11 +2,7 @@ package com.github.bannirui.msb.dfs.config;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
-import com.github.bannirui.msb.dfs.param.DeleteParam;
-import com.github.bannirui.msb.dfs.param.GetFileParam;
-import com.github.bannirui.msb.dfs.param.PublicGetFileParam;
-import com.github.bannirui.msb.dfs.param.StsParam;
-import com.github.bannirui.msb.dfs.param.UploadParam;
+import com.github.bannirui.msb.dfs.param.*;
 import com.github.bannirui.msb.dfs.result.DefaultResult;
 import com.github.bannirui.msb.dfs.result.DeleteResult;
 import com.github.bannirui.msb.dfs.result.StsResult;
@@ -17,12 +13,6 @@ import com.github.bannirui.msb.ex.ErrorCodeException;
 import com.github.bannirui.msb.http.util.HttpClientUtils;
 import com.github.bannirui.msb.properties.bind.PropertyBinder;
 import com.github.bannirui.msb.util.AssertUtil;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +20,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Objects;
 
 public class FastDfsTemplate implements EnvironmentAware, InitializingBean {
     private static final Logger logger = LoggerFactory.getLogger(FastDfsTemplate.class);
@@ -348,7 +345,7 @@ public class FastDfsTemplate implements EnvironmentAware, InitializingBean {
 
     public String getExtranetUrl(String remoteFileId, String openId) throws IOException {
         String extranetUrl = this.dfsProperties.getExtranetUrl();
-        AssertUtil.hasLength(extranetUrl, "请先配置titans.dfs.extranetUrl指定外网域名");
+        AssertUtil.hasLength(extranetUrl, "请先配置msb.dfs.extranetUrl指定外网域名");
         StsResult sts = this.getSts(openId);
         GetFileParam fileParam = this.createFileParam(remoteFileId, openId, sts);
         Map<String, String> stringStringMap = DfsUtil.buildGetFileParam(fileParam, this.dfsProperties.getAppId(), this.dfsProperties.getSecret());
@@ -359,7 +356,7 @@ public class FastDfsTemplate implements EnvironmentAware, InitializingBean {
         AssertUtil.notNull(stsResult);
         AssertUtil.hasLength(openId, "openId不能为空字符串");
         String extranetUrl = this.dfsProperties.getExtranetUrl();
-        AssertUtil.hasLength(extranetUrl, "请先配置titans.dfs.extranetUrl指定外网域名");
+        AssertUtil.hasLength(extranetUrl, "请先配置msb.dfs.extranetUrl指定外网域名");
         GetFileParam fileParam = this.createFileParam(remoteFileId, width, waterMark, openId, stsResult);
         Map<String, String> stringStringMap = DfsUtil.buildGetFileParam(fileParam, this.dfsProperties.getAppId(), this.dfsProperties.getSecret());
         return HttpClientUtils.urlParamJoint(DfsUtil.getEncryptFileUrl(extranetUrl), stringStringMap);

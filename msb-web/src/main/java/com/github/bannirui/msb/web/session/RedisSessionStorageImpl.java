@@ -127,7 +127,7 @@ public class RedisSessionStorageImpl implements ISessionStorage {
             if (e.getClass().isAssignableFrom(SerializationException.class)) {
                 return null;
             } else {
-                log.error("Titans[SSO]: get session info from redis throws exception!", e);
+                log.error("Msb[SSO]: get session info from redis throws exception!", e);
                 return null;
             }
         }

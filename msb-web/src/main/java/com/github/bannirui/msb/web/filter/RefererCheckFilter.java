@@ -13,13 +13,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class RefererCheckFilter implements Filter {
-    public static final String REFERER_CHECK_WHITE = "titans.web.referer";
+    public static final String REFERER_CHECK_WHITE = "msb.web.referer";
     private boolean disabled;
     private Set<String> whiteSet;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        String white = filterConfig.getInitParameter("titans.web.referer");
+        String white = filterConfig.getInitParameter(RefererCheckFilter.REFERER_CHECK_WHITE);
         if (StringUtils.isEmpty(white)) {
             this.whiteSet = new HashSet<>();
             this.disabled = true;

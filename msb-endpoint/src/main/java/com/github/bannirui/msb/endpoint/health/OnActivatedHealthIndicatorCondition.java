@@ -6,6 +6,6 @@ public class OnActivatedHealthIndicatorCondition extends OnEndpointElementCondit
     public static final String PREFIX = "msb.endpoint.health.";
 
     public OnActivatedHealthIndicatorCondition() {
-        super("msb.endpoint.health.", ConditionalOnActivatedHealthIndicator.class);
+        super(OnActivatedHealthIndicatorCondition.PREFIX, ConditionalOnActivatedHealthIndicator.class);
     }
 }

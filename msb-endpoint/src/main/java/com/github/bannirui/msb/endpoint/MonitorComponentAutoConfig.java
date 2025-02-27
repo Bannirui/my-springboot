@@ -53,7 +53,6 @@ public class MonitorComponentAutoConfig {
         name = {"lettuceDataMonitor"}
     )
     static class LettuceDataMonitorAutoConfig {
-
         @Bean
         public LettuceDataMonitor lettuceDataMonitor() {
             return new LettuceDataMonitor();
@@ -73,7 +72,6 @@ public class MonitorComponentAutoConfig {
         name = {"jedisDataMonitor"}
     )
     static class JedisDataMonitorAutoConfig {
-
         @Bean
         public JedisDataMonitor jedisDataMonitor() {
             return new JedisDataMonitor();
@@ -88,7 +86,6 @@ public class MonitorComponentAutoConfig {
         name = {"dubboThreadMonitor"}
     )
     static class DubboThreadMonitorAutoConfig {
-
         @Bean
         public DubboThreadMonitor dubboThreadMonitor() {
             return new DubboThreadMonitor();
@@ -104,7 +101,6 @@ public class MonitorComponentAutoConfig {
         name = {"tomcatDataMonitor"}
     )
     static class TomcatDataMonitorAutoConfig {
-
         @Bean
         public TomcatDataMonitor tomcatDataMonitor() {
             return new TomcatDataMonitor();

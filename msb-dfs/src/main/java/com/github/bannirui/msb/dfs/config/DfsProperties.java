@@ -1,7 +1,7 @@
 package com.github.bannirui.msb.dfs.config;
 
 public class DfsProperties {
-    public static final String PREFIX = "titans.dfs";
+    public static final String PREFIX = "msb.dfs";
     private String url;
     private String extranetUrl;
     private String secret;
