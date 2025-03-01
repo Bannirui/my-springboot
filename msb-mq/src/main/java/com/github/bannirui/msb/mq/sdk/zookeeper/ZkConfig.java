@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.mq.sdk.zookeeper;
 
-import com.github.bannirui.msb.mq.sdk.common.MmsException;
+import com.github.bannirui.mms.common.MmsException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;

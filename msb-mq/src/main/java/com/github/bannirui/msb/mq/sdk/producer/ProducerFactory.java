@@ -1,20 +1,20 @@
 package com.github.bannirui.msb.mq.sdk.producer;
 
-import com.github.bannirui.msb.mq.sdk.common.BrokerType;
-import com.github.bannirui.msb.mq.sdk.common.SLA;
-import com.github.bannirui.msb.mq.sdk.common.MmsException;
-import com.github.bannirui.msb.mq.sdk.metadata.TopicMetadata;
+import com.github.bannirui.mms.client.producer.KafkaProducerProxy;
+import com.github.bannirui.mms.client.producer.MmsProducerProxy;
+import com.github.bannirui.mms.client.producer.RocketmqProducerProxy;
+import com.github.bannirui.mms.common.BrokerType;
+import com.github.bannirui.mms.common.MmsException;
+import com.github.bannirui.mms.logger.MmsLogger;
+import com.github.bannirui.mms.metadata.TopicMetadata;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ProducerFactory {
-    private static final Logger logger = LoggerFactory.getLogger(ProducerFactory.class);
     private static final Map<String, MmsProducerProxy> TOPIC_PRODUCERS;
     static {
         TOPIC_PRODUCERS = new ConcurrentHashMap<>();
@@ -46,15 +46,15 @@ public class ProducerFactory {
                     TopicMetadata metadata = null;
                     try {
                         metadata = RouterManager.getZkInstance().readTopicMetadata(topic);
-                    } catch (Exception var9) {
-                        logger.error("read topic {} metadata error", topic, var9);
+                    } catch (Exception e) {
+                        MmsLogger.log.error("read topic {} metadata error", topic, e);
                         throw MmsException.METAINFO_EXCEPTION;
                     }
-                    logger.info("Producer create: topic metadata is {}", metadata.toString());
+                    MmsLogger.log.info("Producer create: topic metadata is {}", metadata.toString());
                     if (BrokerType.ROCKETMQ.equals(metadata.getClusterMetadata().getBrokerType())) {
-                        producer = new RocketmqProducerProxy(metadata, new SLA(), name, properties);
+                        producer = new RocketmqProducerProxy(metadata, false, name, properties);
                     } else {
-                        producer = new KafkaProducerProxy(metadata, new SLA(), name, properties);
+                        producer = new KafkaProducerProxy(metadata, false, name, properties);
                     }
                     TOPIC_PRODUCERS.putIfAbsent(cacheName, producer);
                     return producer;
@@ -76,14 +76,14 @@ public class ProducerFactory {
                     try {
                         metadata = RouterManager.getZkInstance().readTopicMetadata(topic);
                     } catch (Exception e) {
-                        logger.error("read topic {} metadata error", topic, e);
+                        MmsLogger.log.error("read topic {} metadata error", topic, e);
                         throw MmsException.METAINFO_EXCEPTION;
                     }
-                    logger.info("Producer create: topic metadata is {}", metadata.toString());
+                    MmsLogger.log.info("Producer create: topic metadata is {}", metadata.toString());
                     if (BrokerType.ROCKETMQ.equals(metadata.getClusterMetadata().getBrokerType())) {
-                        producer = new RocketmqProducerProxy(metadata, new SLA(), name);
+                        producer = new RocketmqProducerProxy(metadata, false, name);
                     } else {
-                        producer = new KafkaProducerProxy(metadata, new SLA(), name);
+                        producer = new KafkaProducerProxy(metadata, false, name);
                     }
                     TOPIC_PRODUCERS.putIfAbsent(cacheName, producer);
                     return producer;
@@ -106,7 +106,7 @@ public class ProducerFactory {
             entry.getValue().shutdown();
         });
         TOPIC_PRODUCERS.clear();
-        logger.info("ProducerFactory has been shutdown");
+        MmsLogger.log.info("ProducerFactory has been shutdown");
     }
 
     public static synchronized void shutdown(String topic) {
@@ -115,13 +115,13 @@ public class ProducerFactory {
             TOPIC_PRODUCERS.get(key).shutdown();
             TOPIC_PRODUCERS.remove(key);
         }
-        logger.info("Producer of " + topic + " has been shutdown");
+        MmsLogger.log.info("Producer of " + topic + " has been shutdown");
     }
 
     public static void recycle(String name, String instanceName) {
         String key = name + "_" + instanceName;
         TOPIC_PRODUCERS.remove(key);
-        logger.info("producer {} has been remove", key);
+        MmsLogger.log.info("producer {} has been remove", key);
     }
 
     public static Collection<MmsProducerProxy> getProducers() {
@@ -130,7 +130,7 @@ public class ProducerFactory {
 
     private static void checkTopic(String topic) {
         if (topic.contains(" ")) {
-            logger.warn("topic 中有空格，请检查 topic 是否填多了空格，这很可能会消息发送不成功！");
+            MmsLogger.log.warn("topic 中有空格，请检查 topic 是否填多了空格，这很可能会消息发送不成功！");
         }
     }
 }

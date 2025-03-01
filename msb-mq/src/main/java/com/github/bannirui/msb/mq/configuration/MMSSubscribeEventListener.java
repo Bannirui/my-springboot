@@ -1,8 +1,8 @@
 package com.github.bannirui.msb.mq.configuration;
 
+import com.github.bannirui.mms.client.config.MmsClientConfig;
 import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.plugin.InterceptorUtil;
-import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +34,8 @@ public class MMSSubscribeEventListener implements ApplicationListener<Applicatio
             MMSSubscribeInfo subscribeInfo = entry.getValue();
             try {
                 // 创建代理
-                MMSMessageListenerImpl proxyObj = InterceptorUtil.getProxyObj(MMSMessageListenerImpl.class, new Class[]{String.class}, new Object[]{consumerGroup}, "MMS.Consumer");
-                proxyObj.setEasy(subscribeInfo.isEasy());
+                MMSMessageListenerImpl listenerProxy = InterceptorUtil.getProxyObj(MMSMessageListenerImpl.class, new Class[]{String.class}, new Object[]{consumerGroup}, "MMS.Consumer");
+                listenerProxy.setEasy(subscribeInfo.isEasy());
                 Map<MmsClientConfig.CONSUMER, Object> properties = new HashMap<>();
                 if (StringUtils.isNotBlank(subscribeInfo.getConsumeThreadMax())) {
                     properties.put(MmsClientConfig.CONSUMER.CONSUME_THREAD_MAX, subscribeInfo.getConsumeThreadMax());
@@ -64,7 +64,7 @@ public class MMSSubscribeEventListener implements ApplicationListener<Applicatio
                 if (StringUtils.isNotBlank(subscribeInfo.getOrderlyConsumeThreadSize())) {
                     properties.put(MmsClientConfig.CONSUMER.ORDERLY_CONSUME_THREAD_SIZE, subscribeInfo.getOrderlyConsumeThreadSize());
                 }
-                this.MMSSubscribeTemplate.subscribe(consumerGroup, subscribeInfo.getTags(), proxyObj, properties);
+                this.MMSSubscribeTemplate.subscribe(consumerGroup, subscribeInfo.getTags(), listenerProxy, properties);
                 logger.info("MMS订阅消息 ConsumerGroup={} tags={}", consumerGroup, subscribeInfo.getTags());
             } catch (Exception e) {
                 throw FrameworkException.getInstance(e, "消费组订阅失败：ConsumerGroup={0}", consumerGroup);

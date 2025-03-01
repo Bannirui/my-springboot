@@ -1,17 +1,18 @@
 package com.github.bannirui.msb.mq.configuration;
 
 import com.alibaba.fastjson.JSON;
+import com.github.bannirui.mms.client.common.SimpleMessage;
+import com.github.bannirui.mms.client.config.MmsClientConfig;
+import com.github.bannirui.mms.client.producer.SendCallback;
+import com.github.bannirui.mms.client.producer.SendResult;
 import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
-import com.github.bannirui.msb.mq.sdk.common.SimpleMessage;
-import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;
-import com.github.bannirui.msb.mq.sdk.producer.SendResponse;
-import com.github.bannirui.msb.mq.sdk.producer.MmsCallBack;
 import com.google.common.collect.Lists;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import org.springframework.beans.factory.DisposableBean;
@@ -82,14 +83,14 @@ public class MMSTemplate implements DisposableBean {
         } else {
             simpleMessage.setPayload(JSON.toJSONString(obj).getBytes(UTF_8));
         }
-        SendResponse sendResponse = null;
+        SendResult sendResponse = null;
         this.invokerListeners(simpleMessage);
         try {
             sendResponse = this.mmsMsb.send(topic, simpleMessage, properties);
         } catch (Exception e) {
             throw FrameworkException.getInstance(e, "MQ发送消息错误{0}", simpleMessage);
         }
-        if (SendResponse.SUCCESS.getCode() == sendResponse.getCode()) {
+        if (SendResult.SUCCESS.getCode() == sendResponse.getCode()) {
             return sendResponse.getMsgId();
         } else {
             String errMsg = sendResponse.getMsg();
@@ -100,13 +101,13 @@ public class MMSTemplate implements DisposableBean {
     private String doSend(String topic, String tags, String keys, Object obj, int delayLevel, Map<MmsClientConfig.PRODUCER, Object> properties) {
         SimpleMessage simpleMessage = this.buildSimpleMessage(tags, keys, obj, delayLevel);
         this.invokerListeners(simpleMessage);
-        SendResponse sendResponse;
+        SendResult sendResponse;
         try {
             sendResponse = this.mmsMsb.send(topic, simpleMessage, properties);
         } catch (Exception e) {
             throw FrameworkException.getInstance(e, "MQ发送消息错误{0}", simpleMessage);
         }
-        if (SendResponse.SUCCESS.getCode() == sendResponse.getCode()) {
+        if (SendResult.SUCCESS.getCode() == sendResponse.getCode()) {
             return sendResponse.getMsgId();
         } else {
             String errMsg = sendResponse.getMsg();
@@ -114,25 +115,25 @@ public class MMSTemplate implements DisposableBean {
         }
     }
 
-    public void asyncSend(String topic, Object obj, MmsCallBack callBack) {
+    public void asyncSend(String topic, Object obj, SendCallback callBack) {
         this.doAsyncSend(topic, null, null, obj, 0, null, callBack);
     }
 
-    public void asyncSend(String topic, String keys, Object obj, MmsCallBack callBack) {
+    public void asyncSend(String topic, String keys, Object obj, SendCallback callBack) {
         this.doAsyncSend(topic, null, keys, obj, 0, null, callBack);
     }
 
-    public void asyncSend(String topic, String tags, String keys, Object obj, MmsCallBack callBack) {
+    public void asyncSend(String topic, String tags, String keys, Object obj, SendCallback callBack) {
         this.doAsyncSend(topic, tags, keys, obj, 0, null, callBack);
     }
 
-    public void asyncSend(String topic, String tags, String keys, Object obj, int delayLevel, Map<MmsClientConfig.PRODUCER, Object> properties, MmsCallBack callBack) {
+    public void asyncSend(String topic, String tags, String keys, Object obj, int delayLevel, Map<MmsClientConfig.PRODUCER, Object> properties, SendCallback callBack) {
         this.doAsyncSend(topic, tags, keys, obj, delayLevel, properties, callBack);
     }
 
     /** @deprecated */
     @Deprecated
-    public void asyncSend(String topic, String tags, String keys, Object obj, Properties properties, MmsCallBack callBack) {
+    public void asyncSend(String topic, String tags, String keys, Object obj, Properties properties, SendCallback callBack) {
         SimpleMessage simpleMessage = new SimpleMessage();
         simpleMessage.setKey(keys);
         simpleMessage.setTags(tags);
@@ -157,7 +158,7 @@ public class MMSTemplate implements DisposableBean {
         }
     }
 
-    private void doAsyncSend(String topic, String tags, String keys, Object obj, int delayLevel, Map<MmsClientConfig.PRODUCER, Object> properties, MmsCallBack callBack) {
+    private void doAsyncSend(String topic, String tags, String keys, Object obj, int delayLevel, Map<MmsClientConfig.PRODUCER, Object> properties, SendCallback callBack) {
         SimpleMessage simpleMessage = this.buildSimpleMessage(tags, keys, obj, delayLevel);
         this.invokerListeners(simpleMessage);
         try {
@@ -219,12 +220,9 @@ public class MMSTemplate implements DisposableBean {
         }
     }
 
+    @Override
     public void destroy() throws Exception {
-        this.stop();
-    }
-
-    public void stop() {
-        if (this.mmsMsb != null) {
+        if (Objects.nonNull(this.mmsMsb)) {
             this.mmsMsb.stop();
         }
     }

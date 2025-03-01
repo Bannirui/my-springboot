@@ -1,15 +1,15 @@
 package com.github.bannirui.msb.mq.configuration;
 
 import com.alibaba.fastjson.JSON;
+import com.github.bannirui.mms.client.consumer.ConsumeMessage;
+import com.github.bannirui.mms.client.consumer.KafkaMessageListener;
+import com.github.bannirui.mms.client.consumer.MsgConsumedStatus;
+import com.github.bannirui.mms.client.consumer.RocketmqMessageListener;
+import com.github.bannirui.mms.common.BrokerType;
 import com.github.bannirui.msb.ex.FrameworkException;
+import com.github.bannirui.msb.mq.enums.MMSResult;
 import com.github.bannirui.msb.mq.enums.MQMsgEnum;
 import com.github.bannirui.msb.mq.enums.Serialize;
-import com.github.bannirui.msb.mq.enums.MMSResult;
-import com.github.bannirui.msb.mq.sdk.common.BrokerType;
-import com.github.bannirui.msb.mq.sdk.consumer.ConsumeMessage;
-import com.github.bannirui.msb.mq.sdk.consumer.KafkaMessageListener;
-import com.github.bannirui.msb.mq.sdk.consumer.MsgConsumedStatus;
-import com.github.bannirui.msb.mq.sdk.consumer.RocketmqMessageListener;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;

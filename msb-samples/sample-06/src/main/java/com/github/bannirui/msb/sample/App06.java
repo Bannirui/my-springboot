@@ -1,5 +1,11 @@
 package com.github.bannirui.msb.sample;
 
+import com.github.bannirui.mms.client.consumer.MsgConsumedStatus;
+import com.github.bannirui.mms.common.BrokerType;
+import com.github.bannirui.mms.common.MmsType;
+import com.github.bannirui.mms.metadata.ClusterMetadata;
+import com.github.bannirui.mms.metadata.ConsumerGroupMetadata;
+import com.github.bannirui.mms.metadata.TopicMetadata;
 import com.github.bannirui.msb.annotation.EnableMsbFramework;
 import com.github.bannirui.msb.config.annotation.EnableMsbConfig;
 import com.github.bannirui.msb.log.annotation.EnableMsbLog;
@@ -9,12 +15,6 @@ import com.github.bannirui.msb.mq.annotation.MMSListenerParameter;
 import com.github.bannirui.msb.mq.configuration.MMSTemplate;
 import com.github.bannirui.msb.mq.enums.MMSResult;
 import com.github.bannirui.msb.mq.enums.MQMsgEnum;
-import com.github.bannirui.msb.mq.sdk.common.BrokerType;
-import com.github.bannirui.msb.mq.sdk.common.MmsType;
-import com.github.bannirui.msb.mq.sdk.consumer.MsgConsumedStatus;
-import com.github.bannirui.msb.mq.sdk.metadata.ClusterMetadata;
-import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
-import com.github.bannirui.msb.mq.sdk.metadata.TopicMetadata;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;

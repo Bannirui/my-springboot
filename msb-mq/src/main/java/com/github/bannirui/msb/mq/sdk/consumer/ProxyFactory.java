@@ -1,8 +1,14 @@
 package com.github.bannirui.msb.mq.sdk.consumer;
 
-import com.github.bannirui.msb.mq.sdk.common.BrokerType;
+import com.github.bannirui.mms.client.consumer.KafkaConsumerProxy;
+import com.github.bannirui.mms.client.consumer.KafkaLiteConsumerProxy;
+import com.github.bannirui.mms.client.consumer.MessageListener;
+import com.github.bannirui.mms.client.consumer.MmsConsumerProxy;
+import com.github.bannirui.mms.client.consumer.RocketmqConsumerProxy;
+import com.github.bannirui.mms.client.consumer.RocketmqLiteConsumerProxy;
+import com.github.bannirui.mms.common.BrokerType;
+import com.github.bannirui.mms.metadata.ConsumerGroupMetadata;
 import com.github.bannirui.msb.mq.sdk.common.SLA;
-import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -15,6 +21,8 @@ public class ProxyFactory {
         ConsumerGroupMetadata metadata = (ConsumerGroupMetadata)configProperties.get("metadata");
         Boolean isNewPush = (Boolean)configProperties.get("isNewPush");
         SLA sla = (SLA) configProperties.get("sla");
+        // mq消息消费有序性
+        boolean order=Objects.isNull(sla)?false:sla.isOrderly();
         String name = (String)configProperties.get("name");
         Set<String> tags = (Set<String>) configProperties.get("tags");
         Properties properties = (Properties)configProperties.get("properties");
@@ -22,25 +30,25 @@ public class ProxyFactory {
         if(Objects.equals(BrokerType.ROCKETMQ, metadata.getClusterMetadata().getBrokerType())) {
             if (!StringUtils.isBlank(metadata.getReleaseStatus()) && !metadata.getReleaseStatus().equals("all")) {
                 if (isNewPush) {
-                    consumer = new MmsLiteConsumerGroupProxy(metadata, sla, name, tags, properties, listener, BrokerType.ROCKETMQ.getName());
+                    consumer = new MmsLiteConsumerGroupProxy(metadata, order, name, tags, properties, listener, BrokerType.ROCKETMQ.getName());
                 } else {
-                    consumer = new MmsConsumerGroupProxy(metadata, sla, name, tags, properties, listener, BrokerType.ROCKETMQ.getName());
+                    consumer = new MmsConsumerGroupProxy(metadata, order, name, tags, properties, listener, BrokerType.ROCKETMQ.getName());
                 }
             } else if (isNewPush) {
-                consumer = new RocketmqLiteConsumerProxy(metadata, sla, name, tags, properties, listener);
+                consumer = new RocketmqLiteConsumerProxy(metadata, order, name, tags, properties, listener);
             } else {
-                consumer = new RocketmqConsumerProxy(metadata, sla, name, tags, properties, listener);
+                consumer = new RocketmqConsumerProxy(metadata, order, name, tags, properties, listener);
             }
         } else if (!StringUtils.isBlank(metadata.getReleaseStatus()) && !metadata.getReleaseStatus().equals("all")) {
             if (isNewPush)
-                consumer = new MmsLiteConsumerGroupProxy(metadata, sla, name, null, properties, listener, BrokerType.KAFKA.getName());
+                consumer = new MmsLiteConsumerGroupProxy(metadata, order, name, null, properties, listener, BrokerType.KAFKA.getName());
             else {
-                consumer = new MmsConsumerGroupProxy(metadata, sla, name, null, properties, listener, BrokerType.KAFKA.getName());
+                consumer = new MmsConsumerGroupProxy(metadata, order, name, null, properties, listener, BrokerType.KAFKA.getName());
             }
         } else if (isNewPush) {
-            consumer = new KafkaLiteConsumerProxy(metadata, sla, name, properties, listener);
+            consumer = new KafkaLiteConsumerProxy(metadata, order, name, properties, listener);
         } else {
-            consumer = new KafkaConsumerProxy(metadata, sla, name, properties, listener);
+            consumer = new KafkaConsumerProxy(metadata, order, name, properties, listener);
         }
         return consumer;
     }

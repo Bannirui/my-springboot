@@ -1,9 +1,12 @@
 package com.github.bannirui.msb.mq.sdk.consumer;
 
-import com.github.bannirui.msb.mq.sdk.common.BrokerType;
-import com.github.bannirui.msb.mq.sdk.common.SLA;
-import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
-import com.github.bannirui.msb.mq.sdk.metadata.MmsMetadata;
+import com.github.bannirui.mms.client.consumer.KafkaConsumerProxy;
+import com.github.bannirui.mms.client.consumer.MessageListener;
+import com.github.bannirui.mms.client.consumer.MmsConsumerProxy;
+import com.github.bannirui.mms.client.consumer.RocketmqConsumerProxy;
+import com.github.bannirui.mms.common.BrokerType;
+import com.github.bannirui.mms.metadata.ConsumerGroupMetadata;
+import com.github.bannirui.mms.metadata.MmsMetadata;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
 import java.util.Objects;
 import java.util.Properties;
@@ -46,8 +49,8 @@ public class MmsConsumerGroupProxy extends MmsConsumerProxy<MessageExt> {
         }
     };
 
-    public MmsConsumerGroupProxy(ConsumerGroupMetadata metadata, SLA sla, String instanceName, Set<String> tags, Properties properties, MessageListener listener, String type) {
-        super(metadata, sla, instanceName, properties, listener);
+    public MmsConsumerGroupProxy(ConsumerGroupMetadata metadata, boolean order, String instanceName, Set<String> tags, Properties properties, MessageListener listener, String type) {
+        super(metadata, order, instanceName, properties, listener);
         this.consumerGroupMetadata = metadata;
         this.instanceName = instanceName;
         this.tags = tags;
@@ -56,9 +59,11 @@ public class MmsConsumerGroupProxy extends MmsConsumerProxy<MessageExt> {
         this.start();
     }
 
+    @Override
     public void register(MessageListener listener) {
     }
 
+    @Override
     protected void consumerStart() {
         String consumerName = this.consumerGroupMetadata.getName();
         String colorConsumerName = null;
@@ -76,34 +81,32 @@ public class MmsConsumerGroupProxy extends MmsConsumerProxy<MessageExt> {
             if (!StringUtils.isBlank(this.consumerGroupMetadata.getReleaseStatus()) && !this.consumerGroupMetadata.getReleaseStatus().equals("all")) {
                 this.colorMetadata = RouterManager.getZkInstance().readConsumerGroupMetadata(colorConsumerName);
                 if (null != this.colorMetadata) {
-                    this.colorConsumer = new RocketmqConsumerProxy(this.colorMetadata, this.sla, this.colorMetadata.getName(), this.tags, this.properties, this.listener);
+                    this.colorConsumer = new RocketmqConsumerProxy(this.colorMetadata, super.isOrderly, this.colorMetadata.getName(), this.tags, this.properties, this.listener);
                 }
-
                 if (this.colorMetadata.getReleaseStatus().equals(MQ_COLOR)) {
-                    this.defaultConsumer = new RocketmqConsumerProxy(this.consumerGroupMetadata, this.sla, this.consumerGroupMetadata.getName(), this.tags, this.properties, this.listener);
+                    this.defaultConsumer = new RocketmqConsumerProxy(this.consumerGroupMetadata, super.isOrderly, this.consumerGroupMetadata.getName(), this.tags, this.properties, this.listener);
                 }
             } else {
-                this.defaultConsumer = new RocketmqConsumerProxy(this.consumerGroupMetadata, this.sla, this.consumerGroupMetadata.getName(), this.tags, this.properties, this.listener);
+                this.defaultConsumer = new RocketmqConsumerProxy(this.consumerGroupMetadata, super.isOrderly, this.consumerGroupMetadata.getName(), this.tags, this.properties, this.listener);
             }
         } else if (!StringUtils.isBlank(this.consumerGroupMetadata.getReleaseStatus()) && !this.consumerGroupMetadata.getReleaseStatus().equals("all")) {
             this.colorMetadata = RouterManager.getZkInstance().readConsumerGroupMetadata(colorConsumerName);
             if (null != this.colorMetadata) {
-                this.colorConsumer = new KafkaConsumerProxy(this.colorMetadata, this.sla, this.colorMetadata.getName(), this.properties, this.listener);
+                this.colorConsumer = new KafkaConsumerProxy(this.colorMetadata, super.isOrderly, this.colorMetadata.getName(), this.properties, this.listener);
             }
-
             if (this.colorMetadata.getReleaseStatus().equals(MQ_COLOR)) {
-                this.defaultConsumer = new KafkaConsumerProxy(this.consumerGroupMetadata, this.sla, this.consumerGroupMetadata.getName(), this.properties, this.listener);
+                this.defaultConsumer = new KafkaConsumerProxy(this.consumerGroupMetadata, super.isOrderly, this.consumerGroupMetadata.getName(), this.properties, this.listener);
             }
         } else {
-            this.defaultConsumer = new KafkaConsumerProxy(this.consumerGroupMetadata, this.sla, this.consumerGroupMetadata.getName(), this.properties, this.listener);
+            this.defaultConsumer = new KafkaConsumerProxy(this.consumerGroupMetadata, super.isOrderly, this.consumerGroupMetadata.getName(), this.properties, this.listener);
         }
-
-        this.registWatcher();
+        this.registerWatcher();
     }
 
     protected void decryptMsgBodyIfNecessary(MessageExt msg) {
     }
 
+    @Override
     protected void consumerShutdown() {
         if (null != this.colorConsumer) {
             this.colorConsumer.shutdown();
@@ -114,9 +117,11 @@ public class MmsConsumerGroupProxy extends MmsConsumerProxy<MessageExt> {
 
     }
 
+    @Override
     public void addUserDefinedProperties(Properties properties) {
     }
 
+    @Override
     public void restart() {
         if (null != this.colorConsumer) {
             this.colorConsumer.shutdown();
@@ -133,6 +138,7 @@ public class MmsConsumerGroupProxy extends MmsConsumerProxy<MessageExt> {
         this.consumerStart();
     }
 
+    @Override
     public boolean changeConfigAndRestart(MmsMetadata oldMetadata, MmsMetadata newMetadata) {
         if (oldMetadata.isGatedLaunch() ^ newMetadata.isGatedLaunch()) {
             return true;
@@ -143,7 +149,7 @@ public class MmsConsumerGroupProxy extends MmsConsumerProxy<MessageExt> {
         }
     }
 
-    public void registWatcher() {
+    public void registerWatcher() {
         try {
             this.getZkInstance().addWatch(this.colorMetadata.getMmsPath(), this.zkDataListener, AddWatchMode.PERSISTENT);
         } catch (KeeperException | InterruptedException e) {

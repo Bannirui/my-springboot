@@ -1,9 +1,10 @@
 package com.github.bannirui.msb.mq.sdk.zookeeper;
 
-import com.github.bannirui.msb.mq.sdk.common.MmsException;
-import com.github.bannirui.msb.mq.sdk.metadata.ClusterMetadata;
-import com.github.bannirui.msb.mq.sdk.metadata.ConsumerGroupMetadata;
-import com.github.bannirui.msb.mq.sdk.metadata.TopicMetadata;
+import com.github.bannirui.mms.common.MmsException;
+import com.github.bannirui.mms.metadata.ClusterMetadata;
+import com.github.bannirui.mms.metadata.ConsumerGroupMetadata;
+import com.github.bannirui.mms.metadata.TopicMetadata;
+import com.github.bannirui.mms.zookeeper.MmsZkClient;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +17,7 @@ public class RouterManager {
     /**
      * zk客户端
      */
-    private MmsZookeeper zkClient;
+    private MmsZkClient zkClient;
 
     private RouterManager() {
         // msb配置mms.nameServerAddres zk注册中心
@@ -36,7 +37,7 @@ public class RouterManager {
         }
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            this.zkClient=new MmsZookeeper(mmsServer, 20_000, watchedEvent -> {
+            this.zkClient=new MmsZkClient(mmsServer, 20_000, watchedEvent -> {
                 Watcher.Event.KeeperState state = watchedEvent.getState();
                 Watcher.Event.EventType type = watchedEvent.getType();
                 if (Watcher.Event.KeeperState.SyncConnected == state) {
@@ -57,7 +58,7 @@ public class RouterManager {
         return RouterManager.InstanceHolder.routerManager;
     }
 
-    public static MmsZookeeper getZkInstance() {
+    public static MmsZkClient getZkInstance() {
         return RouterManager.InstanceHolder.routerManager.zkClient;
     }
 

@@ -1,14 +1,18 @@
 package com.github.bannirui.msb.mq.sdk;
 
-import com.github.bannirui.msb.mq.sdk.common.SimpleMessage;
-import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;
-import com.github.bannirui.msb.mq.sdk.consumer.MessageListener;
-import com.github.bannirui.msb.mq.sdk.producer.SendResponse;
-import com.github.bannirui.msb.mq.sdk.producer.MmsCallBack;
+import com.github.bannirui.mms.client.Mms;
+import com.github.bannirui.mms.client.common.SimpleMessage;
+import com.github.bannirui.mms.client.config.MmsClientConfig;
+import com.github.bannirui.mms.client.consumer.MessageListener;
+import com.github.bannirui.mms.client.producer.SendCallback;
+import com.github.bannirui.mms.client.producer.SendResult;
+import com.github.bannirui.mms.common.MmsConst;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import org.apache.commons.collections4.MapUtils;
 
 /**
  * 对mq功能的封装 屏蔽了mq类型等平台细节
@@ -19,84 +23,126 @@ import java.util.Set;
  * </ul>
  */
 public class MmsMsbImpl {
-    private final Mms mms;
+
+    private final Map<String, Properties> producerConfigCache;
+    /**
+     * <ul>key consumer group</ul>
+     * <ul>val 监听器的订阅配置</ul>
+     */
+    private final Map<String, Properties> consumerConfigCache;
 
     /**
      * @param zkAddress mq name server, the zookeeper
      */
     public MmsMsbImpl(String zkAddress) {
-        this.mms = new Mms(zkAddress);
+        this.producerConfigCache = new HashMap<>();
+        this.consumerConfigCache = new HashMap<>();
+        /**
+         * 在{@link Mms}中实例化{@link com.github.bannirui.mms.zookeeper.MmsZkClient}时会去读zk的配
+         */
+        System.setProperty(MmsConst.ZK.MMS_STARTUP_PARAM, zkAddress);
+    }
+
+    private void cacheProducerConfig(String topic, Map<MmsClientConfig.PRODUCER, Object> properties) {
+        if(MapUtils.isEmpty(properties) || this.producerConfigCache.containsKey(topic))  return;
+        synchronized(Mms.class) {
+            if (!this.producerConfigCache.containsKey(topic)) {
+                Properties p = new Properties();
+                properties.forEach((k, v) -> {
+                    p.put(k.getKey(), v);
+                });
+                this.producerConfigCache.put(topic, p);
+            }
+        }
+    }
+
+    /**
+     * consumer group的订阅配置缓存起来
+     * @param consumerGroup consumer group
+     * @param properties 监听器的订阅配置
+     */
+    private void cacheConsumerConfig(String consumerGroup, Map<MmsClientConfig.CONSUMER, Object> properties) {
+        if(this.consumerConfigCache.containsKey(consumerGroup) || MapUtils.isEmpty(properties)) {
+            return;
+        }
+        synchronized(Mms.class) {
+            if (!this.consumerConfigCache.containsKey(consumerGroup)) {
+                Properties p = new Properties();
+                properties.forEach((k, v) -> p.put(k.getKey(), v));
+                this.consumerConfigCache.put(consumerGroup, p);
+            }
+        }
     }
 
     public void stop() {
-        this.mms.shutdown();
+        // TODO: 2025/3/2
     }
 
-    public SendResponse send(String topic, SimpleMessage simpleMessage) {
-        return this.mms.doSendSync(topic, simpleMessage, null);
-    }
-
-    /** @deprecated */
-    @Deprecated
-    public SendResponse send(String topic, SimpleMessage simpleMessage, Properties properties) {
-        return this.mms.doSendSync(topic, simpleMessage, properties);
-    }
-
-    public SendResponse send(String topic, SimpleMessage simpleMessage, Map<MmsClientConfig.PRODUCER, Object> properties) {
-        this.mms.cacheProducerConfig(topic, properties);
-        return this.mms.doSendSync(topic, simpleMessage, this.mms.producerConfigCache.get(topic));
-    }
-
-    public void asyncSend(String topic, SimpleMessage simpleMessage, MmsCallBack callBack) {
-        this.mms.doSendAsync(topic, simpleMessage, null, callBack);
+    public SendResult send(String topic, SimpleMessage simpleMessage) {
+        return Mms.send(topic, simpleMessage);
     }
 
     /** @deprecated */
     @Deprecated
-    public void asyncSend(String topic, SimpleMessage simpleMessage, Properties properties, MmsCallBack callBack) {
-        this.mms.doSendAsync(topic, simpleMessage, properties, callBack);
+    public SendResult send(String topic, SimpleMessage simpleMessage, Properties properties) {
+        return Mms.send(topic, simpleMessage, properties);
     }
 
-    public void asyncSend(String topic, SimpleMessage simpleMessage, Map<MmsClientConfig.PRODUCER, Object> properties, MmsCallBack callBack) {
-        this.mms.cacheProducerConfig(topic, properties);
-        this.mms.doSendAsync(topic, simpleMessage, this.mms.producerConfigCache.get(topic), callBack);
+    public SendResult send(String topic, SimpleMessage simpleMessage, Map<MmsClientConfig.PRODUCER, Object> properties) {
+        this.cacheProducerConfig(topic, properties);
+        return Mms.send(topic, simpleMessage, this.producerConfigCache.get(topic));
+    }
+
+    public void asyncSend(String topic, SimpleMessage simpleMessage, SendCallback callBack) {
+        Mms.sendAsync(topic, simpleMessage, callBack);
+    }
+
+    /** @deprecated */
+    @Deprecated
+    public void asyncSend(String topic, SimpleMessage simpleMessage, Properties properties, SendCallback callBack) {
+        Mms.sendAsync(topic, simpleMessage, properties, callBack);
+    }
+
+    public void asyncSend(String topic, SimpleMessage simpleMessage, Map<MmsClientConfig.PRODUCER, Object> properties, SendCallback callBack) {
+        this.cacheProducerConfig(topic, properties);
+        Mms.sendAsync(topic, simpleMessage, this.producerConfigCache.get(topic), callBack);
     }
 
     public void onewaySend(String topic, SimpleMessage simpleMessage) {
-        this.mms.doSendOneway(topic, simpleMessage);
+        Mms.sendOneway(topic, simpleMessage);
     }
 
     public void subscribe(String consumerGroup, MessageListener listener) {
-        this.mms.doSubscribe(consumerGroup, listener);
+        Mms.subscribe(consumerGroup, listener);
     }
 
     public void subscribe(String consumerGroup, String tags, MessageListener listener) {
-        this.mms.doSubscribe(consumerGroup, Sets.newHashSet(tags), listener);
+        Mms.subscribe(consumerGroup, Sets.newHashSet(tags), listener);
     }
 
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener) {
-        this.mms.doSubscribe(consumerGroup, tags, listener);
+        Mms.subscribe(consumerGroup, tags, listener);
     }
 
     /** @deprecated */
     @Deprecated
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener, Properties properties) {
-        this.mms.doSubscribe(consumerGroup, tags, listener, properties);
+        Mms.subscribe(consumerGroup, tags, listener, properties);
     }
 
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener, Map<MmsClientConfig.CONSUMER, Object> properties) {
-        this.mms.cacheConsumerConfig(consumerGroup, properties);
-        this.mms.doSubscribe(consumerGroup, tags, listener, this.mms.consumerConfigCache.get(consumerGroup));
+        this.cacheConsumerConfig(consumerGroup, properties);
+        Mms.subscribe(consumerGroup, tags, listener, this.consumerConfigCache.get(consumerGroup));
     }
 
     /** @deprecated */
     @Deprecated
     public void subscribe(String consumerGroup, MessageListener listener, Properties properties) {
-        this.mms.doSubscribe(consumerGroup, Sets.newHashSet(), listener, properties);
+        Mms.subscribe(consumerGroup, Sets.newHashSet(), listener, properties);
     }
 
     public void subscribe(String consumerGroup, MessageListener listener, Map<MmsClientConfig.CONSUMER, Object> properties) {
-        this.mms.cacheConsumerConfig(consumerGroup, properties);
-        this.mms.doSubscribe(consumerGroup, Sets.newHashSet(), listener, this.mms.consumerConfigCache.get(consumerGroup));
+        this.cacheConsumerConfig(consumerGroup, properties);
+        Mms.subscribe(consumerGroup, Sets.newHashSet(), listener, this.consumerConfigCache.get(consumerGroup));
     }
 }

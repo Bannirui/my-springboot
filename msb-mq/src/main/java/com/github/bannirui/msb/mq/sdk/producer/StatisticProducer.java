@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.mq.sdk.producer;
 
-import com.github.bannirui.msb.mq.sdk.metadata.ClusterMetadata;
+import com.github.bannirui.mms.metadata.ClusterMetadata;
 import com.github.bannirui.msb.mq.sdk.zookeeper.RouterManager;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;

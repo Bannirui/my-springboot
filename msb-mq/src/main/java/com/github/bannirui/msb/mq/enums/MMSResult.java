@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.mq.enums;
 
-import com.github.bannirui.msb.mq.sdk.consumer.MsgConsumedStatus;
+import com.github.bannirui.mms.client.consumer.MsgConsumedStatus;
 
 public class MMSResult {
     private MsgConsumedStatus consumedStatus;

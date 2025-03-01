@@ -1,6 +1,6 @@
 package com.github.bannirui.msb.mq.sdk.common;
 
-import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;
+import com.github.bannirui.mms.client.config.MmsClientConfig;
 import java.util.Properties;
 
 public class SLA {

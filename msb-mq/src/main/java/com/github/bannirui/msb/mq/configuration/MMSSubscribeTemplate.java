@@ -1,8 +1,9 @@
 package com.github.bannirui.msb.mq.configuration;
 
+import com.github.bannirui.mms.client.Mms;
+import com.github.bannirui.mms.client.config.MmsClientConfig;
+import com.github.bannirui.mms.client.consumer.MessageListener;
 import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
-import com.github.bannirui.msb.mq.sdk.config.MmsClientConfig;
-import com.github.bannirui.msb.mq.sdk.consumer.MessageListener;
 import com.google.common.collect.Sets;
 import java.util.Map;
 import java.util.Properties;
@@ -23,11 +24,11 @@ public class MMSSubscribeTemplate implements DisposableBean {
     }
 
     public void subscribe(String consumerGroup, MessageListener listener) {
-        this.mmsMsb.subscribe(consumerGroup, listener);
+        Mms.subscribe(consumerGroup, listener);
     }
 
     public void subscribe(String consumerGroup, String tags, MessageListener listener) {
-        this.mmsMsb.subscribe(consumerGroup, Sets.newHashSet(new String[]{tags}), listener);
+        this.mmsMsb.subscribe(consumerGroup, Sets.newHashSet(tags), listener);
     }
 
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener) {
@@ -59,20 +60,15 @@ public class MMSSubscribeTemplate implements DisposableBean {
 
     public static boolean isWrapClass(Class<?> clz) {
         try {
-            return ((Class<?>)clz.getField("TYPE").get((Object)null)).isPrimitive();
+            return ((Class<?>)clz.getField("TYPE").get(null)).isPrimitive();
         } catch (Exception var2) {
             return false;
         }
     }
 
     public void destroy() throws Exception {
-        this.stop();
-    }
-
-    public void stop() {
         if (this.mmsMsb != null) {
             this.mmsMsb.stop();
         }
-
     }
 }
