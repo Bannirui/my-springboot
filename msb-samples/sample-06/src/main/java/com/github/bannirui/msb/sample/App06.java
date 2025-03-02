@@ -52,19 +52,18 @@ public class App06 implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-         // cluster and consumer
-        // this.initZk();
-        this.registerMQMetaDataIfAbsent();
+        // cluster and consumer
         // this.cleanZk();
-        // while(true) {
-            Thread.sleep(1500L);
-            // mq发送消息
+        // this.initZk();
+        // this.registerMQMetaDataIfAbsent();
+        Thread.sleep(1500L);
+        // mq发送消息
         String mid = this.mmsTemplate.send("topic_a", "1", "hello.");
         log.info("业务发送MQ消息成功 mid={}", mid);
-        // }
     }
     private void initZk() {
         try {
+            RouterManager.getZkInstance().create("/mms", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             RouterManager.getZkInstance().create("/mms/cluster", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             RouterManager.getZkInstance().create("/mms/topic", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             RouterManager.getZkInstance().create("/mms/consumergroup", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -73,9 +72,14 @@ public class App06 implements ApplicationRunner {
         }
     }
     private void cleanZk() {
-        RouterManager.getInstance().deleteTopic("topic_a");
-        RouterManager.getInstance().deleteConsumerGroup("group_a");
-        RouterManager.getInstance().deleteCluster("cluster_a");
+        try {
+            RouterManager.getZkInstance().delete("/mms", -1);
+        } catch (InterruptedException | KeeperException e) {
+            throw new RuntimeException(e);
+        }
+        // RouterManager.getInstance().deleteTopic("topic_a");
+        // RouterManager.getInstance().deleteConsumerGroup("group_a");
+        // RouterManager.getInstance().deleteCluster("cluster_a");
     }
     private void registerMQMetaDataIfAbsent() {
         // cluster

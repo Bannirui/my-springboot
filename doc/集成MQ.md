@@ -1,5 +1,8 @@
 集成MQ
 ---
+
+[关于RocketMQ的部署](https://bannirui.github.io/2025/01/09/Docker/%E9%83%A8%E7%BD%B2RocketMQ/)
+
 ### 1 maven的依赖GAV
 
 ```xml
