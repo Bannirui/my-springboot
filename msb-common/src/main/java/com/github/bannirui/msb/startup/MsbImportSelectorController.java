@@ -16,6 +16,52 @@ import java.util.*;
 public abstract class MsbImportSelectorController implements ImportSelector {
 
     /**
+     * 场景启动器 n:1 一个场景启动器starter可能需要import多个Bean
+     */
+    enum EnableType {
+        MsbConfigChangeListener("EnableMsbConfig", "MsbConfigChangeListenerSelector"),
+        MsbLog("EnableMsbLog", "MsbLogImportSelector"),
+        MsbMQ("EnableMsbMQ", "MsbMQImportSelector"),
+        MsbMybatis("EnableMyBatis", "EnableMyBatisImportSelector"),
+        MsbMybatisPlus("EnableMyBatisPlus", "EnableMyBatisPlusImportSelector"),
+        MsbShardingJdbc("EnableShardingJdbc", "EnableShardingJdbcImportSelector"),
+        MsbDubbo("EnableDubbo", "ComponentImportSelector"),
+        MsbHbase("EnableHbase","EnableHbaseImportSelector"),
+        MsbEs("EnableEs", "EnableEsImportSelector"),
+        MsbHttp("EnableHttp", "HttpImportSelector"),
+        MsbDfs("EnableDFS", "EnableDfsImportSelector"),
+        MsbWeb("EnableWeb", "WebImportSelectorController"),
+        MsbScheduleService("EnableMss", "EnableMssImportSelector"),
+        ;
+
+        private final String starter;
+        private final String importer;
+
+        EnableType(String starter, String importer) {
+            this.starter = starter;
+            this.importer = importer;
+        }
+
+        public String getStarter() {
+            return starter;
+        }
+
+        public String getImporter() {
+            return this.importer;
+        }
+
+        private static final Map<String, EnableType> cache_by_importer = new HashMap<>();
+        static {
+            for (EnableType e : EnableType.values()) {
+                cache_by_importer.put(e.getImporter(), e);
+            }
+        }
+        public static EnableType get8Importer(String name) {
+            return cache_by_importer.get(name);
+        }
+    }
+
+    /**
      * cache starter and importer.
      */
     private static Set<String> starters = new HashSet<>();
@@ -45,51 +91,5 @@ public abstract class MsbImportSelectorController implements ImportSelector {
 
     public static Set<String> getEnableModules() {
         return importers;
-    }
-
-
-    /**
-     * 场景启动器 n:1 一个场景启动器starter可能需要import多个Bean
-     */
-    enum EnableType {
-        MsbConfigChangeListener("EnableMsbConfig", "MsbConfigChangeListenerSelector"),
-        MsbLog("EnableMsbLog", "MsbLogImportSelector"),
-        MsbMQ("EnableMsbMQ", "MsbMQImportSelector"),
-        MsbMybatis("EnableMyBatis", "EnableMyBatisImportSelector"),
-        MsbMybatisPlus("EnableMyBatisPlus", "EnableMyBatisPlusImportSelector"),
-        MsbShardingJdbc("EnableShardingJdbc", "EnableShardingJdbcImportSelector"),
-        MsbDubbo("EnableDubbo", "ComponentImportSelector"),
-        MsbHbase("EnableHbase","EnableHbaseImportSelector"),
-        MsbEs("EnableEs", "EnableEsImportSelector"),
-        MsbHttp("EnableHttp", "HttpImportSelector"),
-        MsbDfs("EnableDFS", "EnableDfsImportSelector"),
-        MsbWeb("EnableWeb", "WebImportSelectorController"),
-        ;
-
-        private final String starter;
-        private final String importer;
-
-        EnableType(String starter, String importer) {
-            this.starter = starter;
-            this.importer = importer;
-        }
-
-        public String getStarter() {
-            return starter;
-        }
-
-        public String getImporter() {
-            return this.importer;
-        }
-
-        private static final Map<String, EnableType> cache_by_importer = new HashMap<>();
-        static {
-            for (EnableType e : EnableType.values()) {
-                cache_by_importer.put(e.getImporter(), e);
-            }
-        }
-        public static EnableType get8Importer(String name) {
-            return cache_by_importer.get(name);
-        }
     }
 }
