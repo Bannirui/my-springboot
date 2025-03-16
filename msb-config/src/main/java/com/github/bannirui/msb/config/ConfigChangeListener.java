@@ -119,7 +119,7 @@ public class ConfigChangeListener implements ApplicationContextAware, Environmen
                         Method method = null;
                         try {
                             method = clz.getMethod(methodName, field.getType());
-                        } catch (Exception var15) {
+                        } catch (Exception e) {
                             ConfigChangeListener.logger.warn("className={} 配置类 propertyName={} 不存在set方法或者set方法不规范,不支持自动配置变更",
                                 bean.getClass().getName(), field.getName());
                         }

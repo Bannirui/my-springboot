@@ -1,4 +1,4 @@
-package com.github.bannirui.msb.config;
+package com.github.bannirui.msb;
 
 
 import com.ctrip.framework.apollo.Config;

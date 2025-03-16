@@ -28,9 +28,6 @@ public class ConfigChangeSpringMulticaster implements ApplicationListener<Config
     private ExecutorService executorService = Executors.newCachedThreadPool();
     private int defaultInvokeTimeoutInSecond = 5;
 
-    public ConfigChangeSpringMulticaster() {
-    }
-
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;

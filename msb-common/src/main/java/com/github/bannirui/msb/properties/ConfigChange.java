@@ -8,9 +8,6 @@ public class ConfigChange {
     private Map<String, ConfigChangeEntry> changedConfigs;
     private Map<String, Object> extraInfos;
 
-    public ConfigChange() {
-    }
-
     public Set<String> getChangedConfigKeys() {
         return this.changedConfigKeys;
     }

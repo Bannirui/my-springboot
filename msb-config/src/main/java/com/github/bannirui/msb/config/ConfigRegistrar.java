@@ -19,7 +19,7 @@ import org.springframework.core.type.AnnotationMetadata;
  * <ul>
  *     <li>获取{@link com.github.bannirui.msb.config.annotation.EnableMsbConfig}注解目标类的nameSpace信息</li>
  *     <li>为Apollo的所有配置注册监听器</li>
- *     <li>配置变更后反射Spring Bean实现内存配置更新</li>
+ *     <li>{@link org.springframework.beans.factory.annotation.Value}标识的配置变更后反射Spring Bean实现内存配置更新</li>
  * </ul>
  */
 public class ConfigRegistrar implements ImportBeanDefinitionRegistrar {
@@ -40,9 +40,13 @@ public class ConfigRegistrar implements ImportBeanDefinitionRegistrar {
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, PropertySourcesPlaceholderConfigurer.class.getName(), PropertySourcesPlaceholderConfigurer.class);
         // 向Apollo注册配置变更监听器
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, PropertySourcesProcessor.class.getName(), PropertySourcesProcessor.class);
-        // 轮询所有Bean的成员和方法 对于Spring而言 对接的是{@link Value}注解作用的对象
+        /**
+         * 轮询所有Bean的成员和方法 对接的是{@link com.ctrip.framework.apollo.spring.annotation.ApolloConfig}注解作用的对象 注解的成员或者setter方法参数缓存起来 监听配置更新回调
+         */
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, ApolloAnnotationProcessor.class.getName(), ApolloAnnotationProcessor.class);
-        // Spring中{@link Value}注解的成员或者setter方法参数缓存起来 监听配置变更回调
+        /**
+         * 轮询所有Bean的成员和方法 对于Spring而言 对接的是{@link org.springframework.beans.factory.annotation.Value}注解作用的对象 注解的成员或者setter方法参数缓存起来 监听配置更新回调
+         */
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, SpringValueProcessor.class.getName(), SpringValueProcessor.class);
         // xml配置
         BeanRegistrationUtil.registerBeanDefinitionIfNotExists(registry, SpringValueDefinitionProcessor.class.getName(), SpringValueDefinitionProcessor.class);

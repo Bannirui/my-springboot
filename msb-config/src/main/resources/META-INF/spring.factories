@@ -1,2 +1,2 @@
 org.springframework.context.ApplicationListener=\
-  com.github.bannirui.msb.config.ApolloConfigApplicationListener
+  com.github.bannirui.msb.ApolloConfigApplicationListener

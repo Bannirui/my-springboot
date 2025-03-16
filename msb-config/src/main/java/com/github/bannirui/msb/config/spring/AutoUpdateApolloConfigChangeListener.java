@@ -77,7 +77,6 @@ public class AutoUpdateApolloConfigChangeListener implements ConfigChangeListene
         } catch (Throwable e) {
             logger.error("Auto update apollo changed value failed, {}", springValue.toString(), e);
         }
-
     }
 
     private Object resolvePropertyValue(SpringValue springValue) {

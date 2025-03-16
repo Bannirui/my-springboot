@@ -9,9 +9,6 @@ public class ConfigChangeEntry {
     private ConfigChangeType configChangeType;
     private Map<String, Object> extraInfos;
 
-    public ConfigChangeEntry() {
-    }
-
     public String getConfigKey() {
         return this.configKey;
     }

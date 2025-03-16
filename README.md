@@ -65,7 +65,7 @@ A framework based on SpringBoot, focusing on different section
     - false 控制台不输出日志
 - -Dapollo.configService=http://127.0.0.1:8081/ 在使用Docker部署Apollo时因为网卡地址访问问题时 直接指定服务地址从而跳过服务发现
 - -Dapollo.autoUpdateInjectedSpringProperties
-  - true 开启对接Apollo热更新
+  - true 开启对接Apollo热更新 默认开启
   - false 关闭对接Apollo热更新
 - -Dmsb.log.asyncFileAppender.enable
   - true 日志文件异步刷盘
