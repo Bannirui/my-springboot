@@ -3,12 +3,13 @@ package com.github.bannirui.msb.mq.configuration;
 import com.github.bannirui.mms.client.Mms;
 import com.github.bannirui.mms.client.config.MmsClientConfig;
 import com.github.bannirui.mms.client.consumer.MessageListener;
-import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
+import com.github.bannirui.msb.mq.MmsMsbImpl;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.DisposableBean;
+
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import org.springframework.beans.factory.DisposableBean;
 
 /**
  * 消费者.

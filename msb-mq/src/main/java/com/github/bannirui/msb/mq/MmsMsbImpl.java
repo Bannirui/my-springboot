@@ -1,4 +1,4 @@
-package com.github.bannirui.msb.mq.sdk;
+package com.github.bannirui.msb.mq;
 
 import com.github.bannirui.mms.client.Mms;
 import com.github.bannirui.mms.client.common.SimpleMessage;
@@ -8,11 +8,12 @@ import com.github.bannirui.mms.client.producer.SendCallback;
 import com.github.bannirui.mms.client.producer.SendResult;
 import com.github.bannirui.mms.common.MmsConst;
 import com.google.common.collect.Sets;
+import org.apache.commons.collections4.MapUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import org.apache.commons.collections4.MapUtils;
 
 /**
  * 对mq功能的封装 屏蔽了mq类型等平台细节
@@ -24,6 +25,13 @@ import org.apache.commons.collections4.MapUtils;
  */
 public class MmsMsbImpl {
 
+    /**
+     * 生产者的配置
+     * <ul>
+     *     <li>key topic</li>
+     *     <li>val 配置</li>
+     * </ul>
+     */
     private final Map<String, Properties> producerConfigCache;
     /**
      * <ul>key consumer group</ul>
@@ -38,14 +46,15 @@ public class MmsMsbImpl {
         this.producerConfigCache = new HashMap<>();
         this.consumerConfigCache = new HashMap<>();
         /**
-         * 在{@link Mms}中实例化{@link com.github.bannirui.mms.zookeeper.MmsZkClient}时会去读zk的配
+         * 在{@link Mms}中实例化{@link com.github.bannirui.mms.zookeeper.MmsZkClient}时会去读zk的配置
+         * zk是mms的注册中心
          */
         System.setProperty(MmsConst.ZK.MMS_STARTUP_PARAM, zkAddress);
     }
 
     private void cacheProducerConfig(String topic, Map<MmsClientConfig.PRODUCER, Object> properties) {
-        if(MapUtils.isEmpty(properties) || this.producerConfigCache.containsKey(topic))  return;
-        synchronized(Mms.class) {
+        if (this.producerConfigCache.containsKey(topic) || MapUtils.isEmpty(properties)) return;
+        synchronized (Mms.class) {
             if (!this.producerConfigCache.containsKey(topic)) {
                 Properties p = new Properties();
                 properties.forEach((k, v) -> {
@@ -58,14 +67,15 @@ public class MmsMsbImpl {
 
     /**
      * consumer group的订阅配置缓存起来
+     *
      * @param consumerGroup consumer group
-     * @param properties 监听器的订阅配置
+     * @param properties    监听器的订阅配置
      */
     private void cacheConsumerConfig(String consumerGroup, Map<MmsClientConfig.CONSUMER, Object> properties) {
-        if(this.consumerConfigCache.containsKey(consumerGroup) || MapUtils.isEmpty(properties)) {
+        if (this.consumerConfigCache.containsKey(consumerGroup) || MapUtils.isEmpty(properties)) {
             return;
         }
-        synchronized(Mms.class) {
+        synchronized (Mms.class) {
             if (!this.consumerConfigCache.containsKey(consumerGroup)) {
                 Properties p = new Properties();
                 properties.forEach((k, v) -> p.put(k.getKey(), v));
@@ -82,7 +92,9 @@ public class MmsMsbImpl {
         return Mms.send(topic, simpleMessage);
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public SendResult send(String topic, SimpleMessage simpleMessage, Properties properties) {
         return Mms.send(topic, simpleMessage, properties);
@@ -97,7 +109,9 @@ public class MmsMsbImpl {
         Mms.sendAsync(topic, simpleMessage, callBack);
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public void asyncSend(String topic, SimpleMessage simpleMessage, Properties properties, SendCallback callBack) {
         Mms.sendAsync(topic, simpleMessage, properties, callBack);
@@ -124,7 +138,9 @@ public class MmsMsbImpl {
         Mms.subscribe(consumerGroup, tags, listener);
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener, Properties properties) {
         Mms.subscribe(consumerGroup, tags, listener, properties);
@@ -135,7 +151,9 @@ public class MmsMsbImpl {
         Mms.subscribe(consumerGroup, tags, listener, this.consumerConfigCache.get(consumerGroup));
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public void subscribe(String consumerGroup, MessageListener listener, Properties properties) {
         Mms.subscribe(consumerGroup, Sets.newHashSet(), listener, properties);

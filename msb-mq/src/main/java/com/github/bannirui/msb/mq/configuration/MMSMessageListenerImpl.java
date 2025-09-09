@@ -5,21 +5,22 @@ import com.github.bannirui.mms.client.consumer.ConsumeMessage;
 import com.github.bannirui.mms.client.consumer.KafkaMessageListener;
 import com.github.bannirui.mms.client.consumer.MsgConsumedStatus;
 import com.github.bannirui.mms.client.consumer.RocketmqMessageListener;
-import com.github.bannirui.mms.common.BrokerType;
+import com.github.bannirui.mms.common.HostServerType;
 import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.mq.enums.MMSResult;
 import com.github.bannirui.msb.mq.enums.MQMsgEnum;
 import com.github.bannirui.msb.mq.enums.Serialize;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * mq监听器的统一封装
@@ -235,7 +236,7 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
     }
 
     private String parseProperties(ConsumeMessage msg) {
-        BrokerType brokerType = (BrokerType)msg.getProperties().get("broker_type");
+        HostServerType brokerType = HostServerType.getByCode(Integer.valueOf((String) msg.getProperties().get("broker_type")));
         switch(brokerType) {
             case KAFKA:
                 return this.parseKafkaProperties((Headers)msg.getProperties().get("headers"));

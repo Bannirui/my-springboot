@@ -4,7 +4,7 @@ import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.plugin.InterceptorUtil;
 import com.github.bannirui.msb.register.AbstractBeanRegistrar;
 import com.github.bannirui.msb.register.BeanDefinition;
-import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
+import com.github.bannirui.msb.mq.MmsMsbImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -37,27 +37,27 @@ public class MMSConfiguration extends AbstractBeanRegistrar {
         // msb配置
         String mmsNameServerAddress = this.getProperty("mms.nameServerAddress");
         if(StringUtils.isEmpty(mmsNameServerAddress)) {
-            throw FrameworkException.getInstance("MQ消息服务初始化失败-mmsNameServerAddress为空，请检查配置");
+            throw FrameworkException.getInstance("MQ消息服务初始化失败-mmsNameServerAddress为空 请检查配置");
         }
         // Spring单例
         MmsMsbImpl mmsMsb = beanFactory.getBean(MmsMsbImpl.class);
-        MMSTemplate MMSTemplateProxyObj = null;
+        MMSTemplate sendTemplateproxyobj = null;
         try {
             // MMSTemplate的代理 生产者
-            MMSTemplateProxyObj = InterceptorUtil.getProxyObj(MMSTemplate.class, new Class[]{MmsMsbImpl.class}, new Object[]{mmsMsb}, "MMS.Producer");
+            sendTemplateproxyobj = InterceptorUtil.getProxyObj(MMSTemplate.class, new Class[]{MmsMsbImpl.class}, new Object[]{mmsMsb}, "MMS.Producer");
         } catch (Exception e) {
-            throw FrameworkException.getInstance(e, "加载MMS-MQ提供者监听插件失败,errorMessage{0}", e);
+            throw FrameworkException.getInstance(e, "加载MMS-MQ提供者监听插件失败 errorMessage{0}", e);
         }
         // MMSTemplate的代理对象注入Spring
-        beanFactory.registerSingleton("mmsTemplate", MMSTemplateProxyObj);
-        MMSSubscribeTemplate MMSSubscribeTemplateProxyObj = null;
+        beanFactory.registerSingleton("mmsTemplate", sendTemplateproxyobj);
+        MMSSubscribeTemplate subscribeTemplateProxyObj = null;
         try {
             // MMSSubscribeTemplate的代理 消费者
-            MMSSubscribeTemplateProxyObj = InterceptorUtil.getProxyObj(MMSSubscribeTemplate.class, new Class[]{MmsMsbImpl.class}, new Object[]{mmsMsb}, "MMS.Subscribe");
+            subscribeTemplateProxyObj = InterceptorUtil.getProxyObj(MMSSubscribeTemplate.class, new Class[]{MmsMsbImpl.class}, new Object[]{mmsMsb}, "MMS.Subscribe");
         } catch (Exception e) {
-            throw FrameworkException.getInstance(e, "加载MMS-MQ订阅着监听插件失败,errorMessage{0}", e);
+            throw FrameworkException.getInstance(e, "加载MMS-MQ订阅着监听插件失败 errorMessage{0}", e);
         }
         // MMSSubscribeTemplate的代理注入Spring
-        beanFactory.registerSingleton("mmsSubscribeTemplate", MMSSubscribeTemplateProxyObj);
+        beanFactory.registerSingleton("mmsSubscribeTemplate", subscribeTemplateProxyObj);
     }
 }

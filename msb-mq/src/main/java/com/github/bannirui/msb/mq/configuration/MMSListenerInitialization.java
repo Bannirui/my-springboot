@@ -74,7 +74,7 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
                             Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                             map.put("serializeType", clazz);
                         } catch (Exception e) {
-                            logger.warn("该方法 [{}] List 类型参数 [{}] 未设置泛型类型", method.getName(), parameter.getName(), e);
+                            logger.warn("该方法[{}]是List类型参数 [{}]未设置泛型类型", method.getName(), parameter.getName(), e);
                             map.put("serializeType", Object.class);
                         }
                     } else {
@@ -98,17 +98,17 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
             String maxReconsumeTimes = b && StringUtils.isNotBlank(zp.getMaxReconsumeTimes()) ? zp.getMaxReconsumeTimes() : annotation.maxReconsumeTimes();
             String isNewPush = b && StringUtils.isNotBlank(zp.getIsNewPush()) ? zp.getIsNewPush() : annotation.isNewPush();
             String orderlyConsumeThreadSize = b && StringUtils.isNotBlank(zp.getOrderlyConsumeThreadSize()) ? zp.getOrderlyConsumeThreadSize() : annotation.orderlyConsumeThreadSize();
-            MMSSubscribeInfo MMSSubscribeInfo = new MMSSubscribeInfo();
-            MMSSubscribeInfo.setConsumeThreadMax(consumeThreadMax);
-            MMSSubscribeInfo.setConsumeThreadMin(consumeThreadMin);
-            MMSSubscribeInfo.setOrderlyConsumePartitionParallelism(orderlyConsumePartitionParallelism);
-            MMSSubscribeInfo.setMaxBatchRecords(maxBatchRecords);
-            MMSSubscribeInfo.setEasy(annotation.easy());
-            MMSSubscribeInfo.setIsOrderly(isOrderly);
-            MMSSubscribeInfo.setConsumeTimeoutMs(consumeTimeoutMs);
-            MMSSubscribeInfo.setMaxReconsumeTimes(maxReconsumeTimes);
-            MMSSubscribeInfo.setIsNewPush(isNewPush);
-            MMSSubscribeInfo.setOrderlyConsumeThreadSize(orderlyConsumeThreadSize);
+            MMSSubscribeInfo subscribeInfo = new MMSSubscribeInfo();
+            subscribeInfo.setConsumeThreadMax(consumeThreadMax);
+            subscribeInfo.setConsumeThreadMin(consumeThreadMin);
+            subscribeInfo.setOrderlyConsumePartitionParallelism(orderlyConsumePartitionParallelism);
+            subscribeInfo.setMaxBatchRecords(maxBatchRecords);
+            subscribeInfo.setEasy(annotation.easy());
+            subscribeInfo.setIsOrderly(isOrderly);
+            subscribeInfo.setConsumeTimeoutMs(consumeTimeoutMs);
+            subscribeInfo.setMaxReconsumeTimes(maxReconsumeTimes);
+            subscribeInfo.setIsNewPush(isNewPush);
+            subscribeInfo.setOrderlyConsumeThreadSize(orderlyConsumeThreadSize);
             Set<String> tagsSet = new HashSet<>();
             if ("*".equals(tags)) {
                 if (MMSContext.checkTag(consumerGroup, tags)) {
@@ -126,8 +126,8 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
                 }
             }
             if (CollectionUtils.isNotEmpty(tagsSet)) {
-                MMSSubscribeInfo.setTags(tagsSet);
-                MMSContext.putConsumerInfo(consumerGroup, MMSSubscribeInfo);
+                subscribeInfo.setTags(tagsSet);
+                MMSContext.putConsumerInfo(consumerGroup, subscribeInfo);
             }
         }
         return bean;

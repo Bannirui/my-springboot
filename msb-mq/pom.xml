@@ -76,7 +76,6 @@
         <dependency>
             <groupId>com.github.bannirui</groupId>
             <artifactId>mms-client</artifactId>
-            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

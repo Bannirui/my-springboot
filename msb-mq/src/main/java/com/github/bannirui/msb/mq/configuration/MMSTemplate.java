@@ -6,16 +6,13 @@ import com.github.bannirui.mms.client.config.MmsClientConfig;
 import com.github.bannirui.mms.client.producer.SendCallback;
 import com.github.bannirui.mms.client.producer.SendResult;
 import com.github.bannirui.msb.ex.FrameworkException;
-import com.github.bannirui.msb.mq.sdk.MmsMsbImpl;
+import com.github.bannirui.msb.mq.MmsMsbImpl;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.DisposableBean;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
-import org.springframework.beans.factory.DisposableBean;
+import java.util.*;
 
 /**
  * 生产者.
@@ -70,7 +67,7 @@ public class MMSTemplate implements DisposableBean {
         SimpleMessage simpleMessage = new SimpleMessage();
         simpleMessage.setKey(keys);
         simpleMessage.setTags(tags);
-        if (null != properties && null != properties.get("delayLevel")) {
+        if (Objects.nonNull(properties) && Objects.nonNull(properties.get("delayLevel"))) {
             if (properties.get("delayLevel") instanceof Integer) {
                 simpleMessage.setDelayLevel((Integer)properties.get("delayLevel"));
             }
@@ -105,7 +102,7 @@ public class MMSTemplate implements DisposableBean {
         try {
             sendResponse = this.mmsMsb.send(topic, simpleMessage, properties);
         } catch (Exception e) {
-            throw FrameworkException.getInstance(e, "MQ发送消息错误{0}", simpleMessage);
+            throw FrameworkException.getInstance(e, "MQ发送消息{0}错误{1}", simpleMessage, e.getMessage());
         }
         if (SendResult.SUCCESS.getCode() == sendResponse.getCode()) {
             return sendResponse.getMsgId();
@@ -225,5 +222,13 @@ public class MMSTemplate implements DisposableBean {
         if (Objects.nonNull(this.mmsMsb)) {
             this.mmsMsb.stop();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "MMSTemplate{" +
+                "mmsMsb=" + mmsMsb +
+                ", listeners=" + listeners +
+                '}';
     }
 }

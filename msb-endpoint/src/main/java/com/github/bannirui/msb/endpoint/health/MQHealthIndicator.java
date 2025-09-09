@@ -2,27 +2,16 @@ package com.github.bannirui.msb.endpoint.health;
 
 import com.codahale.metrics.Meter;
 import com.github.bannirui.mms.client.consumer.ConsumerFactory;
+import com.github.bannirui.mms.client.consumer.ConsumerProxy;
 import com.github.bannirui.mms.client.consumer.KafkaConsumerProxy;
-import com.github.bannirui.mms.client.consumer.MmsConsumerProxy;
 import com.github.bannirui.mms.client.consumer.RocketmqConsumerProxy;
-import com.github.bannirui.mms.client.metrics.MmsProducerMetrics;
+import com.github.bannirui.mms.client.metrics.ProducerMetrics;
 import com.github.bannirui.mms.client.producer.KafkaProducerProxy;
-import com.github.bannirui.mms.client.producer.MmsProducerProxy;
+import com.github.bannirui.mms.client.producer.ProducerFactory;
+import com.github.bannirui.mms.client.producer.ProducerProxy;
 import com.github.bannirui.mms.client.producer.RocketmqProducerProxy;
+import com.github.bannirui.mms.common.MmsConst;
 import com.github.bannirui.msb.ex.FrameworkException;
-import com.github.bannirui.msb.mq.sdk.producer.ProducerFactory;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.MapUtils;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.internals.Fetcher;
@@ -42,17 +31,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
 public class MQHealthIndicator implements HealthIndicator {
     private static final Logger logger = LoggerFactory.getLogger(MQHealthIndicator.class);
-    private Map<String, MmsConsumerProxy> consumers;
-    private Map<String, MmsProducerProxy> producers;
+    private Map<String, ConsumerProxy> consumers;
+    private Map<String, ProducerProxy> producers;
 
     @Override
     public synchronized Health health() {
         Health health = new Health();
         health.up();
-        Map<String, MmsConsumerProxy> consumers = this.getConsumers();
-        Map<String, MmsProducerProxy> producers = this.getProducers();
+        Map<String, ConsumerProxy> consumers = this.getConsumers();
+        Map<String, ProducerProxy> producers = this.getProducers();
         Map<String, String> consumerStatusMap = null;
         if(MapUtils.isNotEmpty(consumers)) {
             consumerStatusMap = this.getConsumerStatus(consumers);
@@ -71,7 +68,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return health;
     }
 
-    private Map<String, String> getConsumerStatus(Map<String, MmsConsumerProxy> consumers) {
+    private Map<String, String> getConsumerStatus(Map<String, ConsumerProxy> consumers) {
         Map<String, String> consumerStatusMap = new HashMap<>();
         consumers.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, (entry) -> CompletableFuture.supplyAsync(() -> this.determineConsumerClient(entry.getValue()))))
@@ -86,7 +83,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return consumerStatusMap;
     }
 
-    private Map<String, String> getProducerStatus(Map<String, MmsProducerProxy> producers) {
+    private Map<String, String> getProducerStatus(Map<String, ProducerProxy> producers) {
         Map<String, String> producerStatusMap = new HashMap<>();
         producers.entrySet().stream().filter((entry) -> !entry.getKey().equals("statistic_topic_producerinfo".concat("_").concat("PRODUCER_DEFAULT_NAME")) && !entry.getKey().equals("statistic_topic_consumerinfo".concat("_").concat("PRODUCER_DEFAULT_NAME")))
             .collect(Collectors.toMap(Map.Entry::getKey, (entry) -> CompletableFuture.supplyAsync(() -> this.determineProducerClient(entry.getValue()))))
@@ -101,7 +98,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return producerStatusMap;
     }
 
-    private Map<String, String> getConsumeLatency(Map<String, MmsConsumerProxy> consumers) {
+    private Map<String, String> getConsumeLatency(Map<String, ConsumerProxy> consumers) {
         Map<String, String> consumeLatencyMap = new HashMap<>();
         consumers.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, (entry) -> CompletableFuture.supplyAsync(() -> this.statisticsConsumeLatency(entry.getValue()))))
@@ -116,7 +113,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return consumeLatencyMap;
     }
 
-    private Map<String, String> getSendFailRate(Map<String, MmsProducerProxy> producers) {
+    private Map<String, String> getSendFailRate(Map<String, ProducerProxy> producers) {
         Map<String, String> sendFailRateMap = new HashMap<>();
         (producers.entrySet()
             .stream()
@@ -133,7 +130,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return sendFailRateMap;
     }
 
-    private boolean determineConsumerClient(MmsConsumerProxy zmsConsumerProxy) {
+    private boolean determineConsumerClient(ConsumerProxy zmsConsumerProxy) {
         boolean isShutdown;
         if (zmsConsumerProxy instanceof KafkaConsumerProxy) {
             isShutdown = this.determineKafkaConsumerClient((KafkaConsumerProxy)zmsConsumerProxy);
@@ -146,7 +143,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return isShutdown;
     }
 
-    private boolean determineProducerClient(MmsProducerProxy zmsProducerProxy) {
+    private boolean determineProducerClient(ProducerProxy zmsProducerProxy) {
         boolean isShutdown;
         if (zmsProducerProxy instanceof KafkaProducerProxy) {
             isShutdown = this.determineKafkaProducerClient((KafkaProducerProxy)zmsProducerProxy);
@@ -159,7 +156,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return isShutdown;
     }
 
-    private long statisticsConsumeLatency(MmsConsumerProxy zmsConsumerProxy) {
+    private long statisticsConsumeLatency(ConsumerProxy zmsConsumerProxy) {
         long msgCount = 0L;
         if (zmsConsumerProxy instanceof RocketmqConsumerProxy) {
             msgCount = this.statisticsRocketMQConsumeLatency((RocketmqConsumerProxy)zmsConsumerProxy);
@@ -171,12 +168,12 @@ public class MQHealthIndicator implements HealthIndicator {
         return msgCount;
     }
 
-    private String statisticsSendFailRate(MmsProducerProxy zmsProducerProxy) {
+    private String statisticsSendFailRate(ProducerProxy zmsProducerProxy) {
         String sendFailRate = "";
         try {
-            Field mmsMetricsField = this.getField(zmsProducerProxy.getClass(), "zmsMetrics");
+            Field mmsMetricsField = this.getField(zmsProducerProxy.getClass(), "mmsMetrics");
             if(Objects.nonNull(mmsMetricsField)) {
-                MmsProducerMetrics zmsProducerMetrics = (MmsProducerMetrics)mmsMetricsField.get(zmsProducerProxy);
+                ProducerMetrics zmsProducerMetrics = (ProducerMetrics)mmsMetricsField.get(zmsProducerProxy);
                 Map<String, Double> meterMap = new HashMap<>();
                 Meter meter = zmsProducerMetrics.messageFailureRate();
                 meterMap.put("oneMinuteRate", meter.getOneMinuteRate());
@@ -323,7 +320,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return isShutdown;
     }
 
-    private Map<String, MmsConsumerProxy> getConsumers() {
+    private Map<String, ConsumerProxy> getConsumers() {
         if (this.consumers == null) {
             try {
                 Field field = this.getField(ConsumerFactory.class, "consumers");
@@ -335,7 +332,7 @@ public class MQHealthIndicator implements HealthIndicator {
         return this.consumers;
     }
 
-    private Map<String, MmsProducerProxy> getProducers() {
+    private Map<String, ProducerProxy> getProducers() {
         if (this.producers == null) {
             try {
                 Field field = this.getField(ProducerFactory.class, "topicProducers");
@@ -348,17 +345,17 @@ public class MQHealthIndicator implements HealthIndicator {
     }
 
     private String getConsumerName(String name) {
-        return name.replaceAll("_".concat("CONSUMER_DEFAULT_NAME"), "");
+        return name.replaceAll("_".concat(MmsConst.DEFAULT_CONSUMER), "");
     }
 
     private String getProducerName(String name) {
-        return name.replaceAll("_".concat("PRODUCER_DEFAULT_NAME"), "");
+        return name.replaceAll("_".concat(MmsConst.DEFAULT_PRODUCER), "");
     }
 
     private Field getField(Class<?> sourceClass, String fieldName) {
         Field field = ReflectionUtils.findField(sourceClass, fieldName);
         if (field == null) {
-            throw FrameworkException.getInstance("{0} 找不到 {1} 属性", sourceClass.getName(), fieldName);
+            throw FrameworkException.getInstance("{0}找不到{1}属性", sourceClass.getName(), fieldName);
         } else {
             field.setAccessible(true);
             return field;

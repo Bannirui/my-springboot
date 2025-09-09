@@ -60,7 +60,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(beanDefinition.getBeanClass());
         if (beanDefinition.getDependsOnList() != null) {
             beanDefinition.getDependsOnList().forEach((dependsOn) -> {
-                beanDefinitionBuilder.addDependsOn((String) dependsOn);
+                beanDefinitionBuilder.addDependsOn(dependsOn);
             });
         }
         if (beanDefinition.getConstructorArgumentValues() != null) {
@@ -69,9 +69,7 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
             });
         }
         if (beanDefinition.getConstructorArgumentBeanNames() != null) {
-            beanDefinition.getConstructorArgumentBeanNames().forEach((arg) -> {
-                beanDefinitionBuilder.addConstructorArgReference((String)arg);
-            });
+            beanDefinition.getConstructorArgumentBeanNames().forEach((arg) -> beanDefinitionBuilder.addConstructorArgReference(arg));
         }
         if (beanDefinition.getDestroyMethodName() != null) {
             beanDefinitionBuilder.setDestroyMethodName(beanDefinition.getDestroyMethodName());
@@ -81,12 +79,12 @@ public abstract class AbstractBeanRegistrar implements ApplicationContextAware, 
         }
         if (beanDefinition.getProperties() != null) {
             beanDefinition.getProperties().forEach((name, value) -> {
-                beanDefinitionBuilder.addPropertyValue((String)name, value);
+                beanDefinitionBuilder.addPropertyValue(name, value);
             });
         }
         if (beanDefinition.getPropertiesBeanNames() != null) {
             beanDefinition.getPropertiesBeanNames().forEach((name, value) -> {
-                beanDefinitionBuilder.addPropertyReference((String)name, (String)value);
+                beanDefinitionBuilder.addPropertyReference(name, value);
             });
         }
         this.registry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
