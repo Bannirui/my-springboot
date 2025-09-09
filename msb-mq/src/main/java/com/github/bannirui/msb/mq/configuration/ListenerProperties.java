@@ -1,20 +1,18 @@
 package com.github.bannirui.msb.mq.configuration;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * mq消费者配置.
+ * MQ监听器的配置信息.
  */
-public class MMSSubscribeInfo {
-    private Set<String> tags = new HashSet<>();
-    private String consumeThreadMin;
+public class ListenerProperties {
+    private String consumerGroup;
+    private String templateName;
     private String consumeThreadMax;
+    private String consumeThreadMin;
     private String orderlyConsumePartitionParallelism;
     private String maxBatchRecords;
     private String consumeBatchSize;
-    private boolean easy;
     private String isOrderly;
+    private String tags;
     private String consumeTimeoutMs;
     private String maxReconsumeTimes;
     private String isNewPush;
@@ -44,20 +42,20 @@ public class MMSSubscribeInfo {
         this.maxReconsumeTimes = maxReconsumeTimes;
     }
 
-    public Set<String> getTags() {
-        return this.tags;
+    public String getConsumerGroup() {
+        return this.consumerGroup;
     }
 
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
+    public void setConsumerGroup(String consumerGroup) {
+        this.consumerGroup = consumerGroup;
     }
 
-    public String getConsumeThreadMin() {
-        return this.consumeThreadMin;
+    public String getTemplateName() {
+        return this.templateName;
     }
 
-    public void setConsumeThreadMin(String consumeThreadMin) {
-        this.consumeThreadMin = consumeThreadMin;
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 
     public String getConsumeThreadMax() {
@@ -66,6 +64,14 @@ public class MMSSubscribeInfo {
 
     public void setConsumeThreadMax(String consumeThreadMax) {
         this.consumeThreadMax = consumeThreadMax;
+    }
+
+    public String getConsumeThreadMin() {
+        return this.consumeThreadMin;
+    }
+
+    public void setConsumeThreadMin(String consumeThreadMin) {
+        this.consumeThreadMin = consumeThreadMin;
     }
 
     public String getOrderlyConsumePartitionParallelism() {
@@ -84,20 +90,20 @@ public class MMSSubscribeInfo {
         this.maxBatchRecords = maxBatchRecords;
     }
 
-    public boolean isEasy() {
-        return this.easy;
-    }
-
-    public void setEasy(boolean easy) {
-        this.easy = easy;
-    }
-
     public String getIsOrderly() {
         return this.isOrderly;
     }
 
     public void setIsOrderly(String isOrderly) {
         this.isOrderly = isOrderly;
+    }
+
+    public String getTags() {
+        return this.tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public String getIsNewPush() {

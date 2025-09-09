@@ -26,17 +26,17 @@ import java.util.stream.Collectors;
 /**
  * 把{@link MMSListener}注解标识的监听器配置缓存起来.
  */
-public class MMSListenerInitialization implements BeanPostProcessor, EnvironmentAware, PriorityOrdered {
-    private static final Logger logger = LoggerFactory.getLogger(MMSListenerInitialization.class);
+public class ListenerInitialization implements BeanPostProcessor, EnvironmentAware, PriorityOrdered {
+    private static final Logger logger = LoggerFactory.getLogger(ListenerInitialization.class);
 
-    private Map<String, MMSListenerProperties> mmsListenerPropertiesMap = new HashMap<>();
+    private Map<String, ListenerProperties> mmsListenerPropertiesMap = new HashMap<>();
 
     @Override
     public void setEnvironment(Environment environment) {
         // msb配置
-        List<MMSListenerProperties> mmsListenerProperties = Binder.get(environment).bind("msb.mq.consumer", Bindable.listOf(MMSListenerProperties.class)).orElseGet(ArrayList::new);
-        if(CollectionUtils.isNotEmpty(mmsListenerProperties)) {
-            this.mmsListenerPropertiesMap = mmsListenerProperties.stream().filter((p) -> StringUtils.isNotBlank(p.getConsumerGroup())).collect(Collectors.toMap(MMSListenerProperties::getConsumerGroup, Function.identity()));
+        List<ListenerProperties> listenerProperties = Binder.get(environment).bind("msb.mq.consumer", Bindable.listOf(ListenerProperties.class)).orElseGet(ArrayList::new);
+        if(CollectionUtils.isNotEmpty(listenerProperties)) {
+            this.mmsListenerPropertiesMap = listenerProperties.stream().filter((p) -> StringUtils.isNotBlank(p.getConsumerGroup())).collect(Collectors.toMap(ListenerProperties::getConsumerGroup, Function.identity()));
         }
     }
 
@@ -86,7 +86,7 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
             // 监听器上注解指定的mq消费者信息
             MMSListener annotation = method.getAnnotation(MMSListener.class);
             String consumerGroup = annotation.consumerGroup();
-            MMSListenerProperties zp = this.mmsListenerPropertiesMap.get(consumerGroup);
+            ListenerProperties zp = this.mmsListenerPropertiesMap.get(consumerGroup);
             boolean b = zp != null;
             String consumeThreadMax = b && StringUtils.isNotBlank(zp.getConsumeThreadMax()) ? zp.getConsumeThreadMax() : annotation.consumeThreadMax();
             String consumeThreadMin = b && StringUtils.isNotBlank(zp.getConsumeThreadMin()) ? zp.getConsumeThreadMin() : annotation.consumeThreadMin();
@@ -98,7 +98,7 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
             String maxReconsumeTimes = b && StringUtils.isNotBlank(zp.getMaxReconsumeTimes()) ? zp.getMaxReconsumeTimes() : annotation.maxReconsumeTimes();
             String isNewPush = b && StringUtils.isNotBlank(zp.getIsNewPush()) ? zp.getIsNewPush() : annotation.isNewPush();
             String orderlyConsumeThreadSize = b && StringUtils.isNotBlank(zp.getOrderlyConsumeThreadSize()) ? zp.getOrderlyConsumeThreadSize() : annotation.orderlyConsumeThreadSize();
-            MMSSubscribeInfo subscribeInfo = new MMSSubscribeInfo();
+            SubscribeInfo subscribeInfo = new SubscribeInfo();
             subscribeInfo.setConsumeThreadMax(consumeThreadMax);
             subscribeInfo.setConsumeThreadMin(consumeThreadMin);
             subscribeInfo.setOrderlyConsumePartitionParallelism(orderlyConsumePartitionParallelism);
@@ -112,7 +112,7 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
             Set<String> tagsSet = new HashSet<>();
             if ("*".equals(tags)) {
                 if (MMSContext.checkTag(consumerGroup, tags)) {
-                    MMSContext.getMmsConfMap().put(consumerGroup + "~" + tags, MMSContext.getMMSConf(consumerGroup, method, bean, paramList, tags));
+                    MMSContext.getConfMap().put(consumerGroup + "~" + tags, MMSContext.getConf(consumerGroup, method, bean, paramList, tags));
                     tagsSet.add(tags);
                 }
             } else {
@@ -121,7 +121,7 @@ public class MMSListenerInitialization implements BeanPostProcessor, Environment
                 for (String tag : tagList) {
                     if(MMSContext.checkTag(consumerGroup, tags)) {
                         tagsSet.add(tag);
-                        MMSContext.getMmsConfMap().put(consumerGroup + "~" + tag, MMSContext.getMMSConf(consumerGroup, method, bean, paramList, tag));
+                        MMSContext.getConfMap().put(consumerGroup + "~" + tag, MMSContext.getConf(consumerGroup, method, bean, paramList, tag));
                     }
                 }
             }

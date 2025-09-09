@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-public class MMSConf {
+public class Conf {
     private String consumerGroup;
     private String tag;
     private List<Map<String, Object>> params;

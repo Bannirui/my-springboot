@@ -14,13 +14,13 @@ import java.util.Set;
 /**
  * 消费者.
  */
-public class MMSSubscribeTemplate implements DisposableBean {
+public class SubscribeTemplate implements DisposableBean {
     private MmsMsbImpl mmsMsb;
 
     /**
      * 有参数构造 {@link org.springframework.cglib.proxy.Enhancer}代理使用
      */
-    public MMSSubscribeTemplate(MmsMsbImpl mmsMsb) {
+    public SubscribeTemplate(MmsMsbImpl mmsMsb) {
         this.mmsMsb = mmsMsb;
     }
 
@@ -43,7 +43,7 @@ public class MMSSubscribeTemplate implements DisposableBean {
     }
 
     /**
-     * @param listener {@link MMSMessageListenerImpl}代理对象
+     * @param listener {@link MessageListenerImpl}代理对象
      */
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener, Map<MmsClientConfig.CONSUMER, Object> properties) {
         this.mmsMsb.subscribe(consumerGroup, tags, listener, properties);

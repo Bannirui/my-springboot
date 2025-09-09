@@ -1,18 +1,20 @@
 package com.github.bannirui.msb.mq.configuration;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * MQ监听器的配置信息.
+ * mq消费者配置.
  */
-public class MMSListenerProperties {
-    private String consumerGroup;
-    private String templateName;
-    private String consumeThreadMax;
+public class SubscribeInfo {
+    private Set<String> tags = new HashSet<>();
     private String consumeThreadMin;
+    private String consumeThreadMax;
     private String orderlyConsumePartitionParallelism;
     private String maxBatchRecords;
     private String consumeBatchSize;
+    private boolean easy;
     private String isOrderly;
-    private String tags;
     private String consumeTimeoutMs;
     private String maxReconsumeTimes;
     private String isNewPush;
@@ -42,28 +44,12 @@ public class MMSListenerProperties {
         this.maxReconsumeTimes = maxReconsumeTimes;
     }
 
-    public String getConsumerGroup() {
-        return this.consumerGroup;
+    public Set<String> getTags() {
+        return this.tags;
     }
 
-    public void setConsumerGroup(String consumerGroup) {
-        this.consumerGroup = consumerGroup;
-    }
-
-    public String getTemplateName() {
-        return this.templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public String getConsumeThreadMax() {
-        return this.consumeThreadMax;
-    }
-
-    public void setConsumeThreadMax(String consumeThreadMax) {
-        this.consumeThreadMax = consumeThreadMax;
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     public String getConsumeThreadMin() {
@@ -72,6 +58,14 @@ public class MMSListenerProperties {
 
     public void setConsumeThreadMin(String consumeThreadMin) {
         this.consumeThreadMin = consumeThreadMin;
+    }
+
+    public String getConsumeThreadMax() {
+        return this.consumeThreadMax;
+    }
+
+    public void setConsumeThreadMax(String consumeThreadMax) {
+        this.consumeThreadMax = consumeThreadMax;
     }
 
     public String getOrderlyConsumePartitionParallelism() {
@@ -90,20 +84,20 @@ public class MMSListenerProperties {
         this.maxBatchRecords = maxBatchRecords;
     }
 
+    public boolean isEasy() {
+        return this.easy;
+    }
+
+    public void setEasy(boolean easy) {
+        this.easy = easy;
+    }
+
     public String getIsOrderly() {
         return this.isOrderly;
     }
 
     public void setIsOrderly(String isOrderly) {
         this.isOrderly = isOrderly;
-    }
-
-    public String getTags() {
-        return this.tags;
-    }
-
-    public void setTags(String tags) {
-        this.tags = tags;
     }
 
     public String getIsNewPush() {

@@ -29,9 +29,9 @@ import java.util.Map;
  *     <li>mq</li>
  * </ul>
  */
-public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMessageListener {
+public class MessageListenerImpl implements RocketmqMessageListener, KafkaMessageListener {
 
-    private static final Logger log = LoggerFactory.getLogger(MMSMessageListenerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(MessageListenerImpl.class);
 
     private boolean easy = false;
     private String consumerGroup;
@@ -40,7 +40,7 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
      * 有参数构造 {@link org.springframework.cglib.proxy.Enhancer}生成代理对象时使用
      * @param consumerGroup
      */
-    public MMSMessageListenerImpl(String consumerGroup) {
+    public MessageListenerImpl(String consumerGroup) {
         this.consumerGroup = consumerGroup;
     }
 
@@ -55,16 +55,16 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
     @Override
     public MsgConsumedStatus onMessage(ConsumeMessage msg) {
         try {
-            MMSConf MMSConf = MMSContext.getMmsConfMap().get(this.consumerGroup + "~" + msg.getTag());
-            if (MMSConf == null) {
-                MMSConf = MMSContext.getMmsConfMap().get(this.consumerGroup + "~" + "*");
+            Conf conf = MMSContext.getConfMap().get(this.consumerGroup + "~" + msg.getTag());
+            if (conf == null) {
+                conf = MMSContext.getConfMap().get(this.consumerGroup + "~" + "*");
             }
-            if (MMSConf == null) {
+            if (conf == null) {
                 throw FrameworkException.getInstance("订阅消息未定义的consumerGroup:[{0}] tags:[{1}]", this.consumerGroup, msg.getTag());
             }
-            Object[] params = new Object[MMSConf.getParams().size()];
-            for(int i = 0; i < MMSConf.getParams().size(); ++i) {
-                Map<String, Object> map = MMSConf.getParams().get(i);
+            Object[] params = new Object[conf.getParams().size()];
+            for(int i = 0; i < conf.getParams().size(); ++i) {
+                Map<String, Object> map = conf.getParams().get(i);
                 String param;
                 if (map.get("name").toString().equalsIgnoreCase(MQMsgEnum.BODY.getValue())) {
                     param = new String(msg.getPayload());
@@ -99,7 +99,7 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
                 }
                 params[i] = this.serialize(map, param);
             }
-            Object result = MMSConf.getMethod().invoke(MMSConf.getObj(), params);
+            Object result = conf.getMethod().invoke(conf.getObj(), params);
             if (result instanceof MMSResult) {
                 return ((MMSResult)result).getConsumedStatus();
             }
@@ -118,16 +118,16 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
     @Override
     public MsgConsumedStatus onMessage(MessageExt msg) {
         try {
-            MMSConf MMSConf = MMSContext.getMmsConfMap().get(this.consumerGroup + "~" + msg.getTags());
-            if (MMSConf == null) {
-                MMSConf = MMSContext.getMmsConfMap().get(this.consumerGroup + "~*");
+            Conf conf = MMSContext.getConfMap().get(this.consumerGroup + "~" + msg.getTags());
+            if (conf == null) {
+                conf = MMSContext.getConfMap().get(this.consumerGroup + "~*");
             }
-            if (MMSConf == null) {
+            if (conf == null) {
                 throw FrameworkException.getInstance("订阅消息未定义的consumerGroup:[{0}] tags:[{1}]", this.consumerGroup, msg.getTags());
             }
-            Object[] params = new Object[MMSConf.getParams().size()];
-            for(int i = 0; i < MMSConf.getParams().size(); ++i) {
-                Map<String, Object> map = MMSConf.getParams().get(i);
+            Object[] params = new Object[conf.getParams().size()];
+            for(int i = 0; i < conf.getParams().size(); ++i) {
+                Map<String, Object> map = conf.getParams().get(i);
                 String param;
                 if (map.get("name").toString().equalsIgnoreCase(MQMsgEnum.BODY.getValue())) {
                     param = new String(msg.getBody());
@@ -162,7 +162,7 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
                 }
                 params[i] = this.serialize(map, param);
             }
-            Object result = MMSConf.getMethod().invoke(MMSConf.getObj(), params);
+            Object result = conf.getMethod().invoke(conf.getObj(), params);
             if (result instanceof MMSResult) {
                 return ((MMSResult)result).getConsumedStatus();
             }
@@ -181,13 +181,13 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
     @Override
     public MsgConsumedStatus onMessage(ConsumerRecord msg) {
         try {
-            MMSConf MMSConf = MMSContext.getMmsConfMap().get(this.consumerGroup + "~*");
-            if (MMSConf == null) {
+            Conf conf = MMSContext.getConfMap().get(this.consumerGroup + "~*");
+            if (conf == null) {
                 throw FrameworkException.getInstance("订阅消息未定义的consumerGroup:[{0}]", this.consumerGroup);
             }
-            Object[] params = new Object[MMSConf.getParams().size()];
-            for(int i = 0; i < MMSConf.getParams().size(); ++i) {
-                Map<String, Object> map = MMSConf.getParams().get(i);
+            Object[] params = new Object[conf.getParams().size()];
+            for(int i = 0; i < conf.getParams().size(); ++i) {
+                Map<String, Object> map = conf.getParams().get(i);
                 String param = null;
                 if (map.get("name").toString().equalsIgnoreCase(MQMsgEnum.BODY.getValue())) {
                     param = new String((byte[]) msg.value(), StandardCharsets.UTF_8);
@@ -204,7 +204,7 @@ public class MMSMessageListenerImpl implements RocketmqMessageListener, KafkaMes
                 }
                 params[i] = this.serialize(map, param);
             }
-            Object result = MMSConf.getMethod().invoke(MMSConf.getObj(), params);
+            Object result = conf.getMethod().invoke(conf.getObj(), params);
             if (result instanceof MMSResult) {
                 return ((MMSResult)result).getConsumedStatus();
             }

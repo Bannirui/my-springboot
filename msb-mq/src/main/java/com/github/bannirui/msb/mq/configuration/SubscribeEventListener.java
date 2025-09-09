@@ -1,6 +1,7 @@
 package com.github.bannirui.msb.mq.configuration;
 
 import com.github.bannirui.mms.client.config.MmsClientConfig;
+import com.github.bannirui.msb.constant.AppEventListenerSort;
 import com.github.bannirui.msb.ex.FrameworkException;
 import com.github.bannirui.msb.plugin.InterceptorUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -17,24 +18,25 @@ import java.util.Map;
 /**
  * 接收到{@link ApplicationReadyEvent}生命周期回调时机向mq服务端发起订阅.
  */
-public class MMSSubscribeEventListener implements ApplicationListener<ApplicationReadyEvent>, Ordered {
-    private static final Logger logger = LoggerFactory.getLogger(MMSSubscribeEventListener.class);
+public class SubscribeEventListener implements ApplicationListener<ApplicationReadyEvent>, Ordered {
+    private static final Logger logger = LoggerFactory.getLogger(SubscribeEventListener.class);
 
     @Autowired
-    private MMSSubscribeTemplate MMSSubscribeTemplate;
+    private SubscribeTemplate subscribeTemplate;
 
     /**
      * 应用准备好 订阅mq消息.
      */
+    @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         // 缓存的监听器配置信息
-        Map<String, MMSSubscribeInfo> consumerInfo = MMSContext.getConsumerInfo();
-        for (Map.Entry<String, MMSSubscribeInfo> entry : consumerInfo.entrySet()) {
+        Map<String, SubscribeInfo> consumerInfo = MMSContext.getConsumerInfo();
+        for (Map.Entry<String, SubscribeInfo> entry : consumerInfo.entrySet()) {
             String consumerGroup = entry.getKey();
-            MMSSubscribeInfo subscribeInfo = entry.getValue();
+            SubscribeInfo subscribeInfo = entry.getValue();
             try {
                 // 创建代理
-                MMSMessageListenerImpl listenerProxy = InterceptorUtil.getProxyObj(MMSMessageListenerImpl.class, new Class[]{String.class}, new Object[]{consumerGroup}, "MMS.Consumer");
+                MessageListenerImpl listenerProxy = InterceptorUtil.getProxyObj(MessageListenerImpl.class, new Class[]{String.class}, new Object[]{consumerGroup}, "MMS.Consumer");
                 listenerProxy.setEasy(subscribeInfo.isEasy());
                 Map<MmsClientConfig.CONSUMER, Object> properties = new HashMap<>();
                 if (StringUtils.isNotBlank(subscribeInfo.getConsumeThreadMax())) {
@@ -64,8 +66,8 @@ public class MMSSubscribeEventListener implements ApplicationListener<Applicatio
                 if (StringUtils.isNotBlank(subscribeInfo.getOrderlyConsumeThreadSize())) {
                     properties.put(MmsClientConfig.CONSUMER.ORDERLY_CONSUME_THREAD_SIZE, subscribeInfo.getOrderlyConsumeThreadSize());
                 }
-                this.MMSSubscribeTemplate.subscribe(consumerGroup, subscribeInfo.getTags(), listenerProxy, properties);
-                logger.info("MMS订阅消息 ConsumerGroup={} tags={}", consumerGroup, subscribeInfo.getTags());
+                this.subscribeTemplate.subscribe(consumerGroup, subscribeInfo.getTags(), listenerProxy, properties);
+                logger.info("订阅消息ConsumerGroup={} tags={}", consumerGroup, subscribeInfo.getTags());
             } catch (Exception e) {
                 throw FrameworkException.getInstance(e, "消费组订阅失败：ConsumerGroup={0}", consumerGroup);
             }
@@ -74,6 +76,6 @@ public class MMSSubscribeEventListener implements ApplicationListener<Applicatio
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return AppEventListenerSort.MMS;
     }
 }

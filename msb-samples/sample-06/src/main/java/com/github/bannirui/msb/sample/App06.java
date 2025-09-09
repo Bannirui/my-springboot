@@ -7,7 +7,7 @@ import com.github.bannirui.msb.log.annotation.EnableMsbLog;
 import com.github.bannirui.msb.mq.annotation.EnableMsbMQ;
 import com.github.bannirui.msb.mq.annotation.MMSListener;
 import com.github.bannirui.msb.mq.annotation.MMSListenerParameter;
-import com.github.bannirui.msb.mq.configuration.MMSTemplate;
+import com.github.bannirui.msb.mq.configuration.SendTemplate;
 import com.github.bannirui.msb.mq.enums.MMSResult;
 import com.github.bannirui.msb.mq.enums.MQMsgEnum;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class App06 implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(App06.class);
     @Autowired
-    MMSTemplate mmsTemplate;
+    SendTemplate sendTemplate;
 
     public static void main(String[] args) {
         SpringApplication.run(App06.class, args);
@@ -43,11 +43,12 @@ public class App06 implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        while (true) {
+        boolean option = false;
+        while (option) {
             Thread.sleep(5_000L);
             // mq发送消息
             log.info("开始发送消息");
-            String mid = this.mmsTemplate.send("topic1", "1", "hello.");
+            String mid = this.sendTemplate.send("topic1", "1", "hello.");
             log.info("业务发送MQ消息成功 mid={}", mid);
         }
     }

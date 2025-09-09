@@ -17,7 +17,7 @@ import java.util.*;
 /**
  * 生产者.
  */
-public class MMSTemplate implements DisposableBean {
+public class SendTemplate implements DisposableBean {
     private static final Charset UTF_8 = StandardCharsets.UTF_8;
     private MmsMsbImpl mmsMsb;
     private List<CompleteMessageListener> listeners = Lists.newArrayList();
@@ -25,7 +25,7 @@ public class MMSTemplate implements DisposableBean {
     /**
      * 有参构造 Enhancer代理时使用
      */
-    public MMSTemplate(MmsMsbImpl mmsMsb) {
+    public SendTemplate(MmsMsbImpl mmsMsb) {
         this.mmsMsb = mmsMsb;
     }
 

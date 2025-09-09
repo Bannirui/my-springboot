@@ -14,7 +14,7 @@ public class MMSContext {
      * <ul>key consumer group</ul>
      * <ul>val 消费者配置</ul>
      */
-    private static Map<String, MMSSubscribeInfo> consumerInfo = new ConcurrentHashMap<>();
+    private static Map<String, SubscribeInfo> consumerInfo = new ConcurrentHashMap<>();
     /**
      * <ul>
      *     <li>key consumer group+tag</li>
@@ -25,19 +25,19 @@ public class MMSContext {
      *     <li>当tag有多个时 缓存的维度就是tag 每个tag都缓存了key是group~tag</li>
      * </ul>
      */
-    private static Map<String, MMSConf> mmsConfMap = new ConcurrentHashMap<>();
-    private static final Map<String, MMSConf> templateMmsConfMap = new ConcurrentHashMap<>();
+    private static Map<String, Conf> confMap = new ConcurrentHashMap<>();
+    private static final Map<String, Conf> templateConfMap = new ConcurrentHashMap<>();
 
-    public static Map<String, MMSConf> getMmsConfMap() {
-        return mmsConfMap;
+    public static Map<String, Conf> getConfMap() {
+        return confMap;
     }
 
-    public static Map<String, MMSConf> getTemplateMmsConfMap() {
-        return templateMmsConfMap;
+    public static Map<String, Conf> getTemplateConfMap() {
+        return templateConfMap;
     }
 
-    public static void setMmsConfMap(Map<String, MMSConf> mmsConfMap) {
-        MMSContext.mmsConfMap = mmsConfMap;
+    public static void setConfMap(Map<String, Conf> confMap) {
+        MMSContext.confMap = confMap;
     }
 
     /**
@@ -48,14 +48,14 @@ public class MMSContext {
      * @param params 方法中映射mq属性的参数
      * @param tag 监听的消息tag
      */
-    public static MMSConf getMMSConf(String consumerGroup, Method method, Object obj, List<Map<String, Object>> params, String tag) {
-        MMSConf MMSConf = new MMSConf();
-        MMSConf.setConsumerGroup(consumerGroup);
-        MMSConf.setMethod(method);
-        MMSConf.setObj(obj);
-        MMSConf.setParams(params);
-        MMSConf.setTag(tag);
-        return MMSConf;
+    public static Conf getConf(String consumerGroup, Method method, Object obj, List<Map<String, Object>> params, String tag) {
+        Conf conf = new Conf();
+        conf.setConsumerGroup(consumerGroup);
+        conf.setMethod(method);
+        conf.setObj(obj);
+        conf.setParams(params);
+        conf.setTag(tag);
+        return conf;
     }
 
     /**
@@ -63,7 +63,7 @@ public class MMSContext {
      * @param consumerGroup mq consumer group
      * @param info 消费者配置信息
      */
-    public static void putConsumerInfo(String consumerGroup, MMSSubscribeInfo info) {
+    public static void putConsumerInfo(String consumerGroup, SubscribeInfo info) {
         consumerInfo.compute(consumerGroup, (k, v) -> {
             if (v == null) {
                 return info;
@@ -89,7 +89,7 @@ public class MMSContext {
      * @return <t>TRUE</t>表示tag合法 可以添加到配置中 <t>FALSE</t>表示tag不合法没有通过校验
      */
     public static boolean checkTag(String consumerGroup, String tag) {
-        Map<String, MMSSubscribeInfo> allConsumerInfo = new ConcurrentHashMap<>();
+        Map<String, SubscribeInfo> allConsumerInfo = new ConcurrentHashMap<>();
         allConsumerInfo.putAll(consumerInfo);
         if (allConsumerInfo.containsKey(consumerGroup)) {
             if ("*".equals(tag) && !allConsumerInfo.get(consumerGroup).getTags().isEmpty()) {
@@ -102,11 +102,11 @@ public class MMSContext {
         return true;
     }
 
-    public static Map<String, MMSSubscribeInfo> getConsumerInfo() {
+    public static Map<String, SubscribeInfo> getConsumerInfo() {
         return consumerInfo;
     }
 
-    public static void setConsumerInfo(Map<String, MMSSubscribeInfo> consumerInfo) {
+    public static void setConsumerInfo(Map<String, SubscribeInfo> consumerInfo) {
         MMSContext.consumerInfo = consumerInfo;
     }
 }

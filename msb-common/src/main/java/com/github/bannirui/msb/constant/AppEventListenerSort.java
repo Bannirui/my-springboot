@@ -25,4 +25,5 @@ public interface AppEventListenerSort {
 
     // 接入cat日志
     int CAT_LOG = APOLLO_CONFIG + 1;
+    int MMS = CAT_LOG + 1;
 }
