@@ -8,7 +8,6 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -36,23 +35,11 @@ public class SubscribeTemplate implements DisposableBean {
         this.mmsMsb.subscribe(consumerGroup, tags, listener);
     }
 
-    /** @deprecated */
-    @Deprecated
-    public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener, Properties properties) {
-        this.mmsMsb.subscribe(consumerGroup, tags, listener, properties);
-    }
-
     /**
      * @param listener {@link MessageListenerImpl}代理对象
      */
     public void subscribe(String consumerGroup, Set<String> tags, MessageListener listener, Map<MmsClientConfig.CONSUMER, Object> properties) {
         this.mmsMsb.subscribe(consumerGroup, tags, listener, properties);
-    }
-
-    /** @deprecated */
-    @Deprecated
-    public void subscribe(String consumerGroup, MessageListener listener, Properties properties) {
-        this.mmsMsb.subscribe(consumerGroup, Sets.newHashSet(), listener, properties);
     }
 
     public void subscribe(String consumerGroup, MessageListener listener, Map<MmsClientConfig.CONSUMER, Object> properties) {
